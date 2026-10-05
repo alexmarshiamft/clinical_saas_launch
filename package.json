@@ -23,7 +23,8 @@
     "test:challenger:m4": "tsx tests/m4-challenger-stress.test.ts",
     "test:aura": "tsx tests/m5-aura-scrubber.test.ts",
     "test:e2e": "node tests/e2e/run-all.mjs",
-    "record:demo": "node scripts/record-demo-tour.mjs"
+    "record:demo": "node scripts/record-demo-tour.mjs",
+    "screenshots:capture": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-chime-sdk-meetings": "^3.1015.0",
