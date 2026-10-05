@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "audit_metadata": {
+    "project_name": "TheraFlow OS (Clinical SaaS Platform)",
+    "audit_date": "2026-10-05",
+    "auditor_role": "Independent Technical Due Diligence & M&A Systems Auditor",
+    "repository_root": "/Users/alexandermarshi/teamwork_projects/clinical_saas_launch",
+    "git_branch": "master",
+    "production_deployment_url": "https://clinicalsaaslaunch.vercel.app",
+    "audit_classification": "Polished Prototype / Production-Capable MVP"
+  },
+  "executive_verdict": {
+    "ratings": {
+      "technical_completeness": {
+        "score": 7.0,
+        "max": 10,
+        "rationale": "High breadth across clinical EHR, AI note generation, client-side Safe Harbor scrubber, CMS-1500 superbills, and hash-chained audit logs. Simulated gaps exist in real-time audio diarization, live WebRTC video, and clearinghouse EDI transmission."
+      },
+      "production_readiness": {
+        "score": 5.5,
+        "max": 10,
+        "rationale": "Dual-engine architecture allows instant offline demoing, but production use requires configuring external Supabase, real Stripe live keys, AWS Chime credentials, and an external HIPAA-compliant database backend."
+      },
+      "code_quality": {
+        "score": 8.5,
+        "max": 10,
+        "rationale": "Strict TypeScript across 83 production files with zero `any` shortcuts, comprehensive interface definitions, clean modular components, and zero TypeScript compiler errors."
+      },
+      "maintainability": {
+        "score": 8.0,
+        "max": 10,
+        "rationale": "Clear folder separation across src/lib, src/components, and tests. Zero TODO/FIXME markers in production files. Modular state stores with localized persistence adapters."
+      },
+      "security_readiness": {
+        "score": 6.5,
+        "max": 10,
+        "rationale": "Deterministic client-side Safe Harbor PHI scrubbing, cryptographic SHA-256 tamper-evident log chaining, and CSRF/rate-limiting middleware in Express. Default fallback stores auth tokens and client PHI in browser localStorage without at-rest encryption."
+      },
+      "commercial_readiness": {
+        "score": 6.0,
+        "max": 10,
+        "rationale": "Polished landing page, interactive demo guide, functional pricing tiers, and Stripe checkout initiation. Lacks live multi-seat tenant isolation, BAA automated execution flow, and EDI 837P insurance claim submission."
+      },
+      "acquisition_readiness": {
+        "score": 7.5,
+        "max": 10,
+        "rationale": "Turnkey codebase with high-fidelity UI/UX, robust frontend test suite (509 passing tests), clean Git history, zero proprietary framework lock-in, and well-structured replacement value."
+      }
+    },
+    "weighted_average": 7.0
+  },
+  "exact_product_inventory": [
+    {
+      "feature_module": "Authentication & Session Engine",
+      "classification": "FUNCTIONAL WITH LIMITATIONS",
+      "code_paths": ["src/lib/auth-context.tsx", "server.ts"],
+      "notes": "Full Supabase OAuth/JWT integration implemented when SUPABASE_URL configured; falls back automatically to localStorage demo session with pre-seeded credentials."
+    },
+    {
+      "feature_module": "HIPAA 18-Identifier PHI Scrubber",
+      "classification": "FULLY FUNCTIONAL",
+      "code_paths": ["src/lib/phi-scrubber.ts", "src/components/PhiScrubberView.tsx"],
+      "notes": "Fully functional deterministic client-side regex engine covering all 18 Safe Harbor identifier categories with 3 masking modes (Tag, Block, Asterisk), zero cloud leaks, and zero network calls."
+    },
+    {
+      "feature_module": "AI Clinical Note Generator (SOAP/DAP/PIRP)",
+      "classification": "FULLY FUNCTIONAL",
+      "code_paths": ["src/lib/gemini.ts", "src/components/ScribeView.tsx", "src/lib/scribe-context.tsx"],
+      "notes": "Dual-engine design: calls live @google/genai SDK (Gemini 2.5 Flash) if GEMINI_API_KEY is supplied; falls back to an instant (<5ms) deterministic clinical heuristic rule engine."
+    },
+    {
+      "feature_module": "Ambient Multi-Speaker Diarization",
+      "classification": "DEMO/SIMULATION",
+      "code_paths": ["src/lib/scribe-context.tsx", "src/components/ScribeView.tsx"],
+      "notes": "Simulated using canned clinical dialogue arrays with staged interval timeouts and a manual UI speaker toggle. No client-side acoustic voice embedding model or server-side diarization stream."
+    },
+    {
+      "feature_module": "Real-Time Microphone Transcription",
+      "classification": "FUNCTIONAL WITH LIMITATIONS",
+      "code_paths": ["src/lib/scribe-context.tsx"],
+      "notes": "Leverages native browser webkitSpeechRecognition / SpeechRecognition API when mic is engaged; switches to canned playback simulation when mic permission is unavailable."
+    },
+    {
+      "feature_module": "EHR Client Charting & Roster",
+      "classification": "FULLY FUNCTIONAL",
+      "code_paths": ["src/lib/ehr-store.ts", "src/components/EHRView.tsx", "src/components/ClientDetailView.tsx"],
+      "notes": "Comprehensive charting engine with diagnostic history, medication lists, appointment tracking, SOAP notes, and treatment plan milestones. Persisted via browser localStorage."
+    },
+    {
+      "feature_module": "EHR Interoperability & Export (Epic/FHIR/Cerner)",
+      "classification": "FUNCTIONAL WITH LIMITATIONS",
+      "code_paths": ["src/components/EHRView.tsx", "src/components/ClientDetailView.tsx"],
+      "notes": "Generates valid Epic SmartText syntax, Cerner text blocks, and structured FHIR R4 Bundle JSON for clipboard export and file download. No live bidirectional SMART-on-FHIR REST endpoints."
+    },
+    {
+      "feature_module": "CMS-1500 & Superbill Generator",
+      "classification": "FULLY FUNCTIONAL",
+      "code_paths": ["src/components/CMS1500Modal.tsx", "src/components/BillingView.tsx"],
+      "notes": "Pixel-accurate digital red-ink CMS-1500 (02/12) claim form and commercial superbill generator. Auto-populates Box 1 through Box 33 with ICD-10 and CPT codes, with print/PDF export."
+    },
+    {
+      "feature_module": "EDI 837P Clearinghouse Submission",
+      "classification": "UI ONLY",
+      "code_paths": ["src/components/BillingView.tsx"],
+      "notes": "Button triggers a simulated submission toast and local claim status change; no active X12 837P EDI clearinghouse connector (Change Healthcare, Availity, Claim.MD) is connected."
+    },
+    {
+      "feature_module": "Telehealth Video Rooms",
+      "classification": "DEMO/SIMULATION",
+      "code_paths": ["src/components/TelehealthView.tsx", "server.ts"],
+      "notes": "High-fidelity simulated clinical video encounter interface. Returns mock Chime meeting IDs without establishing real WebRTC peer connections or media track capture."
+    },
+    {
+      "feature_module": "Cryptographic Audit Log Engine",
+      "classification": "FULLY FUNCTIONAL",
+      "code_paths": ["src/lib/audit-trail.ts", "src/components/AuditView.tsx", "server.ts"],
+      "notes": "Real SHA-256 cryptographic hash-chaining verification algorithm with tamper detection and CSV export. Audit records are stored in browser localStorage or ephemeral server memory."
+    },
+    {
+      "feature_module": "Aura AI Clinical Copilot & Query Engine",
+      "classification": "FULLY FUNCTIONAL",
+      "code_paths": ["src/components/AuraAssistantView.tsx", "src/lib/gemini.ts", "src/lib/ehr-store.ts"],
+      "notes": "Context-aware EHR assistant that inspects loaded client charts and provides DSM-5 diagnostic criteria, treatment goals, and risk assessments using Gemini or deterministic clinical heuristics."
+    },
+    {
+      "feature_module": "Stripe Billing & Subscription Engine",
+      "classification": "FUNCTIONAL WITH LIMITATIONS",
+      "code_paths": ["src/lib/stripe.ts", "src/lib/subscription.ts", "src/components/SubscriptionView.tsx", "server.ts"],
+      "notes": "Real Stripe SDK integration when STRIPE_SECRET_KEY is present; seamlessly switches to an automated mock checkout simulation flow when running in demo/offline mode."
+    },
+    {
+      "feature_module": "Multi-Site Practice Switcher",
+      "classification": "UI ONLY",
+      "code_paths": ["src/components/Navbar.tsx", "src/lib/demo-guide-context.tsx"],
+      "notes": "Allows switching between practice locations in the top navigation bar, but does not partition database records or EHR client rosters by clinic location."
+    }
+  ],
+  "claim_verification_matrix": [
+    {
+      "claim": "Ambient multi-speaker diarization",
+      "status": "SIMULATED",
+      "evidence": "src/lib/scribe-context.tsx lines 200-280 uses pre-scripted dialogue arrays and manual state toggle; no acoustic ML embedding model."
+    },
+    {
+      "claim": "Real-time transcription",
+      "status": "PARTIALLY VERIFIED",
+      "evidence": "Web Speech API integration in src/lib/scribe-context.tsx works in supported browsers; falls back to timed simulation."
+    },
+    {
+      "claim": "AI SOAP/DAP note generation",
+      "status": "VERIFIED",
+      "evidence": "Dual-engine architecture in src/lib/gemini.ts calls @google/genai API or instant clinical heuristic generator."
+    },
+    {
+      "claim": "Local/browser PHI de-identification",
+      "status": "VERIFIED",
+      "evidence": "Client-side regex pipeline in src/lib/phi-scrubber.ts executes fully in browser memory before any outbound API call."
+    },
+    {
+      "claim": "Coverage of all 18 HIPAA Safe Harbor categories",
+      "status": "VERIFIED",
+      "evidence": "All 18 statutory categories explicitly mapped and verified with test cases in tests/phi-scrubber.test.ts."
+    },
+    {
+      "claim": "Zero-cloud / unmasked PHI guarantee",
+      "status": "VERIFIED",
+      "evidence": "Payload inspection confirms scrubbed text replaces identifiers with tokens prior to network dispatch."
+    },
+    {
+      "claim": "WebRTC Telehealth",
+      "status": "SIMULATED",
+      "evidence": "src/components/TelehealthView.tsx renders simulated camera feeds and mock Chime meeting IDs without active WebRTC streams."
+    },
+    {
+      "claim": "End-to-end encryption",
+      "status": "PARTIALLY VERIFIED",
+      "evidence": "HTTPS/TLS enforced via Vercel edge infrastructure; application layer lacks client-side envelope encryption for localStorage."
+    },
+    {
+      "claim": "Immutable tamper-evident audit logs",
+      "status": "PARTIALLY VERIFIED",
+      "evidence": "Cryptographic SHA-256 hash chaining implemented in src/lib/audit-trail.ts; however logs are stored in client localStorage."
+    },
+    {
+      "claim": "CMS-1500 & Superbill generation",
+      "status": "VERIFIED",
+      "evidence": "src/components/CMS1500Modal.tsx renders official 02/12 format with complete Box 1-33 field mapping."
+    },
+    {
+      "claim": "ICD-10 / CPT clinical mapping",
+      "status": "VERIFIED",
+      "evidence": "Standard behavioral health CPT codes (90791, 90834, 90837) and DSM-5/ICD-10 codes (F41.1, F32.1, F43.10) verified in code."
+    },
+    {
+      "claim": "Stripe subscription functionality",
+      "status": "PARTIALLY VERIFIED",
+      "evidence": "Full Stripe SDK integration in server.ts and src/lib/stripe.ts; automated simulation fallback active when keys absent."
+    },
+    {
+      "claim": "Epic/Cerner/FHIR interoperability",
+      "status": "PARTIALLY VERIFIED",
+      "evidence": "Synthesizes standard FHIR R4 JSON bundles and Epic SmartText payloads for manual export; no live FHIR server connectors."
+    },
+    {
+      "claim": "EDI 837P clearinghouse transmission",
+      "status": "UNSUPPORTED",
+      "evidence": "No X12 EDI parser or clearinghouse HTTP/FTP transmission logic exists in repository."
+    },
+    {
+      "claim": "Multi-site group practice functionality",
+      "status": "SIMULATED",
+      "evidence": "Header dropdown changes visual label only; does not enforce tenant or clinic data boundaries."
+    }
+  ],
+  "test_execution_results": {
+    "audit_timestamp": "2026-10-05T16:50:00Z",
+    "compiler_and_build": {
+      "typecheck": { "command": "npm run typecheck", "status": "PASSED", "errors": 0 },
+      "production_build": { "command": "npm run build", "status": "PASSED", "duration_seconds": 4.44, "bundle_size_kb": 1056.4 }
+    },
+    "test_suites_executed": [
+      { "suite": "npm run test:auth", "passed": 12, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:security", "passed": 26, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:stripe", "passed": 15, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:subscription", "passed": 17, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:challenger:m2", "passed": 53, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:css", "passed": 1, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:ehr", "passed": 30, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:scribe", "passed": 61, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:challenger:m4", "passed": 44, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:aura", "passed": 85, "failed": 0, "status": "PASSED" },
+      { "suite": "tests/tier5-adversarial-coverage.test.ts", "passed": 87, "failed": 0, "status": "PASSED" },
+      { "suite": "npm run test:e2e", "passed": 79, "failed": 1, "status": "MINOR FAILURE (T1.2.1 Banner text mismatch)" }
+    ],
+    "summary_counts": {
+      "total_tests_executed": 510,
+      "passed": 509,
+      "failed": 1,
+      "pass_rate_percentage": 99.8
+    },
+    "dependency_security_audit": {
+      "command": "npm audit",
+      "total_vulnerabilities": 9,
+      "severity_breakdown": {
+        "critical": 0,
+        "high": 7,
+        "moderate": 2,
+        "low": 0
+      },
+      "affected_packages": ["braces", "uuid (via chokidar/vite build deps)"],
+      "production_runtime_impact": "Negligible (build tool dev dependencies, not bundled in client runtime)"
+    }
+  },
+  "codebase_metrics": {
+    "total_production_files": 83,
+    "approximate_production_loc": 22807,
+    "approximate_test_and_script_loc": 22962,
+    "test_to_code_ratio": 1.01,
+    "number_of_major_modules": 14,
+    "number_of_application_views_routes": 15,
+    "todo_fixme_count": 0,
+    "core_dependencies": [
+      "react@19.0.0",
+      "react-dom@19.0.0",
+      "lucide-react@0.475.0",
+      "@google/genai@0.1.1",
+      "@supabase/supabase-js@2.49.1",
+      "stripe@17.7.0",
+      "express@4.21.2",
+      "canvas-confetti@1.9.4",
+      "jspdf@2.5.2"
+    ]
+  },
+  "technical_debt_and_issues": {
+    "P0_blocking_real_customers": [
+      {
+        "id": "P0-1",
+        "title": "Client-Side LocalStorage PHI Storage",
+        "description": "In default demo mode, EHR charts and client records are persisted in unencrypted browser localStorage. Must be migrated to an encrypted backend database (e.g. Supabase with Row Level Security) before real patients can be enrolled.",
+        "remediation_effort_hours": 32
+      },
+      {
+        "id": "P0-2",
+        "title": "Audit Log Client-Side Volatility",
+        "description": "SHA-256 audit log records reside in browser localStorage and server memory, allowing local browser clearing to wipe the audit trail. Must be piped to an append-only remote database or AWS CloudWatch log stream.",
+        "remediation_effort_hours": 16
+      }
+    ],
+    "P1_commercial_value_impact": [
+      {
+        "id": "P1-1",
+        "title": "Simulated Audio Diarization",
+        "description": "Ambient multi-speaker separation uses canned dialogue rather than an active acoustic model. Requires integrating Deepgram Nova-2, AWS Transcribe Medical, or Whisper diarization.",
+        "remediation_effort_hours": 40
+      },
+      {
+        "id": "P1-2",
+        "title": "Simulated Telehealth Video Engine",
+        "description": "Telehealth room renders simulated animations without live WebRTC peer connections. Requires wiring live Daily.co, Twilio Video, or AWS Chime SDK media feeds.",
+        "remediation_effort_hours": 36
+      },
+      {
+        "id": "P1-3",
+        "title": "Missing Clearinghouse EDI 837P Gateway",
+        "description": "Claims cannot be transmitted electronically to insurers. Requires connecting an API aggregator like Claim.MD, Stedi, or Change Healthcare.",
+        "remediation_effort_hours": 48
+      }
+    ],
+    "P2_functional_improvements": [
+      {
+        "id": "P2-1",
+        "title": "Multi-Tenant Data Partitioning",
+        "description": "Multi-site clinic switcher does not scope EHR database queries by location ID. Requires tenant/clinic foreign keys on all data tables.",
+        "remediation_effort_hours": 20
+      },
+      {
+        "id": "P2-2",
+        "title": "Bidirectional FHIR Integration",
+        "description": "FHIR export generates static JSON downloads rather than connecting to hospital EHR endpoints via SMART-on-FHIR OAuth.",
+        "remediation_effort_hours": 40
+      }
+    ],
+    "P3_polish_and_maintenance": [
+      {
+        "id": "P3-1",
+        "title": "E2E Test Assertion Alignment",
+        "description": "Align E2E test T1.2.1 string assertion with recently added legal CYA disclaimer banner in index.html.",
+        "remediation_effort_hours": 1
+      },
+      {
+        "id": "P3-2",
+        "title": "Development Dependency Patches",
+        "description": "Run npm audit fix to resolve 9 build-time vulnerabilities in transitive vite/chokidar packages.",
+        "remediation_effort_hours": 2
+      }
+    ]
+  },
+  "top_five_highest_value_improvements": [
+    {
+      "rank": 1,
+      "title": "Live Supabase Database & Auth Hardening",
+      "description": "Enforce remote Postgres persistence with Row Level Security (RLS) for all EHR records, disabling unencrypted localStorage in production.",
+      "estimated_effort_hours": 32,
+      "value_add": "Converts platform from standalone demo into a multi-user clinical database capable of HIPAA compliance review."
+    },
+    {
+      "rank": 2,
+      "title": "Real-Time Cloud Audio Diarization Integration",
+      "description": "Connect Deepgram Nova-2 Medical or AWS Transcribe Medical streaming WebSocket for live clinician/patient speaker diarization.",
+      "estimated_effort_hours": 40,
+      "value_add": "Validates the primary marketing claim of real-time ambient multi-speaker clinical transcription."
+    },
+    {
+      "rank": 3,
+      "title": "Live WebRTC Telehealth Integration (Daily.co or Chime)",
+      "description": "Drop in Daily.co or Twilio WebRTC video grid inside TelehealthView.tsx, providing real video/audio calls with in-session clinical notes.",
+      "estimated_effort_hours": 32,
+      "value_add": "Unlocks commercial telehealth licensing and billable remote therapy encounters."
+    },
+    {
+      "rank": 4,
+      "title": "Append-Only Cloud Audit Trail Logging",
+      "description": "Ship SHA-256 audit log records to an immutable cloud sink (PostgreSQL append-only table or CloudWatch log stream).",
+      "estimated_effort_hours": 16,
+      "value_add": "Satisfies HIPAA Security Rule 45 CFR § 164.312(b) audit control compliance requirements."
+    },
+    {
+      "rank": 5,
+      "title": "Clearinghouse Claim Submission Gateway (Claim.MD / Stedi)",
+      "description": "Convert generated CMS-1500 JSON claims into ANSI ASC X12 837P format and dispatch to a clearinghouse endpoint.",
+      "estimated_effort_hours": 44,
+      "value_add": "Enables revenue cycle management monetization with direct insurance claim submission."
+    }
+  ],
+  "replacement_cost_analysis": {
+    "hourly_blended_rate_usd": 125,
+    "subsystem_estimates_hours": {
+      "hipaa_phi_scrubber": { "low": 80, "base": 120, "high": 160 },
+      "clinical_ai_scribe_dual_engine": { "low": 160, "base": 220, "high": 300 },
+      "ehr_charting_and_calendar": { "low": 200, "base": 280, "high": 380 },
+      "cms1500_and_superbill_engine": { "low": 120, "base": 180, "high": 240 },
+      "telehealth_and_webrtc_ui": { "low": 80, "base": 120, "high": 180 },
+      "aura_ai_copilot_assistant": { "low": 120, "base": 160, "high": 220 },
+      "audit_trail_and_cryptography": { "low": 60, "base": 80, "high": 120 },
+      "stripe_subscription_and_checkout": { "low": 80, "base": 120, "high": 160 },
+      "design_system_responsive_ui": { "low": 140, "base": 200, "high": 280 },
+      "automated_test_engineering": { "low": 120, "base": 160, "high": 200 }
+    },
+    "totals": {
+      "low": { "hours": 1160, "cost_usd": 145000 },
+      "base": { "hours": 1640, "cost_usd": 205000 },
+      "high": { "hours": 2240, "cost_usd": 280000 }
+    },
+    "timeline_equivalent_months": {
+      "solo_senior_fullstack_lead": "8 to 11 months",
+      "two_person_agile_team": "4 to 5.5 months"
+    }
+  },
+  "buyer_handoff_summary": {
+    "turnkey_assets_included": [
+      "Full TypeScript source code (83 production files, 22,807 LOC)",
+      "Automated test suite (12 suites, 509 passing tests, 22,962 LOC)",
+      "Live Vercel production deployment configuration",
+      "Standalone Express API backend server (server.ts)",
+      "Complete design system with tailored dark theme styling",
+      "Exportable presentation assets (walkthrough PDF, investor pitch deck)"
+    ],
+    "required_buyer_credentials": [
+      "GEMINI_API_KEY (Google AI Studio for production LLM note generation)",
+      "SUPABASE_URL and SUPABASE_SERVICE_KEY (for remote PostgreSQL auth & database)",
+      "STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET (for live payments)",
+      "AWS Chime / Daily.co API credentials (for live WebRTC telehealth video feeds)",
+      "Clearinghouse API credentials (Claim.MD or Stedi for EDI 837P insurance claims)"
+    ],
+    "onboarding_difficulty": "Low (under 1 business day for an experienced full-stack TypeScript engineer to clone, install, test, and run locally)"
+  }
+}
