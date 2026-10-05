@@ -24,7 +24,8 @@
     "test:aura": "tsx tests/m5-aura-scrubber.test.ts",
     "test:e2e": "node tests/e2e/run-all.mjs",
     "record:demo": "node scripts/record-demo-tour.mjs",
-    "screenshots:capture": "node scripts/capture-screenshots.mjs"
+    "screenshots:capture": "node scripts/capture-screenshots.mjs",
+    "pdf:walkthrough": "node scripts/generate-screenshots-pdf.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-chime-sdk-meetings": "^3.1015.0",
