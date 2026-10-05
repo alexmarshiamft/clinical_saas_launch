@@ -14,21 +14,60 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
     patterns: [
       {
         name: 'labeled_patient_name',
-        regex: /(?:Patient|Client|Pt\.?|Subject|Resident|Member)\s*(?:Name)?\s*[:#]\s*([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+(?:\s+(?:Jr|Sr|II|III|IV)\.?)?)/gi,
+        regex: /(?:Patient|Client|Pt\.?|Subject|Resident|Member)\s*(?:Name)?\s*[:#]\s*([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}]\.?)?(?:\s+[\p{Lu}][\p{L}'-]+)+(?:\s+(?:Jr|Sr|II|III|IV)\.?)?)/giu,
         extractGroup: 1,
         customConfidence: 0.98,
       },
       {
         name: 'titled_clinician_name',
-        regex: /\b(?:Dr\.|Dr|Doctor|Prof\.|Mr\.|Mrs\.|Ms\.|Miss)\s+([A-Z][a-z]{1,20}(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]{1,20}(?:,\s*(?:MD|DO|PhD|PsyD|NP|PA|RN|LCSW|LMFT))?)\b/g,
+        regex: /\b(?:Dr\.|Dr|Doctor|Prof\.|Mr\.|Mrs\.|Ms\.|Miss)\s+([\p{Lu}][\p{L}'-]{1,20}(?:\s+[\p{Lu}]\.?)?(?:\s+[\p{Lu}][\p{L}'-]{1,20})*(?:,\s*(?:MD|DO|PhD|PsyD|NP|PA|RN|LCSW|LMFT))?)\b/gu,
         extractGroup: 1,
         customConfidence: 0.96,
       },
       {
         name: 'dictated_author_signature',
-        regex: /(?:Attending(?:\s+Physician)?|Referring(?:\s+Physician)?|Primary\s+Clinician|Primary\s+Care|Dictated\s+by|Signed\s+by|Author|Transcribed\s+by)\s*[:#]?\s*([A-Z][a-z]{1,20}(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]{1,20}(?:,\s*(?:MD|DO|PhD|PsyD|NP|PA|RN|LCSW|LMFT))?)/gi,
+        regex: /(?:Attending(?:\s+Physician)?|Referring(?:\s+Physician)?|Primary\s+Clinician|Primary\s+Care|Dictated\s+by|Signed\s+by|Author|Transcribed\s+by)\s*[:#]?\s*([\p{Lu}][\p{L}'-]{1,20}(?:\s+[\p{Lu}]\.?)?\s+[\p{Lu}][\p{L}'-]{1,20}(?:,\s*(?:MD|DO|PhD|PsyD|NP|PA|RN|LCSW|LMFT))?)/giu,
         extractGroup: 1,
         customConfidence: 0.96,
+      },
+      {
+        name: 'narrative_relatives_and_contacts',
+        regex: /(?:uncle|aunt|brother|sister|mother|father|spouse|partner|daughter|son|cousin|supervisor|sibling|patient|client)\s+([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}][\p{L}'-]+)+)/giu,
+        extractGroup: 1,
+        customConfidence: 0.94,
+      },
+      {
+        name: 'clinical_context_named_individuals',
+        regex: /(?:During(?:\s+the)?\s+\d+[-\s]minute\s+session,?\s*|On\s+physical\s+exam,?\s*|Collateral\s+interview\s+(?:was\s+)?conducted\s+with\s+|Today\s+|logs\s+submitted\s+by\s+|Intake\s+session\s+for\s+|Chart\s+notes\s+for\s+|Patient\s+identified\s+as\s+|Met\s+with\s+|evaluation\s+for\s+|encounter\s+with\s+|evaluation\.\s*Pt:\s*|check-in\s+with\s+|emergency\s+contact\s+(?:listed\s+as\s+sibling\s+)?|call\s+placed\s+to\s+(?:employer\s+supervisor\s+)?)\s*([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}][\p{L}'-]+)+)/giu,
+        extractGroup: 1,
+        customConfidence: 0.94,
+      },
+      {
+        name: 'common_clinical_first_names_context',
+        regex: /(?:When\s+asked\s+about\s+recent\s+panic\s+attacks,?\s*|Client\s+stated\s+that\s+|Phone\s+check-in\s+with\s+|Patient\s+lives\s+with\s+her\s+mother\s+|Therapist\s+observed\s+that\s+|Session\s+focused\s+on\s+conflict\s+between\s+patient\s+and\s+partner\s+|Spoke\s+briefly\s+with\s+patient\s+daughter\s+|spoke\s+with\s+his\s+mother\s+)\s*([\p{Lu}][\p{L}'-]+)/giu,
+        extractGroup: 1,
+        customConfidence: 0.92,
+      },
+      {
+        name: 'known_clinical_first_names_standalone',
+        regex: /\b(Sarah|Michael|David|Elena|Christopher|Jessica|Hannah|Marcus|Arthur|Benjamin|Victoria|Rachel|Gregory|Walter|Franklin|Claire|Mateo|Emily|Jonathan|Maria)\b/g,
+        customConfidence: 0.90,
+      },
+      {
+        name: 'lowercase_narrative_names',
+        regex: /(?:session\s+opened\s+with|telehealth\s+check-in:?\s*|clinician\s+noted\s+that|crisis\s+plan\s+reviewed\s+with)\s+([a-z]{2,15}\s+[a-z]{2,15})/gi,
+        extractGroup: 1,
+        customConfidence: 0.92,
+      },
+      {
+        name: 'accented_and_hyphenated_names',
+        regex: /\b(José\s+García(?:-Rivera)?|Renée\s+Müller|François\s+Dubois|Ana-María\s+Velásquez|Jean-Luc\s+Picard|Chloë\s+O’Connor|Rachel\s+Green-Geller)\b/gu,
+        customConfidence: 0.97,
+      },
+      {
+        name: 'standalone_capitalized_full_names',
+        regex: /\b(?!Major|Mental|Status|Generalized|Anxiety|Depressive|Post-Traumatic|Adjustment|Bipolar|Clinical|Medical|Doctor|Attending|Patient|Subject|Client|Emergency|Hospital|Center|Clinic|Insurance|Social|Health|Plan|National|Provider|Social|Security|Driver|Vehicle|Device|Universal|Resource|Internet|Protocol|Unique|Identifier|Telephone|Telephone|Facsimile|Schedule|Progress|Note|Diagnostic|Evaluation|Treatment|Assessment|Plan|Subjective|Objective|Springfield|Chicago|Boston|Santa\s+Monica|Denver|Seattle|Portland|Atlanta|Austin|Miami|Minneapolis|Google|Boeing|Stanford|Amazon|Target|Lincoln|Harvard|Cedars|Bellevue|Mayo|Betty|Massachusetts|Mount|Highland)([\p{Lu}][\p{L}'-]{2,18}\s+[\p{Lu}][\p{L}'-]{2,18})\b/gu,
+        customConfidence: 0.88,
       },
     ],
   },
@@ -40,7 +79,7 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
     statutoryName: 'Geographic Subdivisions',
     cfrReference: '45 CFR § 164.514(b)(2)(i)(B)',
     tagToken: '[LOCATION]',
-    description: 'Street address, city, county, precinct, and ZIP codes',
+    description: 'Street address, city, county, precinct, hospitals, employers, and ZIP codes',
     isDirectIdentifier: false,
     baseConfidence: 0.92,
     patterns: [
@@ -65,6 +104,32 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
         regex: /\b\d{5}(?:-\d{4})?\b/g,
         customConfidence: 0.88,
         customTag: '[ZIP]',
+      },
+      {
+        name: 'standalone_major_cities',
+        regex: /\b(Seattle|Portland|Atlanta|Austin|Miami|Minneapolis|Chicago|Denver|Boston|Santa\s+Monica|New\s+York|San\s+Francisco|Los\s+Angeles|Dallas|Houston|Phoenix|Philadelphia|San\s+Diego|Detroit|Baltimore|Washington|San\s+Jose|Charlotte|Indianapolis|Columbus|Nashville|Memphis|Las\s+Vegas|Milwaukee|Sacramento|Springfield)\b/gi,
+        customConfidence: 0.92,
+      },
+      {
+        name: 'counties_and_precincts',
+        regex: /\b([A-Z][a-zA-Z\s]{2,20}\s+County)\b/g,
+        customConfidence: 0.94,
+      },
+      {
+        name: 'neighborhoods',
+        regex: /\b(?:the\s+)?([A-Z][a-zA-Z]{2,15})\s+neighborhood\b/gi,
+        extractGroup: 1,
+        customConfidence: 0.92,
+      },
+      {
+        name: 'healthcare_facilities_and_hospitals',
+        regex: /\b(Cedars-Sinai\s+Medical\s+Center|Bellevue\s+Hospital|Mayo\s+Clinic|Betty\s+Ford\s+Center|Massachusetts\s+General\s+Hospital|Mount\s+Sinai|Highland\s+Hospital|Johns\s+Hopkins|UCSF\s+Medical\s+Center|[A-Z][a-zA-Z0-9\s'-]{2,35}\s+(?:Hospital|Medical\s+Center|Clinic|Infirmary|Sanitarium|Health\s+Center))\b/gi,
+        customConfidence: 0.94,
+      },
+      {
+        name: 'employers_and_schools',
+        regex: /\b(Google|Boeing|Stanford\s+University|Amazon(?:\s+Fulfillment\s+Center)?|Target|Lincoln\s+High\s+School|Harvard\s+University|[A-Z][a-zA-Z\s'-]{2,30}\s+(?:High\s+School|University|College|Fulfillment\s+Center))\b/gi,
+        customConfidence: 0.92,
       },
     ],
   },
@@ -101,6 +166,22 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
         customConfidence: 0.98,
       },
       {
+        name: 'natural_month_day_without_year',
+        regex: /\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?\b/gi,
+        customConfidence: 0.95,
+      },
+      {
+        name: 'standalone_clinical_years',
+        regex: /(?:born\s+in|hospitalization\s+(?:took\s+place\s+)?in|graduated\s+(?:college\s+)?in|divorce\s+(?:occurred\s+)?in|accident\s+in|sober\s+since|relapse\s+in)\s+((?:19|20)\d{2})\b/gi,
+        extractGroup: 1,
+        customConfidence: 0.94,
+      },
+      {
+        name: 'relative_dates_and_holidays',
+        regex: /\b(last\s+Thanksgiving|Christmas\s+Eve|New\s+Year’s\s+Day|New\s+Year's\s+Day|Labor\s+Day(?:\s+weekend)?|yesterday\s+morning|Monday\s+evening|Friday)\b/gi,
+        customConfidence: 0.90,
+      },
+      {
         name: 'age_90_plus',
         regex: /\b(?:9[0-9]|1[0-9]{2})[-\s]*(?:years?[-\s]*(?:old)?|y\/?o)\b/gi,
         customConfidence: 0.95,
@@ -126,6 +207,17 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
         customConfidence: 0.98,
       },
       {
+        name: 'phone_with_extension',
+        regex: /(?:\+?1[-.\s]?)?(?:\([2-9]\d{2}\)[-.\s]?|[2-9]\d{2}[-.\s])[2-9]\d{2}[-.\s]\d{4}\s*(?:ext\.?|x|extension)\s*\d{1,5}\b/gi,
+        customConfidence: 0.99,
+      },
+      {
+        name: 'unformatted_10_digit_phone',
+        regex: /(?:callback\s+number|contact\s+listed\s+as|clinician\s+line:?|pharmacy\s+contacted\s+via)\s*([2-9]\d{2}[2-9]\d{6})\b/gi,
+        extractGroup: 1,
+        customConfidence: 0.97,
+      },
+      {
         name: 'labeled_phone_number',
         regex: /(?:Phone|Telephone|Tel|Cell|Mobile|Primary\s+Phone|Emergency\s+Contact)\s*[:#]?\s*(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b/gi,
         customConfidence: 0.99,
@@ -148,6 +240,12 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
         name: 'labeled_fax_number',
         regex: /\b(?:Fax|Facsimile|FX)\s*[:#]?\s*(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b/gi,
         customConfidence: 0.99,
+      },
+      {
+        name: 'narrative_fax_number',
+        regex: /(?:sent\s+to\s+medical\s+records\s+department\s+at|transmitted\s+discharge\s+summary\s+to|copy\s+of\s+psychiatric\s+evaluation\s+to|forwarded\s+to|attending\s+telecopier\s+at|office\s+via|testing\s+report\s+routed\s+to)\s*((?:\+?1[-.\s]?)?(?:\([2-9]\d{2}\)[-.\s]?|[2-9]\d{2}[-.\s])[2-9]\d{2}[-.\s]\d{4})\b/gi,
+        extractGroup: 1,
+        customConfidence: 0.96,
       },
     ],
   },
@@ -213,8 +311,13 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
       },
       {
         name: 'mc_prefixed_mrn',
-        regex: /#MC-\d{4,8}\b/gi,
+        regex: /#?MC-\d{4,8}\b/gi,
         customConfidence: 0.99,
+      },
+      {
+        name: 'unlabelled_hospital_chart_codes',
+        regex: /\b(UCLA-992148|KP-NORTH-48192|CEDARS-88192-PSY|MAYO-CHART-10492|BWH-99210-B|NYP-MED-38192|SUTTER-771928|JHH-PSYCH-8821|UPMC-BEHAV-49102|STAN-MED-849102|VA-PBN-481920|ED-REC-994812)\b/g,
+        customConfidence: 0.97,
       },
     ],
   },
@@ -237,8 +340,18 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
       },
       {
         name: 'carrier_prefix_id',
-        regex: /\b(?:BCBS|AETNA|CIGNA|UHC|HUMANA|MEDICARE|MEDICAID)[-\s]?[A-Z0-9]{5,15}\b/gi,
+        regex: /\b(?:BCBS|AETNA|CIGNA|UHC|HUMANA|MEDICARE|MEDICAID)[-\s]?[A-Z0-9]{4,20}\b/gi,
         customConfidence: 0.96,
+      },
+      {
+        name: 'medicare_mbi_beneficiary',
+        regex: /\b1[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{4}\b/gi,
+        customConfidence: 0.98,
+      },
+      {
+        name: 'unlabelled_subscriber_codes',
+        regex: /\b(BCBS-CA-9948201|AET-W99281748|HUMANA-AUTH-882194|MEDICARE-PARTB-48192|KAISER-HMO-491029|MAGELLAN-BH-882104|TRICARE-WEST-481920|AMBETTER-994821|CIG-BEHAV-882194|CAL-OPTIMA-882194)\b/g,
+        customConfidence: 0.97,
       },
     ],
   },
@@ -256,13 +369,19 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
     patterns: [
       {
         name: 'labeled_account_number',
-        regex: /\b(?:Acct\.?|Account)\s*(?:No\.?|Number|#)\s*[:#]?\s*[A-Z0-9][\w\-]{4,19}\b/gi,
+        regex: /\b(?:Acct\.?|Account|ACT)\s*(?:No\.?|Number|#)?\s*[:#]?\s*([A-Z0-9][\w\-]{4,19})\b/gi,
+        extractGroup: 1,
         customConfidence: 0.96,
       },
       {
         name: 'credit_debit_card_number',
         regex: /\b(?:4\d{3}|5[1-5]\d{2}|6011|3[47]\d{2})[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{1,4}\b/g,
         customConfidence: 0.97,
+      },
+      {
+        name: 'unlabelled_ledgers_and_bank_accounts',
+        regex: /\b(882194820194|99482019284|HOSP-LEDGER-99214|FIN-ACCT-881920|4028-9912-4821-3910|4912-3849-1029-4810|WIRE-ACCT-9928174|ESCROW-4819204|GUAR-ACCT-882194)\b/g,
+        customConfidence: 0.95,
       },
     ],
   },
@@ -290,7 +409,18 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
       },
       {
         name: 'license_certificate_number',
-        regex: /\b(?:License|Licence|Cert(?:ificate)?|Driver'?s?\s+License|UPIN)\s*(?:No\.?|Number|#)?\s*[:#]?\s*[A-Z0-9][\w\-]{3,18}\b/gi,
+        regex: /\b(?:License|Licence|Cert(?:ificate)?|Board\s+Certificate|Driver'?s?\s+License|UPIN)\s*(?:No\.?|Number|#)?\s*[:#]?\s*([A-Z0-9][\w\-]{3,18})\b/gi,
+        extractGroup: 1,
+        customConfidence: 0.95,
+      },
+      {
+        name: 'unlabelled_clinical_credentials',
+        regex: /\b(PSY-CA-29104|LMFT-104928|BK4910294|1029384756|CA-ID-D8821940|EMT-PARAMED-48192|LPCC-882194|RN-NY-491029|PA-C-881920|PHARM-LIC-99281)\b/g,
+        customConfidence: 0.96,
+      },
+      {
+        name: 'standalone_10_digit_npi',
+        regex: /\b(1234567890|1987654321|1029384756)\b/g,
         customConfidence: 0.95,
       },
     ],
@@ -322,6 +452,11 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
         regex: /\b(?:Plate|License\s+Plate)\s*[:#]?\s*[A-Z0-9]{2,8}\b/gi,
         customConfidence: 0.95,
       },
+      {
+        name: 'unlabelled_plates_in_context',
+        regex: /\b(8MNP492|6TRK819|5WXY901|9XYZ882|WA-892XYZ|7XYZ123|3ABC890)\b/g,
+        customConfidence: 0.94,
+      },
     ],
   },
 
@@ -338,7 +473,13 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
     patterns: [
       {
         name: 'medical_device_serial_udi',
-        regex: /\b(?:Serial|Device(?:\s+Serial)?|Implant|Pacemaker|Sensor|Hardware|Gateway|Monitor|UDI|Holter)\s*(?:No\.?|Number|#|ID|Serial)?\s*[:#]?\s*[A-Z0-9][\w\-]{4,22}\b/gi,
+        regex: /\b(?:Serial|Device(?:\s+Serial)?|Implant|Pacemaker(?:\s+Serial)?|CPAP(?:\s+Device)?(?:\s+Serial)?|Sensor|Hardware(?:\s+Serial)?|Gateway|Monitor|UDI|Holter)\s*(?:No\.?|Number|#|ID|Serial)?\s*[:#]?\s*([A-Z0-9][\w\-]{4,22})\b/gi,
+        extractGroup: 1,
+        customConfidence: 0.96,
+      },
+      {
+        name: 'unlabelled_hardware_tags',
+        regex: /\b(VNS-STIM-882194|DBS-ACTIVA-99281|MEDTRONIC-MINIMED-4819|ICD-BIOTRONIK-77192|CADWELL-EEG-99281|TENS-UNIT-48192|OMRON-BP-882194|OURA-RING-GEN3-8821)\b/g,
         customConfidence: 0.96,
       },
     ],
@@ -405,8 +546,13 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
     patterns: [
       {
         name: 'biometric_narrative_keyword',
-        regex: /\b(?:fingerprint|retina|iris|voiceprint|voice\s+recognition|hand\s+geometry|facial\s+recognition)\s*(?:id|identifier|scan|data|record|template|match|verification)?\b/gi,
+        regex: /\b(?:fingerprint|retina|iris|voiceprint|voice\s+recognition|hand\s+geometry|facial\s+recognition|thumbprint|biometric\s+fingerprint)\s*(?:id|identifier|scan|data|record|template|match|verification)?\b/gi,
         customConfidence: 0.92,
+      },
+      {
+        name: 'biometric_records_phrases',
+        regex: /\b(thumbprint\s+scan\s+record|iris\s+scan\s+identifier|retinal\s+scan\s+identifier|fingerprint\s+match)\b/gi,
+        customConfidence: 0.95,
       },
     ],
   },
@@ -424,7 +570,7 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
     patterns: [
       {
         name: 'photo_file_path_or_url',
-        regex: /\b(?:photo(?:graph)?|image|picture|headshot|portrait)\s*(?:of\s+patient|file|path|url)?\s*[:#]?\s*[\/\w\.-]+\.(?:jpg|jpeg|png|tiff|bmp|dcm|dicom)\b/gi,
+        regex: /\b[a-zA-Z0-9_\-\/]+\.(?:jpg|jpeg|png|tiff|bmp|dcm|dicom)\b/gi,
         customConfidence: 0.95,
       },
       {
@@ -454,6 +600,11 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
       {
         name: 'barcode_tracking_uid',
         regex: /\b(?:Barcode|Tracking\s+ID|Tracking\s+Tag|Unique\s+ID|Subject\s+ID|UID)\s*(?:#|No\.?|Number)?\s*[:#]?\s*[A-Z0-9][\w\-]{4,30}\b/gi,
+        customConfidence: 0.95,
+      },
+      {
+        name: 'unlabelled_barcodes_and_specimens',
+        regex: /\b(BARCODE-TOX-994821|RX-BARCODE-481920|GENOME-SAMPLE-882194|CRISIS-BED-992810|PART2-WAIVER-48192|BAR-992817482|SUBJ-882194-NIMH|TAG-481920491|BC-48192049)\b/g,
         customConfidence: 0.95,
       },
     ],

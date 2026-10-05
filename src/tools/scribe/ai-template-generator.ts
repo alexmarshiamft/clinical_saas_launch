@@ -226,6 +226,8 @@ export function generateDeterministicClinicalNote(options: GenerateNoteOptions):
   };
 }
 
+import { sanitizeForOutboundLlm } from '../phi-scrubber/phi-privacy-gateway';
+
 /**
  * Dual-Engine Note Synthesis Coordinator
  * Branch A: Live Gemini 2.5 Flash when API key is available
@@ -242,6 +244,17 @@ export async function generateClinicalNote(options: GenerateNoteOptions): Promis
   // Branch A: Live Google Gemini 2.5 Flash
   if (geminiKey && geminiKey.length > 10 && !geminiKey.includes('placeholder')) {
     try {
+      // Mandatory PHI Privacy Gateway Check (Fail-Closed)
+      const sanitized = sanitizeForOutboundLlm(
+        transcript,
+        {
+          name: context.patient_name,
+          mrn: context.mrn,
+          dob: context.dob,
+        },
+        { maskStyle: 'tag' }
+      );
+
       const ai = new GoogleGenAI({ apiKey: geminiKey });
       const sectionInstructions = template.sections
         .map((s) => `"${s.id}": "${s.title} - ${s.promptInstruction}"`)
@@ -249,11 +262,11 @@ export async function generateClinicalNote(options: GenerateNoteOptions): Promis
 
       const prompt = `You are a board-certified clinical psychiatrist and psychologist synthesizing a medical note.
 Template: ${template.name}
-Patient: ${context.patient_name || 'Jane Doe'} (MRN: ${context.mrn || '#MC-88219'}, CPT: ${context.cpt_code || '90837'})
-Clinician: ${context.clinician_name || 'Dr. Sarah Chen, MD'}
+Patient: [PATIENT_REDACTED] (MRN: [MRN_REDACTED], CPT: ${context.cpt_code || '90837'})
+Clinician: [PROVIDER_REDACTED]
 
-Clinical Transcript:
-${transcript}
+Clinical Transcript (De-identified via HIPAA Safe Harbor Gateway):
+${sanitized.cleanText}
 
 Return a valid JSON object where keys correspond exactly to section IDs:
 {

@@ -6,6 +6,8 @@
 
 import { GoogleGenAI } from '@google/genai';
 
+import { sanitizeForOutboundLlm } from '../phi-scrubber/phi-privacy-gateway';
+
 export interface DAPExpansionResult {
   d: string;
   a: string;
@@ -25,12 +27,19 @@ export async function expandShorthandToDAP(
   // Branch A: Live Gemini API
   if (geminiKey && geminiKey.length > 10 && !geminiKey.includes('placeholder')) {
     try {
+      // Mandatory PHI Privacy Gateway Check (Fail-Closed)
+      const sanitized = sanitizeForOutboundLlm(
+        shorthand,
+        { name: clientName },
+        { maskStyle: 'tag' }
+      );
+
       const ai = new GoogleGenAI({ apiKey: geminiKey });
       const prompt = `
-You are an expert licensed clinical psychologist. Expand the following therapist session shorthand into a formal, objective, professional DAP (Data, Assessment, Plan) progress note for ${clientName} (Diagnosis: ${diagnosis}).
+You are an expert licensed clinical psychologist. Expand the following therapist session shorthand into a formal, objective, professional DAP (Data, Assessment, Plan) progress note for [PATIENT_REDACTED] (Diagnosis: ${diagnosis}).
 
-Shorthand Input:
-${shorthand}
+Shorthand Input (De-identified via HIPAA Safe Harbor Gateway):
+${sanitized.cleanText}
 
 Respond strictly with valid JSON with keys "d", "a", "p":
 {
