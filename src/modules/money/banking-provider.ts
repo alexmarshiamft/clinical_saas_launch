@@ -4,6 +4,14 @@
  * Manages the BaaS (Banking-as-a-Service) embedded finance layer.
  * Coordinates practice checking accounts, automated tax reserves, payroll funding,
  * and intelligent claim-to-deposit reconciliation.
+ * 
+ * REMEDIATED ARCHITECTURE:
+ * - Backed by GAAP Double-Entry General Ledger (DoubleEntryLedger).
+ * - Integer-cents precision with zero floating point drift.
+ * - Tax reserves transfer cash between internal vaults (credits operating, debits tax vault)
+ *   so net practice money is never artificially created or destroyed.
+ * - Enforces overdraft protection, duplicate payroll funding prevention, and defensive copying.
+ * - Truthfully labeled as "TheraFlow Sandbox Treasury (Simulated BaaS Partner - Demo Only)".
  */
 
 import {
@@ -12,6 +20,7 @@ import {
   ClaimPaymentReconciliation,
   PracticeFinancialSummary,
 } from '@/types/practice-os';
+import { DoubleEntryLedger } from '@/modules/ledger/double-entry-ledger';
 
 export interface BusinessBankingProvider {
   name: string;
@@ -45,52 +54,21 @@ export interface BusinessBankingProvider {
 }
 
 export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
-  public name = 'TheraFlow Embedded Treasury (Sandbox)';
+  public name = 'TheraFlow Embedded Treasury (Sandbox Simulator - Demo Only)';
   public isSandbox = true;
 
-  // Track processed claim IDs to enforce idempotency and prevent duplicate compensation
+  private ledger: DoubleEntryLedger;
   private processedClaims = new Set<string>();
+  private fundedPayrollRuns = new Set<string>();
 
-  private mockAccounts: BankAccount[] = [
-    {
-      id: 'acct-operating-01',
-      practiceId: 'practice-demo-1',
-      accountType: 'operating_checking',
-      accountNumberMasked: '•••• 8492',
-      routingNumberMasked: '•••• 0210',
-      currentBalance: 78420.50,
-      availableBalance: 76220.50,
-      institutionName: 'TheraFlow Treasury (Evolve Bank & Trust, Member FDIC)',
-      currency: 'USD',
-      status: 'active',
-    },
-    {
-      id: 'acct-tax-reserve-02',
-      practiceId: 'practice-demo-1',
-      accountType: 'tax_reserve',
-      accountNumberMasked: '•••• 3190',
-      routingNumberMasked: '•••• 0210',
-      currentBalance: 19605.12,
-      availableBalance: 19605.12,
-      institutionName: 'TheraFlow Automated Tax Vault',
-      currency: 'USD',
-      status: 'active',
-    },
-    {
-      id: 'acct-payroll-escrow-03',
-      practiceId: 'practice-demo-1',
-      accountType: 'payroll_escrow',
-      accountNumberMasked: '•••• 6644',
-      routingNumberMasked: '•••• 0210',
-      currentBalance: 14250.00,
-      availableBalance: 14250.00,
-      institutionName: 'TheraFlow Payroll Escrow',
-      currency: 'USD',
-      status: 'active',
-    },
-  ];
+  // Internal bank accounts in integer cents
+  private accountsState = {
+    operatingCents: 7842050,    // $78,420.50
+    taxReserveCents: 1960512,   // $19,605.12
+    payrollEscrowCents: 1425000,// $14,250.00
+  };
 
-  private mockTransactions: BankTransaction[] = [
+  private transactions: BankTransaction[] = [
     {
       id: 'tx-001',
       accountId: 'acct-operating-01',
@@ -141,21 +119,69 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     },
   ];
 
+  constructor(initialLedger?: DoubleEntryLedger) {
+    this.ledger = initialLedger || new DoubleEntryLedger();
+  }
+
+  public getLedger(): DoubleEntryLedger {
+    return this.ledger;
+  }
+
+  /**
+   * Return deep-cloned defensive copies so callers cannot mutate internal balances
+   */
   async getAccounts(practiceId: string): Promise<BankAccount[]> {
-    return [...this.mockAccounts];
+    return [
+      {
+        id: 'acct-operating-01',
+        practiceId: practiceId || 'practice-demo-1',
+        accountType: 'operating_checking',
+        accountNumberMasked: '•••• 8492',
+        routingNumberMasked: '•••• 0210',
+        currentBalance: this.accountsState.operatingCents / 100,
+        availableBalance: this.accountsState.operatingCents / 100,
+        institutionName: 'TheraFlow Sandbox Treasury (Simulated BaaS Partner - Demo Only)',
+        currency: 'USD',
+        status: 'active',
+      },
+      {
+        id: 'acct-tax-reserve-02',
+        practiceId: practiceId || 'practice-demo-1',
+        accountType: 'tax_reserve',
+        accountNumberMasked: '•••• 3190',
+        routingNumberMasked: '•••• 0210',
+        currentBalance: this.accountsState.taxReserveCents / 100,
+        availableBalance: this.accountsState.taxReserveCents / 100,
+        institutionName: 'TheraFlow Automated Tax Vault (Simulated Sandbox)',
+        currency: 'USD',
+        status: 'active',
+      },
+      {
+        id: 'acct-payroll-escrow-03',
+        practiceId: practiceId || 'practice-demo-1',
+        accountType: 'payroll_escrow',
+        accountNumberMasked: '•••• 6644',
+        routingNumberMasked: '•••• 0210',
+        currentBalance: this.accountsState.payrollEscrowCents / 100,
+        availableBalance: this.accountsState.payrollEscrowCents / 100,
+        institutionName: 'TheraFlow Payroll Escrow (Simulated Sandbox)',
+        currency: 'USD',
+        status: 'active',
+      },
+    ];
   }
 
-  async getTransactions(practiceId: string, limit: number = 20): Promise<BankTransaction[]> {
-    return this.mockTransactions.slice(0, limit);
+  async getTransactions(_practiceId: string, limit: number = 20): Promise<BankTransaction[]> {
+    return this.transactions.slice(0, limit).map((t) => ({ ...t }));
   }
 
-  async getFinancialSummary(practiceId: string): Promise<PracticeFinancialSummary> {
-    const operating = this.mockAccounts[0].currentBalance;
-    const tax = this.mockAccounts[1].currentBalance;
+  async getFinancialSummary(_practiceId: string): Promise<PracticeFinancialSummary> {
+    const operating = this.accountsState.operatingCents / 100;
+    const tax = this.accountsState.taxReserveCents / 100;
 
     return {
       operatingCash: operating,
-      availableCash: this.mockAccounts[0].availableBalance,
+      availableCash: operating,
       pendingDeposits: 3450.00,
       accruedPayrollLiability: 8420.50,
       taxReserveBalance: tax,
@@ -172,7 +198,39 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     };
   }
 
+  /**
+   * Payroll Funding with Overdraft & Duplicate Funding Guard
+   */
   async fundPayroll(practiceId: string, payrollRunId: string, amount: number): Promise<{ success: boolean; transactionId: string }> {
+    const amountCents = Math.round(amount * 100);
+    if (amountCents <= 0) {
+      throw new Error(`Invalid payroll funding amount: $${amount}. Must be greater than 0.`);
+    }
+
+    // Guard 1: Duplicate payroll funding prevention
+    if (this.fundedPayrollRuns.has(payrollRunId)) {
+      throw new Error(`Duplicate funding rejected: Payroll run ${payrollRunId} has already been funded.`);
+    }
+
+    // Guard 2: Overdraft protection
+    if (this.accountsState.operatingCents < amountCents) {
+      throw new Error(
+        `Insufficient funds in operating checking account ($${(this.accountsState.operatingCents / 100).toFixed(2)}) to fund payroll ($${amount.toFixed(2)}). Funding rejected.`
+      );
+    }
+
+    this.fundedPayrollRuns.add(payrollRunId);
+
+    // Record double-entry transaction
+    this.ledger.recordPayrollFunding({
+      practiceId,
+      payrollRunId,
+      netCompCents: amountCents,
+    });
+
+    // Debit operating account in integer cents
+    this.accountsState.operatingCents -= amountCents;
+
     const txId = `tx-payroll-${Date.now()}`;
     const newTx: BankTransaction = {
       id: txId,
@@ -183,14 +241,11 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
       description: `ACH Payroll Direct Deposit Funding - ${payrollRunId}`,
       referenceId: payrollRunId,
       timestamp: new Date().toISOString(),
-      runningBalance: this.mockAccounts[0].currentBalance - amount,
+      runningBalance: this.accountsState.operatingCents / 100,
       reconciled: true,
     };
 
-    this.mockAccounts[0].currentBalance -= amount;
-    this.mockAccounts[0].availableBalance -= amount;
-    this.mockTransactions.unshift(newTx);
-
+    this.transactions.unshift(newTx);
     return { success: true, transactionId: txId };
   }
 
@@ -200,7 +255,10 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
   }
 
   /**
-   * Automatic Claim-to-Bank Reconciliation with Idempotency Protection
+   * Reconcile Claim Payment:
+   * Deposits ACTUAL cash received from insurer into operating account,
+   * accurately records double-entry revenue & accrual, and allocates 25% tax reserve
+   * via an internal account transfer without creating artificial money.
    */
   async reconcileClaimPayment(params: {
     claimId: string;
@@ -218,17 +276,73 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
   }): Promise<ClaimPaymentReconciliation> {
     // Idempotency check: prevent duplicate compensation if claim is reprocessed
     if (this.processedClaims.has(params.claimId)) {
-      throw new Error(`Idempotency fault: Claim ${params.claimId} has already been reconciled and credited to clinician compensation.`);
+      throw new Error(`Idempotency fault: Claim ${params.claimId} has already been reconciled.`);
     }
 
     this.processedClaims.add(params.claimId);
 
-    const totalCollected = params.payerPayment + params.patientResponsibility;
+    // Calculate in integer cents
+    const payerPaymentCents = Math.round(params.payerPayment * 100);
+    const patientRespCents = Math.round(params.patientResponsibility * 100);
+    const totalCollectedCents = payerPaymentCents + patientRespCents;
+
+    // Actual bank deposit from insurance EFT is strictly the payer payment
+    const actualBankDepositCents = payerPaymentCents > 0 ? payerPaymentCents : totalCollectedCents;
+
     const pct = params.compensationPercentage / 100;
-    const clinicianShare = Math.round(totalCollected * pct * 100) / 100;
-    const practiceShare = Math.round((totalCollected - clinicianShare) * 100) / 100;
+    const clinicianShareCents = Math.round(totalCollectedCents * pct);
+    const practiceShareCents = totalCollectedCents - clinicianShareCents;
+
+    // 1. Record Double-Entry Journal for deposit
+    this.ledger.recordInsuranceDeposit({
+      practiceId: 'practice-demo-1',
+      payerName: params.payerName,
+      claimId: params.claimId,
+      depositAmountCents: actualBankDepositCents,
+    });
+
+    // 2. Record Double-Entry Journal for clinician compensation accrual
+    this.ledger.recordClinicianCompAccrual({
+      practiceId: 'practice-demo-1',
+      workerId: params.clinicianId,
+      workerName: params.clinicianName,
+      encounterId: params.claimId,
+      compAmountCents: clinicianShareCents,
+    });
+
+    // Update operating balance in integer cents
+    this.accountsState.operatingCents += actualBankDepositCents;
 
     const depositId = `dep-${Date.now()}`;
+    const newTx: BankTransaction = {
+      id: `tx-${Date.now()}`,
+      accountId: 'acct-operating-01',
+      type: 'deposit',
+      category: 'insurance_remittance',
+      amount: actualBankDepositCents / 100,
+      description: `EFT Remittance: ${params.payerName} - Claim ${params.claimId} (${params.clientName})`,
+      referenceId: params.claimId,
+      timestamp: new Date().toISOString(),
+      runningBalance: this.accountsState.operatingCents / 100,
+      reconciled: true,
+    };
+    this.transactions.unshift(newTx);
+
+    // 3. Automated 25% Tax Reserve Set-Aside
+    // Transferred FROM operating checking TO tax reserve vault (Balanced transfer, no phantom money!)
+    const taxSetAsideCents = Math.round(practiceShareCents * 0.25);
+    if (taxSetAsideCents > 0 && this.accountsState.operatingCents >= taxSetAsideCents) {
+      this.ledger.recordTaxReserveTransfer({
+        practiceId: 'practice-demo-1',
+        referenceId: params.claimId,
+        amountCents: taxSetAsideCents,
+      });
+
+      // Transfer between accounts: subtract from operating, add to tax reserve
+      this.accountsState.operatingCents -= taxSetAsideCents;
+      this.accountsState.taxReserveCents += taxSetAsideCents;
+    }
+
     const reconciliation: ClaimPaymentReconciliation = {
       id: `rec-${Date.now()}`,
       claimId: params.claimId,
@@ -244,34 +358,11 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
       clinicianId: params.clinicianId,
       clinicianName: params.clinicianName,
       compensationRule: `${params.compensationPercentage}% of collections`,
-      clinicianShare,
-      practiceShare,
+      clinicianShare: clinicianShareCents / 100,
+      practiceShare: practiceShareCents / 100,
       reconciledAt: new Date().toISOString(),
       status: 'matched',
     };
-
-    // Credit operating checking account with payment
-    const newTx: BankTransaction = {
-      id: `tx-${Date.now()}`,
-      accountId: 'acct-operating-01',
-      type: 'deposit',
-      category: 'insurance_remittance',
-      amount: totalCollected,
-      description: `EFT Remittance: ${params.payerName} - Claim ${params.claimId} (${params.clientName})`,
-      referenceId: params.claimId,
-      timestamp: new Date().toISOString(),
-      runningBalance: this.mockAccounts[0].currentBalance + totalCollected,
-      reconciled: true,
-    };
-
-    this.mockAccounts[0].currentBalance += totalCollected;
-    this.mockAccounts[0].availableBalance += totalCollected;
-    this.mockTransactions.unshift(newTx);
-
-    // Auto-allocate 25% of practice retained revenue to tax reserve vault
-    const taxSetAside = Math.round(practiceShare * 0.25 * 100) / 100;
-    this.mockAccounts[1].currentBalance += taxSetAside;
-    this.mockAccounts[1].availableBalance += taxSetAside;
 
     return reconciliation;
   }
@@ -288,9 +379,30 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     clinicianPercentage: number;
   }): Promise<{ transaction: BankTransaction; reconciliation: ClaimPaymentReconciliation }> {
     const chargeId = `chg-stripe-${Date.now()}`;
+    const amountCents = Math.round(params.amount * 100);
+
     const pct = params.clinicianPercentage / 100;
-    const clinicianShare = Math.round(params.amount * pct * 100) / 100;
-    const practiceShare = Math.round((params.amount - clinicianShare) * 100) / 100;
+    const clinicianShareCents = Math.round(amountCents * pct);
+    const practiceShareCents = amountCents - clinicianShareCents;
+
+    // Record double entry settlement
+    this.ledger.recordPrivatePaySettlement({
+      practiceId: 'practice-demo-1',
+      clientName: params.clientName,
+      chargeId,
+      amountCents,
+    });
+
+    // Record compensation accrual
+    this.ledger.recordClinicianCompAccrual({
+      practiceId: 'practice-demo-1',
+      workerId: params.clinicianId,
+      workerName: params.clinicianName,
+      encounterId: chargeId,
+      compAmountCents: clinicianShareCents,
+    });
+
+    this.accountsState.operatingCents += amountCents;
 
     const tx: BankTransaction = {
       id: `tx-card-${Date.now()}`,
@@ -301,18 +413,23 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
       description: `Card Settlement: ${params.clientName} (CPT ${params.cptCode})`,
       referenceId: chargeId,
       timestamp: new Date().toISOString(),
-      runningBalance: this.mockAccounts[0].currentBalance + params.amount,
+      runningBalance: this.accountsState.operatingCents / 100,
       reconciled: true,
     };
+    this.transactions.unshift(tx);
 
-    this.mockAccounts[0].currentBalance += params.amount;
-    this.mockAccounts[0].availableBalance += params.amount;
-    this.mockTransactions.unshift(tx);
+    // 25% Tax Set-aside transfer
+    const taxSetAsideCents = Math.round(practiceShareCents * 0.25);
+    if (taxSetAsideCents > 0 && this.accountsState.operatingCents >= taxSetAsideCents) {
+      this.ledger.recordTaxReserveTransfer({
+        practiceId: 'practice-demo-1',
+        referenceId: chargeId,
+        amountCents: taxSetAsideCents,
+      });
 
-    // Auto-allocate 25% of practice retained revenue to tax reserve vault
-    const taxSetAside = Math.round(practiceShare * 0.25 * 100) / 100;
-    this.mockAccounts[1].currentBalance += taxSetAside;
-    this.mockAccounts[1].availableBalance += taxSetAside;
+      this.accountsState.operatingCents -= taxSetAsideCents;
+      this.accountsState.taxReserveCents += taxSetAsideCents;
+    }
 
     const rec: ClaimPaymentReconciliation = {
       id: `rec-private-${Date.now()}`,
@@ -329,13 +446,90 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
       clinicianId: params.clinicianId,
       clinicianName: params.clinicianName,
       compensationRule: `${params.clinicianPercentage}% of card settlement`,
-      clinicianShare,
-      practiceShare,
+      clinicianShare: clinicianShareCents / 100,
+      practiceShare: practiceShareCents / 100,
       reconciledAt: new Date().toISOString(),
       status: 'matched',
     };
 
     return { transaction: tx, reconciliation: rec };
+  }
+
+  // ==========================================================================
+  // Reversal, Refund, and ACH Return Workflows
+  // ==========================================================================
+
+  public async refundPayment(params: {
+    clientName: string;
+    chargeId: string;
+    amount: number;
+    reason?: string;
+  }): Promise<{ success: boolean; transactionId: string }> {
+    const amountCents = Math.round(params.amount * 100);
+    if (this.accountsState.operatingCents < amountCents) {
+      throw new Error('Insufficient operating balance to issue refund.');
+    }
+
+    const refundId = `ref-${Date.now()}`;
+    this.ledger.recordRefund({
+      practiceId: 'practice-demo-1',
+      clientName: params.clientName,
+      refundId,
+      originalChargeId: params.chargeId,
+      amountCents,
+    });
+
+    this.accountsState.operatingCents -= amountCents;
+
+    const tx: BankTransaction = {
+      id: `tx-refund-${Date.now()}`,
+      accountId: 'acct-operating-01',
+      type: 'withdrawal',
+      category: 'operating_expense',
+      amount: -params.amount,
+      description: `Patient Refund: ${params.clientName} (Charge ${params.chargeId})`,
+      referenceId: refundId,
+      timestamp: new Date().toISOString(),
+      runningBalance: this.accountsState.operatingCents / 100,
+      reconciled: true,
+    };
+    this.transactions.unshift(tx);
+
+    return { success: true, transactionId: tx.id };
+  }
+
+  public async handleReturnedAchFunding(params: {
+    payrollRunId: string;
+    amount: number;
+    reason: string;
+  }): Promise<{ success: boolean; transactionId: string }> {
+    const amountCents = Math.round(params.amount * 100);
+    this.ledger.recordFailedAch({
+      practiceId: 'practice-demo-1',
+      payrollRunId: params.payrollRunId,
+      amountCents,
+      reason: params.reason,
+    });
+
+    // Re-credit operating checking since funding did not settle
+    this.accountsState.operatingCents += amountCents;
+    this.fundedPayrollRuns.delete(params.payrollRunId);
+
+    const tx: BankTransaction = {
+      id: `tx-ret-ach-${Date.now()}`,
+      accountId: 'acct-operating-01',
+      type: 'deposit',
+      category: 'payroll_funding',
+      amount: params.amount,
+      description: `ACH Return / Funding Failed: ${params.payrollRunId} (${params.reason})`,
+      referenceId: params.payrollRunId,
+      timestamp: new Date().toISOString(),
+      runningBalance: this.accountsState.operatingCents / 100,
+      reconciled: true,
+    };
+    this.transactions.unshift(tx);
+
+    return { success: true, transactionId: tx.id };
   }
 }
 

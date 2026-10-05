@@ -116,21 +116,21 @@ export const BankingMoneyView: React.FC = () => {
                 <span className="font-bold text-xs text-slate-200">Operating Checking</span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-400/20 text-teal-300 border border-teal-400/30">
-                FDIC Insured
+                BaaS Sandbox Treasury
               </span>
             </div>
 
             <div className="text-3xl font-black tracking-tight text-white font-mono my-2">
-              ${operatingAccount?.currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${(operatingAccount?.currentBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-slate-400">
-              Available to spend: <strong className="text-slate-200">${operatingAccount?.availableBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
+              Available to spend: <strong className="text-slate-200">${(operatingAccount?.availableBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
             </div>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>Acct {operatingAccount?.accountNumberMasked}</span>
-            <span>Routing {operatingAccount?.routingNumberMasked}</span>
+            <span>Acct {operatingAccount?.accountNumberMasked ?? '•••• ----'}</span>
+            <span>Routing {operatingAccount?.routingNumberMasked ?? '•••• ----'}</span>
           </div>
         </div>
 
@@ -148,7 +148,7 @@ export const BankingMoneyView: React.FC = () => {
             </div>
 
             <div className="text-3xl font-black tracking-tight text-slate-900 font-mono my-2">
-              ${taxAccount?.currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${(taxAccount?.currentBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-slate-500">
               Estimated Q4 tax liability: <strong className="text-slate-700">$18,400.00</strong>
@@ -175,10 +175,10 @@ export const BankingMoneyView: React.FC = () => {
             </div>
 
             <div className="text-3xl font-black tracking-tight text-slate-900 font-mono my-2">
-              ${escrowAccount?.currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${(escrowAccount?.currentBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-slate-500">
-              Accrued clinician liability: <strong className="text-slate-700">${financialSummary.accruedPayrollLiability.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
+              Accrued clinician liability: <strong className="text-slate-700">${(financialSummary?.accruedPayrollLiability ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
             </div>
           </div>
 

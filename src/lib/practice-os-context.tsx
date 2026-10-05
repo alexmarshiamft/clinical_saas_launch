@@ -22,7 +22,7 @@ import {
 import { calculateEncounterCompensation } from '@/modules/compensation/compensation-engine';
 import { SandboxEmbeddedBankingProvider } from '@/modules/money/banking-provider';
 import { SandboxPayrollProvider, getPayrollProvider } from '@/modules/payroll/payroll-provider';
-import { practiceEventBus } from '@/modules/ledger/practice-event-bus';
+import { PracticeEventBus, practiceEventBus } from '@/modules/ledger/practice-event-bus';
 
 export interface PracticeOsContextType {
   // Practice & Locations
@@ -50,7 +50,8 @@ export interface PracticeOsContextType {
   
   // Embedded Banking & Finances
   bankAccounts: BankAccount[];
-  operatingAccount: BankAccount; // Convenient alias
+  operatingAccount: BankAccount | null; // Convenient alias
+  isHydrating: boolean;
   bankTransactions: BankTransaction[];
   financialSummary: PracticeFinancialSummary;
   reconciliations: ClaimPaymentReconciliation[];
@@ -366,18 +367,37 @@ const SEED_EARNINGS: EarningLineItem[] = [
 
 const PracticeOsContext = createContext<PracticeOsContextType | null>(null);
 
+const loadPersisted = <T,>(key: string, fallback: T): T => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const raw = localStorage.getItem(`theraflow_pos_${key}`);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+  }
+  return fallback;
+};
+
+const savePersisted = (key: string, val: any) => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem(`theraflow_pos_${key}`, JSON.stringify(val));
+    } catch {}
+  }
+};
+
 export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [bankingProvider] = useState(() => new SandboxEmbeddedBankingProvider());
   const [locations] = useState<PracticeLocation[]>(SEED_LOCATIONS);
-  const [workers, setWorkers] = useState<WorkerRecord[]>(SEED_WORKERS);
-  const [compensationPlans, setCompensationPlans] = useState<CompensationPlan[]>(SEED_COMPENSATION_PLANS);
-  const [openEarnings, setOpenEarnings] = useState<EarningLineItem[]>(SEED_EARNINGS);
+  const [workers, setWorkers] = useState<WorkerRecord[]>(() => loadPersisted('workers', SEED_WORKERS));
+  const [compensationPlans, setCompensationPlans] = useState<CompensationPlan[]>(() => loadPersisted('plans', SEED_COMPENSATION_PLANS));
+  const [openEarnings, setOpenEarnings] = useState<EarningLineItem[]>(() => loadPersisted('earnings', SEED_EARNINGS));
   const [selectedPayrollProvider, setSelectedPayrollProvider] = useState<string>('sandbox');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   // Bank & Reconciliation State
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
+  const [isHydrating, setIsHydrating] = useState<boolean>(true);
   const [financialSummary, setFinancialSummary] = useState<PracticeFinancialSummary>({
     operatingCash: 78420.50,
     availableCash: 76220.50,
@@ -396,74 +416,93 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     monthlyNetCashFlow: 14320.00,
   });
 
-  const [reconciliations, setReconciliations] = useState<ClaimPaymentReconciliation[]>([
-    {
-      id: 'rec-init-01',
-      claimId: 'claim-8472',
-      clientName: 'Jane Doe',
-      payerName: 'Aetna Health Plan',
-      cptCode: '90837',
-      dateOfService: '2026-10-02',
-      amountBilled: 200.00,
-      allowedAmount: 160.00,
-      payerPayment: 140.00,
-      patientResponsibility: 20.00,
-      matchedDepositId: 'tx-001',
-      clinicianId: 'worker-dr-sarah-chen',
-      clinicianName: 'Dr. Sarah Chen, MD',
-      compensationRule: '55% of collections',
-      clinicianShare: 88.00,
-      practiceShare: 72.00,
-      reconciledAt: '2026-10-02T14:22:00Z',
-      status: 'matched',
-    },
-  ]);
+  const [reconciliations, setReconciliations] = useState<ClaimPaymentReconciliation[]>(() =>
+    loadPersisted('reconciliations', [
+      {
+        id: 'rec-init-01',
+        claimId: 'claim-8472',
+        clientName: 'Jane Doe',
+        payerName: 'Aetna Health Plan',
+        cptCode: '90837',
+        dateOfService: '2026-10-02',
+        amountBilled: 200.00,
+        allowedAmount: 160.00,
+        payerPayment: 140.00,
+        patientResponsibility: 20.00,
+        matchedDepositId: 'tx-001',
+        clinicianId: 'worker-dr-sarah-chen',
+        clinicianName: 'Dr. Sarah Chen, MD',
+        compensationRule: '55% of collections',
+        clinicianShare: 88.00,
+        practiceShare: 72.00,
+        reconciledAt: '2026-10-02T14:22:00Z',
+        status: 'matched',
+      },
+    ])
+  );
 
   // Current Open Pay Period (Oct 1–15, 2026)
-  const [currentPayPeriod, setCurrentPayPeriod] = useState<PayPeriod>({
-    id: 'pay-period-2026-10-A',
-    practiceId: 'practice-demo-1',
-    startDate: '2026-10-01',
-    endDate: '2026-10-15',
-    payDate: '2026-10-20',
-    status: 'open',
-    totalClinicians: 4,
-    totalEncounters: 38,
-    totalGrossCollections: 6420.00,
-    totalGrossCompensation: 352.50, // Calculated from seed earnings
-  });
+  const [currentPayPeriod, setCurrentPayPeriod] = useState<PayPeriod>(() =>
+    loadPersisted('pay_period', {
+      id: 'pay-period-2026-10-A',
+      practiceId: 'practice-demo-1',
+      startDate: '2026-10-01',
+      endDate: '2026-10-15',
+      payDate: '2026-10-20',
+      status: 'open',
+      totalClinicians: 4,
+      totalEncounters: 38,
+      totalGrossCollections: 6420.00,
+      totalGrossCompensation: 352.50,
+    })
+  );
 
   // Historical Closed Payroll Runs
-  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>([
-    {
-      id: 'pay-run-2026-09-B',
-      practiceId: 'practice-demo-1',
-      payPeriodId: 'pay-period-2026-09-B',
-      payPeriodLabel: 'Sep 16 - Sep 30, 2026',
-      runDate: '2026-10-01',
-      status: 'settled',
-      provider: 'sandbox',
-      externalBatchId: 'ach-batch-9921',
-      totalGrossPay: 12450.00,
-      totalEmployerTaxesEstimate: 1226.32,
-      totalFundingRequired: 13676.32,
-      approvedBy: 'Dr. Sarah Chen, MD',
-      approvedAt: '2026-10-01T09:00:00Z',
-      submittedAt: '2026-10-01T09:15:00Z',
-      settledAt: '2026-10-03T16:00:00Z',
-      clinicianSummaries: [],
-    },
-  ]);
+  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(() =>
+    loadPersisted('payroll_runs', [
+      {
+        id: 'pay-run-2026-09-B',
+        practiceId: 'practice-demo-1',
+        payPeriodId: 'pay-period-2026-09-B',
+        payPeriodLabel: 'Sep 16 - Sep 30, 2026',
+        runDate: '2026-10-01',
+        status: 'settled',
+        provider: 'sandbox',
+        externalBatchId: 'ach-batch-9921',
+        totalGrossPay: 12450.00,
+        totalEmployerTaxesEstimate: 1226.32,
+        totalFundingRequired: 13676.32,
+        approvedBy: 'Dr. Sarah Chen, MD',
+        approvedAt: '2026-10-01T09:00:00Z',
+        submittedAt: '2026-10-01T09:15:00Z',
+        settledAt: '2026-10-03T16:00:00Z',
+        clinicianSummaries: [],
+      },
+    ])
+  );
+
+  // Auto-persist state changes
+  useEffect(() => { savePersisted('workers', workers); }, [workers]);
+  useEffect(() => { savePersisted('plans', compensationPlans); }, [compensationPlans]);
+  useEffect(() => { savePersisted('earnings', openEarnings); }, [openEarnings]);
+  useEffect(() => { savePersisted('pay_period', currentPayPeriod); }, [currentPayPeriod]);
+  useEffect(() => { savePersisted('payroll_runs', payrollRuns); }, [payrollRuns]);
+  useEffect(() => { savePersisted('reconciliations', reconciliations); }, [reconciliations]);
+
 
   // Hydrate initial accounts & transactions from sandbox provider
   useEffect(() => {
     async function loadBanking() {
-      const accts = await bankingProvider.getAccounts('practice-demo-1');
-      const txs = await bankingProvider.getTransactions('practice-demo-1', 20);
-      const summary = await bankingProvider.getFinancialSummary('practice-demo-1');
-      setBankAccounts(accts);
-      setBankTransactions(txs);
-      setFinancialSummary(summary);
+      try {
+        const accts = await bankingProvider.getAccounts('practice-demo-1');
+        const txs = await bankingProvider.getTransactions('practice-demo-1', 20);
+        const summary = await bankingProvider.getFinancialSummary('practice-demo-1');
+        setBankAccounts(accts);
+        setBankTransactions(txs);
+        setFinancialSummary(summary);
+      } finally {
+        setIsHydrating(false);
+      }
     }
     loadBanking();
   }, [bankingProvider]);
@@ -476,7 +515,17 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const intakes = workerEarnings.filter((e) => e.cptCode === '90791').length;
     const lateCancels = workerEarnings.filter((e) => e.ruleApplied.includes('Late') || e.ruleApplied.includes('No-Show')).length;
     const totalCollected = workerEarnings.reduce((acc, curr) => acc + curr.amountCollected, 0);
-    const baseCompensation = workerEarnings.reduce((acc, curr) => acc + curr.clinicianEarning, 0);
+    const bonuses = workerEarnings
+      .filter((e) => e.cptCode === 'BONUS' || e.ruleApplied.toLowerCase().includes('bonus'))
+      .reduce((acc, curr) => acc + curr.clinicianEarning, 0);
+    const baseCompensation = workerEarnings
+      .filter((e) => e.cptCode !== 'BONUS' && !e.ruleApplied.toLowerCase().includes('bonus'))
+      .reduce((acc, curr) => acc + curr.clinicianEarning, 0);
+    const adjustments = workerEarnings
+      .filter((e) => e.ruleApplied.toLowerCase().includes('adjustment') || e.clinicianEarning < 0)
+      .reduce((acc, curr) => acc + curr.clinicianEarning, 0);
+    const reimbursements = 0;
+    const grossPay = Math.round((baseCompensation + bonuses + adjustments + reimbursements) * 100) / 100;
 
     return {
       workerId: worker.id,
@@ -490,10 +539,10 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       supervisionHours: worker.role === 'supervising_clinician' ? 4 : 0,
       attributableCollections: totalCollected,
       baseCompensation,
-      bonuses: worker.id === 'worker-dr-sarah-chen' ? 20.00 : 0, // Doc bonuses
-      adjustments: 0,
-      reimbursements: 0,
-      grossPay: baseCompensation + (worker.id === 'worker-dr-sarah-chen' ? 20.00 : 0),
+      bonuses,
+      adjustments,
+      reimbursements,
+      grossPay,
       status: 'pending_review',
       lineItems: workerEarnings,
     };
@@ -533,121 +582,96 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     serviceType: 'individual' | 'couples' | 'intake';
     amountCollected: number;
     workerId: string;
+    encounterId?: string;
+    claimId?: string;
   }) => {
     setIsProcessing(true);
-    const worker = workers.find((w) => w.id === encounterDetails.workerId) || workers[0];
-    const plan = compensationPlans.find((p) => p.id === worker.compensationPlanId) || compensationPlans[0];
-    const encounterId = `enc-${Date.now()}`;
-    const claimId = `claim-${Date.now()}`;
+    try {
+      const worker = workers.find((w) => w.id === encounterDetails.workerId) || workers[0];
+      const plan = compensationPlans.find((p) => p.id === worker.compensationPlanId) || compensationPlans[0];
+      const dateStr = new Date().toISOString().split('T')[0];
+      const encounterId = encounterDetails.encounterId || `enc-${worker.id}-${encounterDetails.clientName.toLowerCase().replace(/\s+/g, '-')}-${dateStr}`;
+      const claimId = encounterDetails.claimId || `claim-${encounterId}`;
+      const idempotencyKey = PracticeEventBus.createPaymentIdempotencyKey('practice-demo-1', 'encounter_cascade', encounterId);
 
-    // 1. Emit encounter.completed
-    await practiceEventBus.emit('encounter.completed', 'practice-demo-1', worker.id, `enc-comp-${encounterId}`, {
-      encounterId,
-      workerId: worker.id,
-      clientName: encounterDetails.clientName,
-      cptCode: encounterDetails.cptCode,
-    });
+      // Durable Idempotency Check: reject duplicate cascade on same encounter
+      if (practiceEventBus.isProcessed(idempotencyKey)) {
+        console.warn(`[PracticeOS] Durable idempotency duplicate rejected for encounter: ${encounterId}`);
+        return;
+      }
 
-    // 2. Calculate Compensation Line Item
-    const compResult = calculateEncounterCompensation(
-      {
+      // 1. Emit encounter.completed
+      await practiceEventBus.emit('encounter.completed', 'practice-demo-1', worker.id, `enc-comp-${encounterId}`, {
         encounterId,
         workerId: worker.id,
-        workerName: `${worker.firstName} ${worker.lastName}, ${worker.credentials.licenseType}`,
         clientName: encounterDetails.clientName,
-        dateOfService: new Date().toISOString().split('T')[0],
         cptCode: encounterDetails.cptCode,
-        serviceType: encounterDetails.serviceType,
-        status: 'completed',
-        amountBilled: encounterDetails.amountCollected + 40, // standard gross charge
-        allowedAmount: encounterDetails.amountCollected,
-        amountCollected: encounterDetails.amountCollected,
-        isNoteSignedOnTime: true,
-        historicalSessionCountInPeriod: openEarnings.filter((e) => e.workerId === worker.id).length,
-        timingEvent: 'cash_settled',
-      },
-      plan
-    );
-
-    if (compResult.lineItem) {
-      const newLineItem = compResult.lineItem;
-      setOpenEarnings((prev) => [newLineItem, ...prev]);
-
-      // 3. Emit compensation.accrued
-      await practiceEventBus.emit('compensation.accrued', 'practice-demo-1', worker.id, `comp-acc-${newLineItem.id}`, {
-        lineItem: newLineItem,
       });
 
-      // 4. Update Bank Checking & Tax Vault
-      const depositTx: BankTransaction = {
-        id: `tx-dep-${Date.now()}`,
-        accountId: 'acct-operating-01',
-        type: 'deposit',
-        category: 'insurance_remittance',
-        amount: encounterDetails.amountCollected,
-        description: `EFT Remittance: Encounter ${encounterId} (${encounterDetails.clientName})`,
-        referenceId: claimId,
-        timestamp: new Date().toISOString(),
-        runningBalance: (bankAccounts[0]?.currentBalance || 78000) + encounterDetails.amountCollected,
-        reconciled: true,
-      };
+      // 2. Calculate Compensation Line Item
+      const compResult = calculateEncounterCompensation(
+        {
+          encounterId,
+          workerId: worker.id,
+          workerName: `${worker.firstName} ${worker.lastName}, ${worker.credentials.licenseType}`,
+          clientName: encounterDetails.clientName,
+          dateOfService: dateStr,
+          cptCode: encounterDetails.cptCode,
+          serviceType: encounterDetails.serviceType,
+          status: 'completed',
+          amountBilled: encounterDetails.amountCollected + 40,
+          allowedAmount: encounterDetails.amountCollected,
+          amountCollected: encounterDetails.amountCollected,
+          isNoteSignedOnTime: true,
+          historicalSessionCountInPeriod: openEarnings.filter((e) => e.workerId === worker.id && e.status !== 'paid').length,
+          timingEvent: 'cash_settled',
+        },
+        plan
+      );
 
-      setBankTransactions((prev) => [depositTx, ...prev]);
+      if (compResult.lineItem) {
+        // 3. Reconcile deposit with Double-Entry Banking Provider FIRST (atomic commit)
+        const rec = await bankingProvider.reconcileClaimPayment({
+          claimId,
+          clientName: encounterDetails.clientName,
+          payerName: 'Primary Insurance Remittance',
+          cptCode: encounterDetails.cptCode,
+          dateOfService: dateStr,
+          amountBilled: encounterDetails.amountCollected + 40,
+          allowedAmount: encounterDetails.amountCollected,
+          payerPayment: encounterDetails.amountCollected,
+          patientResponsibility: 0,
+          clinicianId: worker.id,
+          clinicianName: `${worker.firstName} ${worker.lastName}`,
+          compensationPercentage: 50,
+        });
 
-      // Update bank account balance
-      setBankAccounts((prev) => {
-        if (prev.length === 0) return prev;
-        const copy = [...prev];
-        copy[0] = {
-          ...copy[0],
-          currentBalance: copy[0].currentBalance + encounterDetails.amountCollected,
-          availableBalance: copy[0].availableBalance + encounterDetails.amountCollected,
-        };
-        // Allocate 25% of practice retained revenue to tax vault
-        const taxShare = Math.round(newLineItem.practiceRetained * 0.25 * 100) / 100;
-        if (copy[1]) {
-          copy[1] = {
-            ...copy[1],
-            currentBalance: copy[1].currentBalance + taxShare,
-            availableBalance: copy[1].availableBalance + taxShare,
-          };
-        }
-        return copy;
-      });
+        const newLineItem = compResult.lineItem;
+        setOpenEarnings((prev) => [newLineItem, ...prev]);
+        setReconciliations((prev) => [rec, ...prev]);
 
-      // Add to reconciliations list
-      const rec: ClaimPaymentReconciliation = {
-        id: `rec-${Date.now()}`,
-        claimId,
-        clientName: encounterDetails.clientName,
-        payerName: 'Primary Insurance Remittance',
-        cptCode: encounterDetails.cptCode,
-        dateOfService: new Date().toISOString().split('T')[0],
-        amountBilled: encounterDetails.amountCollected + 40,
-        allowedAmount: encounterDetails.amountCollected,
-        payerPayment: encounterDetails.amountCollected,
-        patientResponsibility: 0,
-        matchedDepositId: depositTx.id,
-        clinicianId: worker.id,
-        clinicianName: `${worker.firstName} ${worker.lastName}`,
-        compensationRule: newLineItem.ruleApplied,
-        clinicianShare: newLineItem.clinicianEarning,
-        practiceShare: newLineItem.practiceRetained,
-        reconciledAt: new Date().toISOString(),
-        status: 'matched',
-      };
-      setReconciliations((prev) => [rec, ...prev]);
+        // 4. Emit compensation.accrued
+        await practiceEventBus.emit('compensation.accrued', 'practice-demo-1', worker.id, `comp-acc-${newLineItem.id}`, {
+          lineItem: newLineItem,
+        });
 
-      // Update current pay period totals
-      setCurrentPayPeriod((prev) => ({
-        ...prev,
-        totalEncounters: prev.totalEncounters + 1,
-        totalGrossCollections: prev.totalGrossCollections + encounterDetails.amountCollected,
-        totalGrossCompensation: prev.totalGrossCompensation + newLineItem.clinicianEarning,
-      }));
+        // Refresh banking accounts and transactions from authoritative provider
+        const accts = await bankingProvider.getAccounts('practice-demo-1');
+        const txs = await bankingProvider.getTransactions('practice-demo-1', 20);
+        setBankAccounts(accts);
+        setBankTransactions(txs);
+
+        // Update current pay period totals
+        setCurrentPayPeriod((prev) => ({
+          ...prev,
+          totalEncounters: prev.totalEncounters + 1,
+          totalGrossCollections: prev.totalGrossCollections + encounterDetails.amountCollected,
+          totalGrossCompensation: prev.totalGrossCompensation + newLineItem.clinicianEarning,
+        }));
+      }
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   /**
@@ -751,59 +775,92 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   /**
-   * Approves & Submits Current Pay Period Run
+   * Approves & Submits Current Pay Period Run with Duplicate Guard
    */
   const approveAndSubmitPayroll = async (payPeriodId: string): Promise<{ success: boolean; batchId: string }> => {
     setIsProcessing(true);
-    const provider = getPayrollProvider(selectedPayrollProvider);
-    const totalGross = clinicianPayrollSummaries.reduce((acc, curr) => acc + curr.grossPay, 0);
-    const taxesEstimate = Math.round(totalGross * 0.0985 * 100) / 100;
-    const totalFunding = totalGross + taxesEstimate;
+    try {
+      // Guard 1: Prevent duplicate submission if pay period is already submitted
+      if (payrollRuns.some((r) => r.payPeriodId === payPeriodId && r.status === 'submitted')) {
+        throw new Error(`Duplicate payroll submission rejected: Pay period ${payPeriodId} has already been approved and submitted.`);
+      }
 
-    const draftRun: PayrollRun = {
-      id: `pay-run-${Date.now()}`,
-      practiceId: 'practice-demo-1',
-      payPeriodId,
-      payPeriodLabel: `${currentPayPeriod.startDate} to ${currentPayPeriod.endDate}`,
-      runDate: new Date().toISOString().split('T')[0],
-      status: 'approved',
-      provider: selectedPayrollProvider as any,
-      totalGrossPay: totalGross,
-      totalEmployerTaxesEstimate: taxesEstimate,
-      totalFundingRequired: totalFunding,
-      approvedBy: 'Dr. Sarah Chen, MD',
-      approvedAt: new Date().toISOString(),
-      clinicianSummaries: clinicianPayrollSummaries,
-    };
+      const provider = getPayrollProvider(selectedPayrollProvider);
+      const totalGross = clinicianPayrollSummaries.reduce((acc, curr) => acc + curr.grossPay, 0);
+      const taxesEstimate = Math.round(totalGross * 0.0985 * 100) / 100;
+      const totalFunding = totalGross + taxesEstimate;
 
-    // 1. Submit to Payroll Provider (Gusto, ADP, or Sandbox)
-    const result = await provider.submitPayroll(draftRun);
+      const draftRun: PayrollRun = {
+        id: `pay-run-${Date.now()}`,
+        practiceId: 'practice-demo-1',
+        payPeriodId,
+        payPeriodLabel: `${currentPayPeriod.startDate} to ${currentPayPeriod.endDate}`,
+        runDate: new Date().toISOString().split('T')[0],
+        status: 'approved',
+        provider: selectedPayrollProvider as any,
+        totalGrossPay: totalGross,
+        totalEmployerTaxesEstimate: taxesEstimate,
+        totalFundingRequired: totalFunding,
+        approvedBy: 'Dr. Sarah Chen, MD',
+        approvedAt: new Date().toISOString(),
+        clinicianSummaries: clinicianPayrollSummaries,
+      };
 
-    // 2. Fund via Embedded Business Banking ACH
-    await bankingProvider.fundPayroll('practice-demo-1', draftRun.id, totalFunding);
+      // 1. Submit to Payroll Provider (Sandbox, Gusto, or ADP)
+      const result = await provider.submitPayroll(draftRun);
+      if (!result.success) {
+        throw new Error(result.error || `Payroll submission to ${provider.name} failed: cannot fund payroll or mark earnings paid.`);
+      }
 
-    // 3. Update state
-    draftRun.status = 'submitted';
-    draftRun.externalBatchId = result.externalBatchId;
-    draftRun.submittedAt = result.submittedAt;
+      // 2. Fund via Embedded Business Banking ACH
+      await bankingProvider.fundPayroll('practice-demo-1', draftRun.id, totalFunding);
 
-    setPayrollRuns((prev) => [draftRun, ...prev]);
-    setCurrentPayPeriod((prev) => ({
-      ...prev,
-      status: 'funded',
-    }));
+      // 3. Mark included earnings as paid
+      draftRun.status = 'submitted';
+      draftRun.externalBatchId = result.externalBatchId;
+      draftRun.submittedAt = result.submittedAt;
 
-    // Refresh bank balances
-    const accts = await bankingProvider.getAccounts('practice-demo-1');
-    const txs = await bankingProvider.getTransactions('practice-demo-1', 20);
-    setBankAccounts(accts);
-    setBankTransactions(txs);
+      setOpenEarnings((prev) =>
+        prev.map((e) => (e.status === 'accrued' || e.status === 'approved' ? { ...e, status: 'paid' } : e))
+      );
 
-    setIsProcessing(false);
-    return { success: true, batchId: result.externalBatchId };
+      setPayrollRuns((prev) => [draftRun, ...prev]);
+
+      // 4. Advance Pay Period to next cycle
+      const currentEnd = new Date(currentPayPeriod.endDate);
+      const nextStart = new Date(currentEnd);
+      nextStart.setDate(nextStart.getDate() + 1);
+      const nextEnd = new Date(nextStart);
+      nextEnd.setDate(nextEnd.getDate() + 14);
+      const nextPay = new Date(nextEnd);
+      nextPay.setDate(nextPay.getDate() + 5);
+
+      setCurrentPayPeriod({
+        id: `pp-${nextStart.toISOString().split('T')[0]}`,
+        practiceId: currentPayPeriod.practiceId || 'practice-demo-1',
+        startDate: nextStart.toISOString().split('T')[0],
+        endDate: nextEnd.toISOString().split('T')[0],
+        payDate: nextPay.toISOString().split('T')[0],
+        status: 'open',
+        totalClinicians: workers.length,
+        totalEncounters: 0,
+        totalGrossCollections: 0,
+        totalGrossCompensation: 0,
+      });
+
+      // Refresh bank balances
+      const accts = await bankingProvider.getAccounts('practice-demo-1');
+      const txs = await bankingProvider.getTransactions('practice-demo-1', 20);
+      setBankAccounts(accts);
+      setBankTransactions(txs);
+
+      return { success: true, batchId: result.externalBatchId };
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const operatingAccount = bankAccounts.find((a) => a.accountType === 'operating_checking') || bankAccounts[0];
+  const operatingAccount = bankAccounts.find((a) => a.accountType === 'operating_checking') || bankAccounts[0] || null;
 
   const executeCascadeSimulation = async () => {
     await triggerEncounterToPaycheckCascade({
@@ -811,7 +868,7 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       cptCode: '90837',
       serviceType: 'individual',
       amountCollected: 150.00,
-      workerId: 'worker-sarah-chen',
+      workerId: 'worker-dr-sarah-chen', // Authoritative Dr. Sarah Chen ID
     });
   };
 
@@ -839,6 +896,7 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         approveAndSubmitPayroll,
         bankAccounts,
         operatingAccount,
+        isHydrating,
         bankTransactions,
         financialSummary,
         reconciliations,

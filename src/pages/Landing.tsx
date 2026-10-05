@@ -171,7 +171,7 @@ export const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-bold mb-6">
             <ShieldCheck className="h-4 w-4 text-indigo-600" />
-            <span>100% HIPAA Safe Harbor Certified • Complete Telehealth Ecosystem</span>
+            <span>Client-Side Safe Harbor Pattern Scrubber • Complete Telehealth Ecosystem</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 max-w-5xl mx-auto leading-tight">

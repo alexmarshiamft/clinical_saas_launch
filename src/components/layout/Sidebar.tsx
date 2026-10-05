@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
                 data-testid="sidebar-tier-badge"
                 className={`text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-full border ${tierBadge.className}`}
               >
-                Practice OS
+                {tierBadge.label}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-medium">Session to Paycheck</p>
@@ -219,7 +219,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
         <div>
           <div className="px-2 mb-2 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
-              Clinical &amp; AI Tools
+              Core Clinical Tools
             </span>
             <span className="text-[10px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">
               4 Apps

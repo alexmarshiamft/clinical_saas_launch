@@ -40,6 +40,7 @@ export const DashboardHome: React.FC = () => {
     workers,
     activePayPeriod,
     operatingAccount,
+    isHydrating,
     reconciliations,
     financialSummary,
     executeCascadeSimulation,
@@ -53,15 +54,18 @@ export const DashboardHome: React.FC = () => {
   const clinicianName = profile?.name || 'Dr. Sarah Chen, MD';
   const practiceName = profile?.practiceName || 'Bay Area Behavioral Health Group';
 
-  const handleRunCascade = () => {
+  const handleRunCascade = async () => {
     setCascadeRunning(true);
     setCascadeNotice(null);
-    setTimeout(() => {
-      executeCascadeSimulation();
+    try {
+      await executeCascadeSimulation();
+      setCascadeNotice('Cascade Executed: Encounter 90837 ($150) -> Deposit Reconciled -> $85 Comp Accrued ($75 rate + $10 doc bonus) to Sarah Chen -> Added to Oct 1–15 Payroll');
+    } catch (err: any) {
+      setCascadeNotice(`Cascade Notice: ${err.message}`);
+    } finally {
       setCascadeRunning(false);
-      setCascadeNotice('Cascade Executed: Encounter 90837 ($150) -> Deposit Reconciled -> $90 Comp Accrued to Sarah Chen -> Added to Oct 1–15 Payroll');
       setTimeout(() => setCascadeNotice(null), 6000);
-    }, 700);
+    }
   };
 
   // Today's Clinical Schedule
@@ -151,21 +155,21 @@ export const DashboardHome: React.FC = () => {
       badge: '18 Safe Harbor',
       badgeClass: 'bg-cyan-100 text-cyan-800 border-cyan-200',
       description: 'Statutory 18-rule redaction engine with forensic audit table and zero-leak diff viewer.',
-      stats: '1,280 Identifiers Scrubbed • 100% HIPAA',
+      stats: '1,280 Identifiers Scrubbed • Pattern De-Identification',
       actionLabel: 'Open Scrubber Engine',
     },
   ];
 
   // Compute Practice Operating System Questions
   const totalBilled = 34500;
-  const totalCollected = financialSummary.totalRevenue ?? financialSummary.monthlyTotalRevenue;
-  const accruedComp = financialSummary.clinicianCompensation ?? financialSummary.monthlyClinicianCompensation;
-  const grossMargin = financialSummary.grossMargin ?? financialSummary.monthlyGrossPracticeMargin;
-  const grossMarginPct = financialSummary.grossMarginPercentage ?? financialSummary.monthlyGrossMarginPercentage;
-  const operatingCash = operatingAccount.currentBalance;
-  const nextPayrollAmount = activePayPeriod.totalGrossCompensation;
+  const totalCollected = financialSummary?.totalRevenue ?? financialSummary?.monthlyTotalRevenue ?? 0;
+  const accruedComp = financialSummary?.clinicianCompensation ?? financialSummary?.monthlyClinicianCompensation ?? 0;
+  const grossMargin = financialSummary?.grossMargin ?? financialSummary?.monthlyGrossPracticeMargin ?? 0;
+  const grossMarginPct = financialSummary?.grossMarginPercentage ?? financialSummary?.monthlyGrossMarginPercentage ?? 0;
+  const operatingCash = operatingAccount?.currentBalance ?? 0;
+  const nextPayrollAmount = activePayPeriod?.totalGrossCompensation ?? 0;
   const hasCashCoverage = operatingCash >= nextPayrollAmount;
-  const outstandingAR = reconciliations
+  const outstandingAR = (reconciliations ?? [])
     .filter(r => r.status === 'pending_deposit')
     .reduce((sum, r) => sum + r.allowedAmount, 0) || 12450;
 
@@ -181,7 +185,7 @@ export const DashboardHome: React.FC = () => {
             <span className="text-xs text-slate-600 font-medium">Session to Paycheck Engine</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-            Practice Owner Command Center
+            Practice Owner & Clinical Command Center
           </h1>
           <p className="text-sm text-slate-500 font-medium">
             Operating: <strong>{practiceName}</strong> • Logged in as <strong>{clinicianName}</strong>
@@ -240,10 +244,17 @@ export const DashboardHome: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Ledger Synchronized
-            </span>
+            {isHydrating ? (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                Syncing Practice Ledger...
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Ledger Synchronized
+              </span>
+            )}
           </div>
         </div>
 
@@ -332,7 +343,7 @@ export const DashboardHome: React.FC = () => {
               <span className="text-xs text-slate-400">Oct 1–15 Cycle</span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Pay Date: Oct 20, 2026 • Status: <span className="text-emerald-400 font-semibold">{activePayPeriod.status}</span>
+              Pay Date: Oct 20, 2026 • Status: <span className="text-emerald-400 font-semibold">{activePayPeriod?.status ?? 'open'}</span>
             </p>
             <NavLink to="/dashboard/payroll" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 hover:text-amber-300">
               Inspect Payroll Review Table <ChevronRight className="w-3 h-3" />

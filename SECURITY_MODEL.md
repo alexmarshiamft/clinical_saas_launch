@@ -116,11 +116,13 @@ Audit logs capture all security-relevant clinical events:
 - `SCRUB_EXECUTION`: PHI redaction events.
 - `BILLING_EXPORT`: CMS-1500 and 837P claim generation.
 
-### Cryptographic Chaining
-Each audit entry generates an immutable SHA-256 fingerprint:
-$$\text{Hash}_n = \text{SHA256}(\text{PrevHash}_{n-1} \parallel \text{ID} \parallel \text{Timestamp} \parallel \text{Actor} \parallel \text{Action} \parallel \text{MRN} \parallel \text{IP} \parallel \text{Details})$$
-- Logs are durably persisted to an append-only file (`data/audit_ledger.jsonl`).
-- The `GET /api/audit-logs/export` endpoint verifies the integrity of the chain before producing tamper-evident exports.
+### Server-Authoritative Chaining & HMAC Verification
+Each audit entry is authenticated and sealed server-side:
+- **Server Authority**: The backend server sets the authoritative `timestamp`, `actor`, `actorRole`, and client IP. Client-supplied forged hashes, timestamps, or actor attributes are stripped and rejected.
+- **HMAC-SHA256 Signature**: In addition to preceding-hash chaining ($\text{PrevHash}_{n-1}$), entries are sealed with an HMAC-SHA256 signature using a server secret (`AUDIT_HMAC_SECRET`) held outside the audit table, preventing offline rehash-and-rewrite attacks.
+- **Tamper-Evident Append-Only Log**: Logs are durably persisted append-only to `data/audit_ledger.jsonl`.
+- **Integrity Verification**: `GET /api/audit-logs` and export endpoints compute the full chain verification and HMAC validity over history, reporting tamper status mathematically.
+- *Threat Model Note*: Tamper-evident under the documented threat model against unauthorized client modification and unauthenticated forged entries. PostgreSQL database policies enforce append-only rules (`DO INSTEAD NOTHING` on UPDATE/DELETE).
 
 ---
 

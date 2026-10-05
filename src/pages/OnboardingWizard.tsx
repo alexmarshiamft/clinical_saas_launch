@@ -330,7 +330,7 @@ export const OnboardingWizard: React.FC = () => {
                 <span className="font-bold text-teal-300">TheraFlow Treasury Checking Account</span>
               </div>
               <p className="text-slate-300 leading-relaxed">
-                FDIC-insured business account enabled. Insurance reimbursements and card deposits match automatically to claims and clinician paychecks.
+                Embedded business banking sandbox enabled. Insurance reimbursements and card deposits match automatically to claims and clinician paychecks.
               </p>
             </div>
           </div>

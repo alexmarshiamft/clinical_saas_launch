@@ -1,9 +1,9 @@
 /**
- * TheraFlow OS — Clinician Compensation Calculation Engine
+ * TheraFlow OS — Clinician Compensation Calculation Engine (Cents-Safe & Auditable)
  * 
  * Pure, deterministic rules engine for behavioral-health practice compensation.
  * Evaluates clinical encounters, CPT codes, cash collections, session volume,
- * and timing policies to produce auditable earning line items.
+ * and timing policies to produce auditable earning line items using integer-cents arithmetic.
  */
 
 import {
@@ -27,11 +27,13 @@ export interface EncounterCompensationInput {
   allowedAmount?: number;
   amountCollected: number; // Actual cash/insurance payment received
   isNoteSignedOnTime?: boolean; // Signed within 24h
+  bonusAlreadyAwarded?: boolean; // Prevents duplicate bonus on partial payments
   historicalSessionCountInPeriod?: number; // For tiered volume calculations
   completedSessionCountInPeriod?: number; // Convenient alias
   historicalCollectionsInPeriod?: number; // For tiered collections calculations
   timingEvent: 'service_completed' | 'claim_accepted' | 'remittance_received' | 'cash_settled';
   triggerEvent?: 'service_completed' | 'claim_accepted' | 'remittance_received' | 'cash_settled'; // Convenient alias
+  ruleVersion?: number;
 }
 
 export interface CompensationCalculationResult {
@@ -40,22 +42,37 @@ export interface CompensationCalculationResult {
   ineligibilityReason?: string;
   clinicianEarning?: number;
   practiceRetained?: number;
+  clinicianEarningCents?: bigint;
+  practiceRetainedCents?: bigint;
   explanation?: string;
 }
 
 /**
+ * Monetary Arithmetic Utilities: Integer-Cents Decimal Precision
+ */
+export function dollarsToCents(dollars: number): bigint {
+  return BigInt(Math.round(dollars * 100));
+}
+
+export function centsToDollars(cents: bigint | number): number {
+  return Number(cents) / 100;
+}
+
+/**
  * Calculates clinician compensation for a specific encounter based on assigned plan rules.
+ * Strictly guarantees: clinicianEarning + practiceRetained === amountCollected (or negative adjustment).
  */
 export function calculateEncounterCompensation(
   input: EncounterCompensationInput,
   plan: CompensationPlan
 ): CompensationCalculationResult {
-  // 1. Check if encounter is eligible under the timing policy of the plan
-  // If cancelled (standard, non-late), no compensation is due
+  // 1. Cancelled appointment without late-cancel charge is never compensable
   if (input.status === 'cancelled') {
     return {
       eligibleForAccrual: false,
       ineligibilityReason: 'Cancelled appointment without late-cancel charge is not compensable.',
+      clinicianEarning: 0,
+      practiceRetained: 0,
     };
   }
 
@@ -63,24 +80,38 @@ export function calculateEncounterCompensation(
   let selectedRule: CompensationRule | undefined;
 
   // A. Special status handling (no-show / late-cancel)
+  // CRITICAL AUDIT FIX: If plan does NOT have a no_show_fee or late_cancellation rule,
+  // do NOT fall through to the full CPT session rate! Return uncompensated.
   if (input.status === 'no_show') {
     selectedRule = plan.rules.find((r) => r.ruleType === 'no_show_fee');
+    if (!selectedRule) {
+      return {
+        eligibleForAccrual: false,
+        ineligibilityReason: `Encounter marked NO-SHOW, but plan "${plan.name}" does not specify a no-show compensation rule. No compensation accrued.`,
+        clinicianEarning: 0,
+        practiceRetained: 0,
+      };
+    }
   } else if (input.status === 'late_cancelled') {
     selectedRule = plan.rules.find((r) => r.ruleType === 'late_cancellation');
+    if (!selectedRule) {
+      return {
+        eligibleForAccrual: false,
+        ineligibilityReason: `Encounter marked LATE CANCELLED, but plan "${plan.name}" does not specify a late-cancellation rule. No compensation accrued.`,
+        clinicianEarning: 0,
+        practiceRetained: 0,
+      };
+    }
   }
 
   // B. Specific CPT match (any rule explicitly targeting this CPT code)
   if (!selectedRule && input.cptCode) {
-    selectedRule = plan.rules.find(
-      (r) => r.cptCodes?.includes(input.cptCode)
-    );
+    selectedRule = plan.rules.find((r) => r.cptCodes?.includes(input.cptCode));
   }
 
   // C. Specific Service Type match (e.g., couples, intake, supervision)
   if (!selectedRule) {
-    selectedRule = plan.rules.find(
-      (r) => r.encounterTypes?.includes(input.serviceType)
-    );
+    selectedRule = plan.rules.find((r) => r.encounterTypes?.includes(input.serviceType));
   }
 
   // D. General tier or percentage or flat rule
@@ -103,7 +134,6 @@ export function calculateEncounterCompensation(
   }
 
   // 3. Timing policy validation
-  // Check if current event satisfies the rule's timing requirement
   const effectiveEvent = input.triggerEvent || input.timingEvent;
   const satisfiesTiming = checkTimingPolicy(selectedRule.timingPolicy, effectiveEvent);
   if (!satisfiesTiming) {
@@ -113,38 +143,55 @@ export function calculateEncounterCompensation(
     };
   }
 
-  // 4. Compute clinician earning and generate auditable explanation
-  let clinicianEarning = 0;
+  // 4. Compute clinician earning in integer cents
+  const collectedCents = dollarsToCents(input.amountCollected);
+  const billedCents = dollarsToCents(input.amountBilled);
+  const allowedCents = input.allowedAmount !== undefined ? dollarsToCents(input.allowedAmount) : billedCents;
+
+  let clinicianEarningCents = 0n;
   let explanation = '';
 
   switch (selectedRule.ruleType) {
     case 'flat_fee':
     case 'cpt_rate': {
-      const rate = selectedRule.flatAmount || 0;
-      clinicianEarning = rate;
-      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} (${input.serviceType}) | Flat Rate: $${rate.toFixed(2)} | Clinician earning: $${clinicianEarning.toFixed(2)}`;
+      // CRITICAL AUDIT FIX: flatAmount === 0 must remain 0
+      const rate = selectedRule.flatAmount !== undefined && selectedRule.flatAmount !== null
+        ? selectedRule.flatAmount
+        : 0;
+      clinicianEarningCents = dollarsToCents(rate);
+      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} (${input.serviceType}) | Flat Rate: $${rate.toFixed(2)} | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'percentage_collected': {
-      const pct = (selectedRule.percentage || 50) / 100;
-      clinicianEarning = Math.round(input.amountCollected * pct * 100) / 100;
-      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Cash Collected: $${input.amountCollected.toFixed(2)} | Rule: ${(pct * 100).toFixed(0)}% of collections | Clinician earning: $${clinicianEarning.toFixed(2)}`;
+      // CRITICAL AUDIT FIX: percentage === 0 must remain 0% (not default to 50%)
+      const pct = selectedRule.percentage !== undefined && selectedRule.percentage !== null
+        ? selectedRule.percentage
+        : 50;
+      // Integer cents half-up rounding: Math.round(collectedCents * pct / 100)
+      const earned = Math.round(Number(collectedCents) * (pct / 100));
+      clinicianEarningCents = BigInt(earned);
+      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Cash Collected: $${centsToDollars(collectedCents).toFixed(2)} | Rule: ${pct}% of collections | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'percentage_allowed': {
-      const allowed = input.allowedAmount ?? input.amountBilled;
-      const pct = (selectedRule.percentage || 50) / 100;
-      clinicianEarning = Math.round(allowed * pct * 100) / 100;
-      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Payer Allowed: $${allowed.toFixed(2)} | Rule: ${(pct * 100).toFixed(0)}% of allowed amount | Clinician earning: $${clinicianEarning.toFixed(2)}`;
+      const pct = selectedRule.percentage !== undefined && selectedRule.percentage !== null
+        ? selectedRule.percentage
+        : 50;
+      const earned = Math.round(Number(allowedCents) * (pct / 100));
+      clinicianEarningCents = BigInt(earned);
+      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Payer Allowed: $${centsToDollars(allowedCents).toFixed(2)} | Rule: ${pct}% of allowed amount | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'percentage_billed': {
-      const pct = (selectedRule.percentage || 40) / 100;
-      clinicianEarning = Math.round(input.amountBilled * pct * 100) / 100;
-      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Billed Gross: $${input.amountBilled.toFixed(2)} | Rule: ${(pct * 100).toFixed(0)}% of billed charge | Clinician earning: $${clinicianEarning.toFixed(2)}`;
+      const pct = selectedRule.percentage !== undefined && selectedRule.percentage !== null
+        ? selectedRule.percentage
+        : 40;
+      const earned = Math.round(Number(billedCents) * (pct / 100));
+      clinicianEarningCents = BigInt(earned);
+      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Billed Gross: $${centsToDollars(billedCents).toFixed(2)} | Rule: ${pct}% of billed charge | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
@@ -152,7 +199,8 @@ export function calculateEncounterCompensation(
       const sessionIndex = input.completedSessionCountInPeriod !== undefined
         ? input.completedSessionCountInPeriod
         : ((input.historicalSessionCountInPeriod || 0) + 1);
-      let appliedPct = 45;
+      
+      let appliedPct = 50; // Standard fallback
       if (selectedRule.tiers && selectedRule.tiers.length > 0) {
         for (const tier of selectedRule.tiers) {
           if (sessionIndex >= tier.fromCount && (tier.toCount === null || sessionIndex <= tier.toCount)) {
@@ -161,14 +209,15 @@ export function calculateEncounterCompensation(
           }
         }
       }
-      const pct = appliedPct / 100;
-      clinicianEarning = Math.round(input.amountCollected * pct * 100) / 100;
-      explanation = `Encounter ${input.encounterId} | Session #${sessionIndex} in period | Tier ${appliedPct}% of collected ($${input.amountCollected.toFixed(2)}) | Clinician earning: $${clinicianEarning.toFixed(2)}`;
+      const earned = Math.round(Number(collectedCents) * (appliedPct / 100));
+      clinicianEarningCents = BigInt(earned);
+      explanation = `Encounter ${input.encounterId} | Session #${sessionIndex} in period | Tier ${appliedPct}% of collected ($${centsToDollars(collectedCents).toFixed(2)}) | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'tiered_collections': {
-      const currentGross = (input.historicalCollectionsInPeriod || 0) + input.amountCollected;
+      const currentGrossCents = dollarsToCents(input.historicalCollectionsInPeriod || 0) + collectedCents;
+      const currentGross = centsToDollars(currentGrossCents);
       let appliedPct = 50;
       if (selectedRule.tiers && selectedRule.tiers.length > 0) {
         for (const tier of selectedRule.tiers) {
@@ -178,48 +227,61 @@ export function calculateEncounterCompensation(
           }
         }
       }
-      const pct = appliedPct / 100;
-      clinicianEarning = Math.round(input.amountCollected * pct * 100) / 100;
-      explanation = `Encounter ${input.encounterId} | Cumulative collections $${currentGross.toFixed(2)} | Tier ${appliedPct}% of $${input.amountCollected.toFixed(2)} | Clinician earning: $${clinicianEarning.toFixed(2)}`;
+      const earned = Math.round(Number(collectedCents) * (appliedPct / 100));
+      clinicianEarningCents = BigInt(earned);
+      explanation = `Encounter ${input.encounterId} | Cumulative collections $${currentGross.toFixed(2)} | Tier ${appliedPct}% of $${centsToDollars(collectedCents).toFixed(2)} | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'no_show_fee':
     case 'late_cancellation': {
-      const fee = selectedRule.flatAmount || (input.status === 'no_show' ? 50 : 60);
-      clinicianEarning = fee;
-      explanation = `Encounter ${input.encounterId} | Status: ${input.status.toUpperCase()} | Policy Fee: $${fee.toFixed(2)} | Clinician earning: $${clinicianEarning.toFixed(2)}`;
+      const fee = selectedRule.flatAmount !== undefined && selectedRule.flatAmount !== null
+        ? selectedRule.flatAmount
+        : (input.status === 'no_show' ? 50 : 60);
+      clinicianEarningCents = dollarsToCents(fee);
+      explanation = `Encounter ${input.encounterId} | Status: ${input.status.toUpperCase()} | Policy Fee: $${fee.toFixed(2)} | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'supervision_stipend': {
-      const stipend = selectedRule.flatAmount || 75;
-      clinicianEarning = stipend;
+      const stipend = selectedRule.flatAmount !== undefined && selectedRule.flatAmount !== null
+        ? selectedRule.flatAmount
+        : 75;
+      clinicianEarningCents = dollarsToCents(stipend);
       explanation = `Clinical Supervision Encounter ${input.encounterId} | Supervision Rate: $${stipend.toFixed(2)}`;
       break;
     }
 
     case 'admin_hourly': {
-      const adminRate = selectedRule.flatAmount || 40;
-      clinicianEarning = adminRate;
+      const adminRate = selectedRule.flatAmount !== undefined && selectedRule.flatAmount !== null
+        ? selectedRule.flatAmount
+        : 40;
+      clinicianEarningCents = dollarsToCents(adminRate);
       explanation = `Administrative Service ${input.encounterId} | Hourly Admin Allowance: $${adminRate.toFixed(2)}`;
       break;
     }
 
     default: {
-      clinicianEarning = 75;
-      explanation = `Encounter ${input.encounterId} | Default Standard Fee: $75.00`;
+      clinicianEarningCents = dollarsToCents(75);
+      explanation = `Encounter ${input.encounterId} | Standard Base Fee: $75.00`;
     }
   }
 
-  // 5. Add documentation bonus if applicable
-  if (input.isNoteSignedOnTime && (plan.documentationBonusAmount || 0) > 0) {
-    const bonus = plan.documentationBonusAmount!;
-    clinicianEarning += bonus;
-    explanation += ` + $${bonus.toFixed(2)} Documentation Bonus (signed <24h)`;
+  // 5. Add documentation promptness bonus ONCE per encounter (if not already awarded)
+  // CRITICAL AUDIT FIX: Partial payments or subsequent events must not repeatedly trigger bonus
+  if (input.isNoteSignedOnTime && !input.bonusAlreadyAwarded && (plan.documentationBonusAmount || 0) > 0) {
+    const bonusCents = dollarsToCents(plan.documentationBonusAmount!);
+    clinicianEarningCents += bonusCents;
+    explanation += ` + $${centsToDollars(bonusCents).toFixed(2)} Documentation Bonus (signed <24h)`;
   }
 
-  const practiceRetained = Math.max(0, Math.round((input.amountCollected - clinicianEarning) * 100) / 100);
+  // 6. Practice Retained: Exact accounting reconciliation
+  // CRITICAL AUDIT FIX: Do NOT clamp to Math.max(0, ...). Practice retained can be negative if flat fee exceeds collected.
+  // Invariant: clinicianEarningCents + practiceRetainedCents === collectedCents
+  const practiceRetainedCents = collectedCents - clinicianEarningCents;
+
+  const clinicianEarning = centsToDollars(clinicianEarningCents);
+  const practiceRetained = centsToDollars(practiceRetainedCents);
 
   const lineItem: EarningLineItem = {
     id: `earn-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -245,6 +307,8 @@ export function calculateEncounterCompensation(
     lineItem,
     clinicianEarning,
     practiceRetained,
+    clinicianEarningCents,
+    practiceRetainedCents,
     explanation,
   };
 }
@@ -258,7 +322,7 @@ function checkTimingPolicy(
 ): boolean {
   switch (policy) {
     case 'on_date_of_service':
-      return true; // Accrues on any event at or after service completion
+      return true;
     case 'on_claim_acceptance':
       return ['claim_accepted', 'remittance_received', 'cash_settled'].includes(event);
     case 'on_insurer_remittance':
@@ -284,11 +348,12 @@ export function evaluateMinimumGuarantee(
 
   const floor = plan.minimumPayGuarantee;
   if (totalAccruedInMonth < floor) {
-    const deficit = Math.round((floor - totalAccruedInMonth) * 100) / 100;
+    const deficitCents = dollarsToCents(floor) - dollarsToCents(totalAccruedInMonth);
+    const deficit = centsToDollars(deficitCents);
     return {
       adjustmentNeeded: true,
       adjustmentAmount: deficit,
-      explanation: `Minimum monthly guarantee floor ($${floor.toFixed(2)}) exceeded earnings ($${totalAccruedInMonth.toFixed(2)}). Top-up adjustment: +$${deficit.toFixed(2)}`,
+      explanation: `Minimum monthly guarantee floor ($${floor.toFixed(2)}) exceeded accrued earnings ($${totalAccruedInMonth.toFixed(2)}). Top-up adjustment: +$${deficit.toFixed(2)}`,
     };
   }
 
@@ -300,7 +365,7 @@ export function evaluateMinimumGuarantee(
 }
 
 /**
- * Evaluates documentation promptness bonus (e.g. note signed < 24 hours after encounter).
+ * Evaluates documentation promptness bonus (< 24 hours after encounter).
  */
 export function evaluateDocumentationBonus(
   encounterId: string,
@@ -335,4 +400,3 @@ export function evaluateDocumentationBonus(
     createdAt: new Date().toISOString(),
   };
 }
-

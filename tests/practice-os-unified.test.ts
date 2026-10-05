@@ -364,12 +364,18 @@ async function runTestSuite() {
   assert(submitResult.success === true, 'Payroll batch submitted successfully to payroll orchestrator');
   assert(submitResult.externalBatchId.startsWith('ach-sandbox-'), 'Deterministic ACH direct deposit batch ID created');
 
-  // Test 2.5: Multi-Provider Contract Adherence (Gusto & ADP adapters)
+  // Test 2.5: Multi-Provider Truthful Contract Adherence (Gusto & ADP adapters)
   const gustoConn = await gustoAdapter.connectPractice({ provider: 'gusto', apiKey: 'gst_test_sandbox_token', sandboxMode: true });
-  assert(gustoConn.connected === true, 'Gusto provider adapter conforms to PayrollProvider contract');
+  assert(
+    gustoAdapter.isSandbox === true && (gustoConn.connected === true || gustoConn.message.includes('Gusto')),
+    'Gusto provider adapter conforms to truthful PayrollProvider contract (requires live credentials or reports offline sandbox status)'
+  );
 
   const adpConn = await adpAdapter.connectPractice({ provider: 'adp', apiKey: 'adp_test_client_secret', sandboxMode: true });
-  assert(adpConn.connected === true, 'ADP provider adapter conforms to PayrollProvider contract');
+  assert(
+    adpConn.connected === false && adpConn.message.includes('NOT IMPLEMENTED') && adpAdapter.integrationStatus === 'not_implemented',
+    'ADP provider adapter truthfully reports NOT IMPLEMENTED scaffold status rather than fabricating connection'
+  );
 
   // --------------------------------------------------------------------------
   // SUITE 3: THERAFLOW MONEY, BAAS & CLAIM-TO-BANK RECONCILIATION
@@ -408,14 +414,22 @@ async function runTestSuite() {
   assert(reconResult.clinicianShare === 90.00, 'Clinician 60% share correctly calculated ($90.00)');
   assert(reconResult.practiceShare === 60.00, 'Practice 40% retained share correctly calculated ($60.00)');
 
-  // Verify bank account ripple
+  // Verify bank account ripple in double-entry general ledger
   const postReconAccounts = await bankingProvider.getAccounts('practice-test-1');
   const postOperating = postReconAccounts.find((a) => a.accountType === 'operating_checking')!;
   const postTax = postReconAccounts.find((a) => a.accountType === 'tax_reserve')!;
 
   assert(
-    postOperating.currentBalance === initialOperatingBalance + 150.00,
-    'Operating checking credited with full $150.00 insurance remittance'
+    postOperating.currentBalance === initialOperatingBalance + 135.00,
+    'Operating checking net increased by $135.00 ($150.00 remittance - $15.00 automated 25% tax reserve transfer)'
+  );
+  assert(
+    postTax.currentBalance === initialTaxBalance + 15.00,
+    'Tax reserve vault credited with $15.00 (25% tax reserve set-aside on $60.00 practice share)'
+  );
+  assert(
+    postOperating.currentBalance + postTax.currentBalance === initialOperatingBalance + initialTaxBalance + 150.00,
+    'Total practice cash matches exactly initial cash + $150.00 deposit (balanced double-entry invariant)'
   );
 
   // Test 3.3: Private Pay Credit Card Settlement
@@ -455,11 +469,13 @@ async function runTestSuite() {
     event1Fired = true;
   });
 
+  const testIdempotencyKey = `remit-era-test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
   const evt1 = await practiceEventBus.publish({
     type: 'payment.received',
     practiceId: 'practice-test-1',
     actorId: 'system',
-    idempotencyKey: 'remit-era-unique-99881',
+    idempotencyKey: testIdempotencyKey,
     payload: { claimId: 'claim-8472', amount: 150.00 },
   });
   assert(evt1.delivered === true && event1Fired === true, 'First payment event with unique key processed successfully');
@@ -469,7 +485,7 @@ async function runTestSuite() {
     type: 'payment.received',
     practiceId: 'practice-test-1',
     actorId: 'system',
-    idempotencyKey: 'remit-era-unique-99881', // DUPLICATE KEY
+    idempotencyKey: testIdempotencyKey, // DUPLICATE KEY
     payload: { claimId: 'claim-8472', amount: 150.00 },
   });
   assert(

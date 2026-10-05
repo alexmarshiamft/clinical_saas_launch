@@ -85,15 +85,17 @@ Downstream activity is coordinated through `PracticeEventBus` (`src/modules/ledg
 - `payroll.submitted`
 - `payroll.funded`
 
-### Mathematical Idempotency Guarantee
-When clearinghouses retransmit 835 remittance batches or banks re-sync transaction webhooks, duplicate processing is strictly rejected:
-```typescript
-const event: PracticeEvent = {
-  id: "evt-...",
-  type: "payment.received",
-  practiceId: "practice-demo-1",
-  idempotencyKey: `remit-${claimId}-${depositId}-${amount}`,
-  payload: { ... }
-};
-```
-If an event matching `idempotencyKey` already exists in `processedIdempotencyKeys`, the event is dropped with a log notice. Clinicians are never double-paid, and deposits are never double-counted.
+### Durable Idempotency & Double-Payment Defense Architecture
+When clearinghouses retransmit 835 remittance batches, processors deliver duplicate webhooks, or users double-click approval buttons, duplicate processing is deterministically rejected:
+
+1. **Durable Event Store Across Restarts**:
+   The `PracticeEventBus` records every processed event key into an append-only persistent store (`data/practice_event_store.jsonl` with browser localStorage cache). On restart, past processed keys are re-hydrated, preventing duplicate payments across server restarts or page refreshes.
+
+2. **Retry-Safe Transactional Execution**:
+   If an event handler throws an exception during processing, the idempotency key is **not** burned. Subsequent retries are permitted to succeed, ensuring compensation accruals are not lost to transient errors.
+
+3. **Database-Level Invariants**:
+   - `payment_events`: `UNIQUE(practice_id, source, external_event_id)` ensures deduplication at the storage engine level.
+   - `compensation_events`: `UNIQUE(practice_id, encounter_id, rule_id, payment_event_id, accrual_type)` guarantees deterministic, single-time compensation calculation.
+   - `payroll_runs`: `UNIQUE(practice_id, pay_period_id, version)` prevents double-submission of payroll for the same pay period.
+   - Earning Line Items: Paid lines transition to `status: 'paid'`, strictly excluding them from subsequent payroll runs.

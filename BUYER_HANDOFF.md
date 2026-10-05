@@ -23,23 +23,32 @@ When an acquirer licenses or buys TheraFlow OS, they receive an enterprise-grade
    - Full billing suite (CMS-1500 interactive editor, 837P EDI generator, 277CA claim scrubber, Superbill generator).
    - Telehealth suite with WebRTC media controls, session timer, and CPT 90834/90837 billing crosswalk.
 2. **Production Database & Persistence Assets**:
-   - Multi-tenant PostgreSQL 15 / Supabase migration schemas:
+   - Multi-tenant PostgreSQL 15 / Supabase migration schemas (27 tables):
      - `supabase/migrations/20261005_init_schema.sql` (Core clinical & EHR tables)
-     - `supabase/migrations/20261005_unified_practice_os.sql` (17 Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations)
-   - Strict Row-Level Security (RLS) policies enforcing multi-site group practice and financial data isolation.
-   - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`).
+     - `supabase/migrations/20261005_unified_practice_os.sql` (Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations, journal entries)
+   - 47 Row-Level Security (RLS) policies enforcing multi-tenant isolation, RBAC role-level permissions (clinician vs billing/payroll admin vs owner), and append-only immutability for general ledger journal lines.
+   - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`) with HMAC-SHA256 signature verification.
 3. **Clinical AI & Privacy Subsystems**:
    - Client-side 18-rule HIPAA Safe Harbor de-identification engine (`src/tools/phi-scrubber/`).
-   - Fail-closed PHI Privacy Gateway (`phi-privacy-gateway.ts`) intercepting outbound LLM payloads.
+   - Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`) intercepting AI payloads with de-identification reduction layer.
+   - Verified holdout benchmark: 81.64% overall recall (92.18% structured, 71.17% unstructured) with 97.1% precision across 3,410 entities.
    - Dual-channel ambient speech diarization abstraction with live WebSpeech API provider and Deepgram WebSocket contracts.
 4. **Validation Corpora & Test Suites**:
-   - 13 automated test suites encompassing **547 unit/integration/stress tests**.
-   - 37/37 Unified Practice OS tests (`tests/practice-os-unified.test.ts`).
-   - 87/87 adversarial Tier 5 security test cases.
-   - Independent 610-snippet / 3,410-entity Safe Harbor holdout validation benchmark.
+   - Verified automated test suites executed across specialized harnesses:
+     - 80/80 E2E tests across 4 tiers (`tests/e2e/run-all.mjs`)
+     - 39/39 Practice OS tests (`tests/practice-os-unified.test.ts`)
+     - 17/17 Subscription gating checks (`scripts/verify-subscription-gate.mjs`)
+     - 12/12 Auth redirect & route guard checks (`scripts/verify-auth-redirect.mjs`)
+     - 30/30 EHR clinical verification checks (`tests/m3-theraflow-ehr.test.ts`)
+     - 16/16 High-throughput concurrency stress checks (`tests/challenger-m3-empirical-concurrency.ts`)
+     - 26/26 Adversarial auth security checks (`scripts/adversarial-security-audit.mjs`)
+     - 11/11 Compensation engine adversarial checks + 50,000 property-based monetary test cases with 0 cent mismatches (`tests/compensation-engine-adversarial.test.ts`)
+     - 19/19 Financial integrity & security invariant checks (`tests/adversarial-financial-and-security.test.ts`)
+     - Clean PostgreSQL migration pipeline suite verifying clean deployment, RLS, and append-only constraints (`tests/migration-pipeline.test.ts`)
+     - First-render dashboard hydration crash regression suite (`tests/regression-dashboard-hydration.test.ts`)
 5. **Interactive Demonstration Framework**:
    - Integrated buyer demo guide tour (`DemoGuideModal.tsx`) populated with 100% realistic synthetic clinical scenarios.
-   - One-click downstream cascade trigger executing encounter -> payment -> compensation -> payroll batch ripple.
+   - One-click downstream cascade trigger executing encounter -> payment -> compensation -> payroll batch ripple using double-entry ledger.
 
 ---
 
@@ -119,14 +128,17 @@ If the acquirer intends to operate TheraFlow as a direct-to-clinician BAA-backed
 
 ---
 
-## 6. Estimated Onboarding Timeline for Buyer Engineering Team
+## 6. Estimated Production-Readiness Timeline for Buyer Engineering Team
 
-Because TheraFlow OS was engineered with clean abstractions, modular TypeScript, and zero legacy bloat, buyer onboarding is rapid:
+A realistic engineering assessment for a buyer deploying TheraFlow OS into live regulated clinical and banking operations (4–5 engineer team):
 
-| Phase | Duration | Scope of Work |
+| Phase | Scope of Work | Estimated Calendar Time |
 | :--- | :--- | :--- |
-| **Week 1: Codebase Review & Discovery** | 2–3 Days | Run automated test suites (`npm test`), review `ARCHITECTURE.md` and `SECURITY_MODEL.md`, verify sandbox flows. |
-| **Week 2: Database Schema & Auth Hookup** | 3–5 Days | Apply `20261005_init_schema.sql` to buyer PostgreSQL database, configure RLS claims, wire Supabase Auth SDK. |
-| **Week 3: External Vendor Integration** | 3–5 Days | Input production Deepgram API keys, configure Daily/AWS Chime WebRTC rooms, wire Stripe live keys. |
-| **Week 4: Clearinghouse & EHR Export Test** | 3–5 Days | Validate 837P EDI output against buyer's clearinghouse sandbox; test Epic FHIR export in buyer's sandbox. |
-| **Total Estimated Time to Market:** | **3–4 Weeks** | **Saves 6–12 months of net-new engineering from scratch.** |
+| **Phase 1: Foundation & Persistence Integration** | Deploy PostgreSQL schemas, configure Supabase Auth & JWT claims, wire Practice OS database persistence to PostgreSQL client. | **3–4 Weeks** |
+| **Phase 2: Live Clearinghouse & Telehealth Rails** | Connect 837P batch generator to clearinghouse SFTP (Availity/Change/Claim.MD), build 835/ERA ingestion worker, swap WebRTC loopback with Daily.co or AWS Chime. | **6–8 Weeks** |
+| **Phase 3: Regulated Partner Onboarding (Gusto & BaaS)** | Complete Gusto Partner Developer onboarding and OAuth2 integration; initiate Bank Partner / BaaS onboarding (Unit/Column/Stripe Treasury compliance review takes 2–3 months). | **8–12 Weeks** (gated by partner compliance) |
+| **Phase 4: Security Review & BAA Execution** | Formal third-party penetration testing, HIPAA compliance audit, execute BAAs with cloud providers, SOC 2 Type 1 preparation. | **4–6 Weeks** |
+| **Milestone: Private Beta** | Practice management, clinical EHR, telehealth, and compensation engine live on rails. | **5–8 Months** |
+| **Milestone: General Availability (GA)** | Full commercial operations with automated payroll tax filing and embedded business banking. | **9–12 Months** |
+
+> **Acquisition Value Proposition:** Acquiring TheraFlow provides the turnkey clinical UI architecture, behavioral-health compensation vocabulary, unified clinical-to-financial workflow thesis, and validated test harnesses—saving **6 to 12 months** of preliminary product definition, UX design, and prototype iteration.

@@ -33,7 +33,7 @@ export const AppLayout: React.FC = () => {
           <div className="max-w-5xl mx-auto flex items-center justify-center gap-2 text-[11px] text-amber-950 font-medium">
             <Lock className="h-3.5 w-3.5 text-amber-700 shrink-0" />
             <span>
-              <strong>LEGAL NOTICE &amp; SYNTHETIC DATA DISCLAIMER:</strong> All patient records, clinical notes, audio transcripts, MRNs, and names in this demonstration are 100% fictional, synthetic, and computer-generated. None of the data is real, and NO actual Protected Health Information (PHI) is present or processed. Any resemblance to real persons is purely coincidental.
+              <strong>CONFIDENTIAL &amp; HIPAA PROTECTED — LEGAL NOTICE &amp; SYNTHETIC DATA DISCLAIMER:</strong> All patient records, clinical notes, audio transcripts, MRNs, and names in this demonstration are 100% fictional, synthetic, and computer-generated. None of the data is real, and NO actual Protected Health Information (PHI) is present or processed. Any resemblance to real persons is purely coincidental.
             </span>
           </div>
         </footer>
