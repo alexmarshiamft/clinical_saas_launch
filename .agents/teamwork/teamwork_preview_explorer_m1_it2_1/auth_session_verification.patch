@@ -1,0 +1,208 @@
+--- src/lib/auth.tsx	2026-10-04 18:12:28
++++ .agents/teamwork/teamwork_preview_explorer_m1_it2_1/proposed_auth.tsx	2026-10-04 18:34:54
+@@ -77,6 +77,71 @@
+   user: DEMO_CLINICIAN_USER,
+ };
+ 
++/**
++ * Airtight session verification and anti-forgery parser for stored demo sessions.
++ * Validates:
++ * 1. Valid JSON object envelope.
++ * 2. User object with strict schema and matching DEMO_CLINICIAN_USER.id & email.
++ * 3. Session object with non-empty access_token and valid future expires_at.
++ * 4. On any validation failure: immediately purges localStorage and returns null (fail-closed).
++ */
++export function getValidatedStoredDemoSession(): { user: User; session: Session } | null {
++  if (typeof window === 'undefined') return null;
++
++  const raw = localStorage.getItem(STORAGE_KEY_DEMO_SESSION);
++  if (!raw) return null;
++
++  try {
++    const parsed = JSON.parse(raw);
++
++    // 1. Envelope validation: must be a non-null, non-array object
++    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
++      throw new Error('Malformed session envelope: expected non-array object');
++    }
++
++    // 2. User structure validation: reject string users, arrays, missing IDs, or forged identities
++    const user = parsed.user;
++    if (!user || typeof user !== 'object' || Array.isArray(user)) {
++      throw new Error('Malformed user: expected non-array object');
++    }
++    if (user.id !== DEMO_CLINICIAN_USER.id) {
++      throw new Error(`Unauthorized user ID: ${String(user.id)}`);
++    }
++    if (user.email && user.email !== DEMO_CLINICIAN_USER.email) {
++      throw new Error(`Unauthorized user email: ${String(user.email)}`);
++    }
++
++    // 3. Session structure validation: reject non-objects and empty tokens
++    const session = parsed.session;
++    if (!session || typeof session !== 'object' || Array.isArray(session)) {
++      throw new Error('Malformed session: expected non-array object');
++    }
++    if (typeof session.access_token !== 'string' || session.access_token.trim().length === 0) {
++      throw new Error('Malformed session: missing or empty access_token');
++    }
++
++    // 4. Expiration validation: must be a valid future unix timestamp in seconds
++    const nowSeconds = Math.floor(Date.now() / 1000);
++    if (
++      typeof session.expires_at !== 'number' ||
++      !Number.isFinite(session.expires_at) ||
++      session.expires_at <= nowSeconds
++    ) {
++      throw new Error(
++        `Expired or invalid session token (expires_at: ${session.expires_at}, now: ${nowSeconds})`
++      );
++    }
++
++    return { user: user as User, session: session as Session };
++  } catch (err: any) {
++    // Fail-closed security policy: immediately wipe corrupt/forged session from localStorage
++    try {
++      localStorage.removeItem(STORAGE_KEY_DEMO_SESSION);
++    } catch {}
++    return null;
++  }
++}
++
+ const AuthContext = createContext<AuthContextType>({
+   user: null,
+   session: null,
+@@ -92,51 +157,18 @@
+ });
+ 
+ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+-  const [user, setUser] = useState<User | null>(() => {
+-    if (typeof window !== 'undefined') {
+-      const storedDemo = localStorage.getItem(STORAGE_KEY_DEMO_SESSION);
+-      if (storedDemo) {
+-        try {
+-          const parsed = JSON.parse(storedDemo);
+-          if (parsed && parsed.user) return parsed.user;
+-        } catch {}
+-      }
+-    }
+-    return null;
++  // Synchronous initial validation of stored demo session
++  const [initialSession] = useState<{ user: User; session: Session } | null>(() => {
++    return getValidatedStoredDemoSession();
+   });
+ 
+-  const [session, setSession] = useState<Session | null>(() => {
+-    if (typeof window !== 'undefined') {
+-      const storedDemo = localStorage.getItem(STORAGE_KEY_DEMO_SESSION);
+-      if (storedDemo) {
+-        try {
+-          const parsed = JSON.parse(storedDemo);
+-          if (parsed && parsed.session) return parsed.session;
+-        } catch {}
+-      }
+-    }
+-    return null;
+-  });
++  const [user, setUser] = useState<User | null>(() => initialSession?.user ?? null);
++  const [session, setSession] = useState<Session | null>(() => initialSession?.session ?? null);
++  const [isDemoClinician, setIsDemoClinician] = useState<boolean>(() => Boolean(initialSession));
+ 
+-  const [isDemoClinician, setIsDemoClinician] = useState<boolean>(() => {
+-    if (typeof window !== 'undefined') {
+-      const storedDemo = localStorage.getItem(STORAGE_KEY_DEMO_SESSION);
+-      if (storedDemo) {
+-        try {
+-          const parsed = JSON.parse(storedDemo);
+-          if (parsed && parsed.user) return true;
+-        } catch {}
+-      }
+-    }
+-    return false;
+-  });
+-
+   const [loading, setLoading] = useState<boolean>(() => {
+     if (isSupabaseConfigured) {
+-      if (typeof window !== 'undefined') {
+-        const storedDemo = localStorage.getItem(STORAGE_KEY_DEMO_SESSION);
+-        if (storedDemo) return false;
+-      }
++      if (initialSession) return false;
+       return true;
+     }
+     return false;
+@@ -168,23 +200,15 @@
+       try {
+         // 1. Check for persisted Demo Clinician session
+         if (typeof window !== 'undefined') {
+-          const storedDemo = localStorage.getItem(STORAGE_KEY_DEMO_SESSION);
+-          if (storedDemo) {
+-            try {
+-              const parsed = JSON.parse(storedDemo);
+-              if (parsed && parsed.user && parsed.session) {
+-                if (isMounted) {
+-                  setUser(parsed.user);
+-                  setSession(parsed.session);
+-                  setIsDemoClinician(true);
+-                  setLoading(false);
+-                }
+-                return;
+-              }
+-            } catch (err) {
+-              console.warn('[Auth] Failed to parse stored demo session:', err);
+-              localStorage.removeItem(STORAGE_KEY_DEMO_SESSION);
++          const validatedDemo = getValidatedStoredDemoSession();
++          if (validatedDemo) {
++            if (isMounted) {
++              setUser(validatedDemo.user);
++              setSession(validatedDemo.session);
++              setIsDemoClinician(true);
++              setLoading(false);
+             }
++            return;
+           }
+         }
+ 
+@@ -220,6 +244,7 @@
+         if (isMounted) {
+           setUser(null);
+           setSession(null);
++          setIsDemoClinician(false);
+           setLoading(false);
+         }
+       }
+@@ -231,7 +256,7 @@
+     let subscription: { unsubscribe: () => void } | null = null;
+     if (isSupabaseConfigured) {
+       const { data } = supabase.auth.onAuthStateChange((_event, supabaseSession) => {
+-        const hasDemoStored = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY_DEMO_SESSION);
++        const hasDemoStored = typeof window !== 'undefined' && Boolean(getValidatedStoredDemoSession());
+         if (!hasDemoStored && isMounted) {
+           setSession(supabaseSession);
+           setUser(supabaseSession?.user ?? null);
+@@ -252,18 +277,22 @@
+ 
+   /**
+    * One-Click Instant Demo Clinician Login.
+-   * Deterministically logs in as Dr. Sarah Chen, MD.
++   * Deterministically logs in as Dr. Sarah Chen, MD with fresh 30-day session expiry.
+    */
+   const loginAsDemo = () => {
++    const freshSession: Session = {
++      ...DEMO_CLINICIAN_SESSION,
++      expires_at: Math.floor(Date.now() / 1000) + (3600 * 24 * 30),
++    };
+     if (typeof window !== 'undefined') {
+       localStorage.setItem(
+         STORAGE_KEY_DEMO_SESSION,
+-        JSON.stringify({ user: DEMO_CLINICIAN_USER, session: DEMO_CLINICIAN_SESSION })
++        JSON.stringify({ user: DEMO_CLINICIAN_USER, session: freshSession })
+       );
+       localStorage.setItem(STORAGE_KEY_PREFERRED_ROLE, 'therapist');
+     }
+     setUser(DEMO_CLINICIAN_USER);
+-    setSession(DEMO_CLINICIAN_SESSION);
++    setSession(freshSession);
+     setIsDemoClinician(true);
+     setLoading(false);
+   };

@@ -1,0 +1,176 @@
+/* ==========================================================================
+   CLINICAL AI SCRIBE v2 (HEIDI CLONE) SCOPED NAMESPACE
+   Containment: .heidi-scribe-theme
+   Zero Global Bleed Guarantee - Strictly Scoped Under .heidi-scribe-theme
+   ========================================================================== */
+
+.heidi-scribe-theme {
+  /* Scoped Design Tokens */
+  --scribe-bg-app: #0c0e11;
+  --scribe-bg-surface: #14171c;
+  --scribe-bg-surface-elevated: #1a1e24;
+  --scribe-bg-surface-hover: #222730;
+  --scribe-bg-input: #101317;
+
+  --scribe-border-subtle: #21262d;
+  --scribe-border-medium: #2d333d;
+  --scribe-border-focus: #ffe17d;
+
+  --scribe-text-primary: #f3f4f6;
+  --scribe-text-secondary: #9ca3af;
+  --scribe-text-tertiary: #6b7280;
+
+  --scribe-accent-yellow: #ffe17d;
+  --scribe-accent-yellow-hover: #fcd34d;
+  --scribe-accent-teal: #14b8a6;
+  --scribe-accent-blue: #38bdf8;
+  --scribe-accent-indigo: #818cf8;
+
+  --scribe-radius-sm: 6px;
+  --scribe-radius-md: 10px;
+  --scribe-radius-lg: 14px;
+  --scribe-radius-full: 9999px;
+
+  /* Scoped Container Styles - Safe from global overflow locks */
+  color-scheme: dark;
+}
+
+/* Scoped Buttons */
+.heidi-scribe-theme .scribe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--scribe-radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  outline: none;
+  white-space: nowrap;
+}
+
+.heidi-scribe-theme .scribe-btn-primary {
+  background-color: var(--scribe-accent-yellow);
+  color: #0c0e11;
+  border-color: var(--scribe-accent-yellow);
+}
+
+.heidi-scribe-theme .scribe-btn-primary:hover {
+  background-color: var(--scribe-accent-yellow-hover);
+  box-shadow: 0 0 16px rgba(255, 225, 125, 0.25);
+}
+
+.heidi-scribe-theme .scribe-btn-secondary {
+  background-color: var(--scribe-bg-surface-elevated);
+  color: var(--scribe-text-primary);
+  border-color: var(--scribe-border-medium);
+}
+
+.heidi-scribe-theme .scribe-btn-secondary:hover {
+  background-color: var(--scribe-bg-surface-hover);
+  border-color: var(--scribe-border-focus);
+}
+
+.heidi-scribe-theme .scribe-btn-danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.heidi-scribe-theme .scribe-btn-danger:hover {
+  background-color: rgba(239, 68, 68, 0.25);
+}
+
+/* Scoped Badges */
+.heidi-scribe-theme .scribe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--scribe-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.heidi-scribe-theme .scribe-badge-yellow {
+  background-color: rgba(255, 225, 125, 0.15);
+  color: var(--scribe-accent-yellow);
+  border: 1px solid rgba(255, 225, 125, 0.3);
+}
+
+.heidi-scribe-theme .scribe-badge-teal {
+  background-color: rgba(20, 184, 166, 0.15);
+  color: var(--scribe-accent-teal);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+}
+
+.heidi-scribe-theme .scribe-badge-blue {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: var(--scribe-accent-blue);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* Scoped Keyframes & Animation */
+@keyframes scribePulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.heidi-scribe-theme .recording-pulse {
+  animation: scribePulseGlow 1.8s infinite;
+}
+
+/* Scoped Form Controls */
+.heidi-scribe-theme .scribe-input,
+.heidi-scribe-theme .scribe-select,
+.heidi-scribe-theme .scribe-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: var(--scribe-bg-input);
+  border: 1px solid var(--scribe-border-medium);
+  border-radius: var(--scribe-radius-md);
+  color: var(--scribe-text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.heidi-scribe-theme .scribe-input:focus,
+.heidi-scribe-theme .scribe-select:focus,
+.heidi-scribe-theme .scribe-textarea:focus {
+  border-color: var(--scribe-border-focus);
+}
+
+/* Scoped Waveform Styles */
+.heidi-scribe-theme .waveform-visualizer {
+  display: block;
+  width: 100%;
+  height: 36px;
+  overflow: visible;
+}
+
+.heidi-scribe-theme .waveform-bar-active {
+  transition: height 0.08s ease, y 0.08s ease;
+}
+
+/* Scoped Utterance Cards */
+.heidi-scribe-theme .utterance-card {
+  padding: 12px 16px;
+  border-radius: var(--scribe-radius-md);
+  background-color: var(--scribe-bg-surface-elevated);
+  border: 1px solid var(--scribe-border-subtle);
+  transition: border-color 0.15s ease;
+}
+
+.heidi-scribe-theme .utterance-card-clinician {
+  border-left: 4px solid var(--scribe-accent-blue);
+}
+
+.heidi-scribe-theme .utterance-card-patient {
+  border-left: 4px solid var(--scribe-accent-yellow);
+}

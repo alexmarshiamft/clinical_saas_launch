@@ -1,0 +1,14 @@
+--- src/pages/Login.tsx	2026-10-04 18:09:17
++++ .agents/teamwork/teamwork_preview_explorer_m1_it2_1/proposed_Login.tsx	2026-10-04 18:35:36
+@@ -20,7 +20,10 @@
+ 
+   const navigate = useNavigate();
+   const [searchParams] = useSearchParams();
+-  const redirectTarget = searchParams.get('redirect') || '/dashboard';
++  const rawRedirect = searchParams.get('redirect');
++  const redirectTarget = (rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//'))
++    ? rawRedirect
++    : '/dashboard';
+ 
+   const { user, login, loginAsDemo } = useAuth();
+ 
