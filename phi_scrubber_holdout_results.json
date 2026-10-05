@@ -1,0 +1,424 @@
+{
+  "evaluatedAt": "2026-10-05T17:49:28.739Z",
+  "corpus": {
+    "totalSnippets": 610,
+    "totalExpectedEntities": 3410,
+    "structuredEntities": 1700,
+    "unstructuredEntities": 1710
+  },
+  "results": {
+    "totalTruePositives": 2784,
+    "totalFalseNegatives": 626,
+    "totalFalsePositives": 460,
+    "totalPredicted": 2867,
+    "overallRecall": 81.64,
+    "overallPrecision": 97.1,
+    "f1Score": 88.7,
+    "structuredRecall": 92.18,
+    "unstructuredRecall": 71.17
+  },
+  "categoryPerformance": [
+    {
+      "category": "dates",
+      "totalExpected": 460,
+      "truePositives": 327,
+      "falseNegatives": 133,
+      "recall": 71.08695652173913,
+      "structuredExpected": 340,
+      "structuredDetected": 327,
+      "structuredRecall": 96.17647058823529,
+      "unstructuredExpected": 120,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "names",
+      "totalExpected": 1070,
+      "truePositives": 727,
+      "falseNegatives": 343,
+      "recall": 67.94392523364486,
+      "structuredExpected": 0,
+      "structuredDetected": 0,
+      "structuredRecall": 0,
+      "unstructuredExpected": 1070,
+      "unstructuredDetected": 727,
+      "unstructuredRecall": 67.94392523364486
+    },
+    {
+      "category": "geographic_data",
+      "totalExpected": 800,
+      "truePositives": 770,
+      "falseNegatives": 30,
+      "recall": 96.25,
+      "structuredExpected": 280,
+      "structuredDetected": 280,
+      "structuredRecall": 100,
+      "unstructuredExpected": 520,
+      "unstructuredDetected": 490,
+      "unstructuredRecall": 94.23076923076923
+    },
+    {
+      "category": "medical_record_numbers",
+      "totalExpected": 120,
+      "truePositives": 120,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 120,
+      "structuredDetected": 120,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "phone_numbers",
+      "totalExpected": 120,
+      "truePositives": 120,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 120,
+      "structuredDetected": 120,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "email_addresses",
+      "totalExpected": 120,
+      "truePositives": 120,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 120,
+      "structuredDetected": 120,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "social_security_numbers",
+      "totalExpected": 60,
+      "truePositives": 0,
+      "falseNegatives": 60,
+      "recall": 0,
+      "structuredExpected": 60,
+      "structuredDetected": 0,
+      "structuredRecall": 0,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "health_plan_beneficiary_numbers",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "account_numbers",
+      "totalExpected": 60,
+      "truePositives": 0,
+      "falseNegatives": 60,
+      "recall": 0,
+      "structuredExpected": 60,
+      "structuredDetected": 0,
+      "structuredRecall": 0,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "ip_addresses",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "urls",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "fax_numbers",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "certificate_license_numbers",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "vehicle_identifiers",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "device_identifiers",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "biometric_identifiers",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "full_face_photos",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    },
+    {
+      "category": "unique_identifiers",
+      "totalExpected": 60,
+      "truePositives": 60,
+      "falseNegatives": 0,
+      "recall": 100,
+      "structuredExpected": 60,
+      "structuredDetected": 60,
+      "structuredRecall": 100,
+      "unstructuredExpected": 0,
+      "unstructuredDetected": 0,
+      "unstructuredRecall": 0
+    }
+  ],
+  "falseNegativesSample": [
+    {
+      "snippetId": "holdout-rich-0001",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "34",
+      "isStructured": false,
+      "contextSnippet": "allagher, DOB 03/1/1980 (Age: 34), residing at 842 Cumberland "
+    },
+    {
+      "snippetId": "holdout-rich-0002",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "48",
+      "isStructured": false,
+      "contextSnippet": " Kovalev, DOB 03/4/1981 (Age: 48), residing at 1109 Whispering"
+    },
+    {
+      "snippetId": "holdout-rich-0003",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "29",
+      "isStructured": false,
+      "contextSnippet": "b Farooq, DOB 03/7/1982 (Age: 29), residing at 4502 Coronado T"
+    },
+    {
+      "snippetId": "holdout-rich-0004",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "41",
+      "isStructured": false,
+      "contextSnippet": "va-Cruz, DOB 03/10/1983 (Age: 41), residing at 773 Kingfisher "
+    },
+    {
+      "snippetId": "holdout-rich-0005",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "22",
+      "isStructured": false,
+      "contextSnippet": "tterjee, DOB 03/13/1984 (Age: 22), residing at 2044 Meadowbroo"
+    },
+    {
+      "snippetId": "holdout-rich-0006",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "67",
+      "isStructured": false,
+      "contextSnippet": "ll-Vane, DOB 03/16/1985 (Age: 67), residing at 918 Sycamore Ho"
+    },
+    {
+      "snippetId": "holdout-rich-0007",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "52",
+      "isStructured": false,
+      "contextSnippet": "kahashi, DOB 03/19/1986 (Age: 52), residing at 312 St. Charles"
+    },
+    {
+      "snippetId": "holdout-rich-0008",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "38",
+      "isStructured": false,
+      "contextSnippet": " Booker, DOB 03/22/1987 (Age: 38), residing at 625 Beacon Hill"
+    },
+    {
+      "snippetId": "holdout-rich-0009",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "26",
+      "isStructured": false,
+      "contextSnippet": "a Nouri, DOB 03/25/1988 (Age: 26), residing at 842 Cumberland "
+    },
+    {
+      "snippetId": "holdout-rich-0010",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "45",
+      "isStructured": false,
+      "contextSnippet": " MacLeod, DOB 03/1/1980 (Age: 45), residing at 1109 Whispering"
+    },
+    {
+      "snippetId": "holdout-rich-0011",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "31",
+      "isStructured": false,
+      "contextSnippet": "-Morales, DOB 03/4/1981 (Age: 31), residing at 4502 Coronado T"
+    },
+    {
+      "snippetId": "holdout-rich-0012",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "59",
+      "isStructured": false,
+      "contextSnippet": "El-Sayed, DOB 03/7/1982 (Age: 59), residing at 773 Kingfisher "
+    },
+    {
+      "snippetId": "holdout-rich-0013",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "73",
+      "isStructured": false,
+      "contextSnippet": "itchard, DOB 03/10/1983 (Age: 73), residing at 2044 Meadowbroo"
+    },
+    {
+      "snippetId": "holdout-rich-0014",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "36",
+      "isStructured": false,
+      "contextSnippet": "uvalier, DOB 03/13/1984 (Age: 36), residing at 918 Sycamore Ho"
+    },
+    {
+      "snippetId": "holdout-rich-0015",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "44",
+      "isStructured": false,
+      "contextSnippet": "usseini, DOB 03/16/1985 (Age: 44), residing at 312 St. Charles"
+    },
+    {
+      "snippetId": "holdout-rich-0016",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "61",
+      "isStructured": false,
+      "contextSnippet": "lafsson, DOB 03/19/1986 (Age: 61), residing at 625 Beacon Hill"
+    },
+    {
+      "snippetId": "holdout-rich-0017",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "34",
+      "isStructured": false,
+      "contextSnippet": "llagher, DOB 03/22/1987 (Age: 34), residing at 842 Cumberland "
+    },
+    {
+      "snippetId": "holdout-rich-0018",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "48",
+      "isStructured": false,
+      "contextSnippet": "Kovalev, DOB 03/25/1988 (Age: 48), residing at 1109 Whispering"
+    },
+    {
+      "snippetId": "holdout-rich-0019",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "29",
+      "isStructured": false,
+      "contextSnippet": "b Farooq, DOB 03/1/1980 (Age: 29), residing at 4502 Coronado T"
+    },
+    {
+      "snippetId": "holdout-rich-0020",
+      "ruleId": "dates",
+      "category": "dates",
+      "text": "41",
+      "isStructured": false,
+      "contextSnippet": "eva-Cruz, DOB 03/4/1981 (Age: 41), residing at 773 Kingfisher "
+    }
+  ],
+  "failClosedGatewayVerification": {
+    "cleanPromptAllowed": true,
+    "leakPromptBlocked": true,
+    "blockedReason": "Successfully sanitized direct identifiers before outbound dispatch",
+    "verdict": "FAIL_CLOSED_GATEWAY_VERIFIED"
+  }
+}

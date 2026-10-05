@@ -28,6 +28,7 @@ import { logAuditEvent } from './data/theraflow-store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { WebRtcEngine } from './webrtc-provider';
 
 interface TelehealthViewProps {
   clientId?: string;
@@ -42,10 +43,40 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
 }) => {
   const { activePatient } = useClinicalContext();
 
+  // WebRTC Engine Reference
+  const webrtcRef = useRef<WebRtcEngine | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [webrtcConnected, setWebrtcConnected] = useState<boolean>(false);
+  const [rttLatency, setRttLatency] = useState<number>(22);
+
   // Media Controls
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
+
+  // Initialize WebRTC session
+  useEffect(() => {
+    const engine = new WebRtcEngine((state) => {
+      setWebrtcConnected(state.isConnected);
+      setRttLatency(state.rttMs);
+      if (localVideoRef.current && state.localStream && !state.isVideoMuted) {
+        localVideoRef.current.srcObject = state.localStream;
+      }
+    });
+
+    webrtcRef.current = engine;
+    engine.startSession({
+      roomName: activePatient.encounterId || 'encounter-clinical-session',
+      clinicianId: 'dr-sarah-chen',
+      patientId: activePatient.id || 'patient-demo-1',
+      enableVideo: true,
+      enableAudio: true,
+    });
+
+    return () => {
+      engine.endSession();
+    };
+  }, [activePatient]);
 
   // Session Duration Timer (seconds)
   const [secondsElapsed, setSecondsElapsed] = useState(55 * 60 + 12); // Start at ~55 mins to display target CPT 90837
@@ -94,8 +125,29 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleToggleMic = () => {
+    if (webrtcRef.current) {
+      const muted = webrtcRef.current.toggleMuteAudio();
+      setIsMicMuted(muted);
+    } else {
+      setIsMicMuted((prev) => !prev);
+    }
+  };
+
+  const handleToggleVideo = () => {
+    if (webrtcRef.current) {
+      const videoMuted = webrtcRef.current.toggleMuteVideo();
+      setIsVideoOff(videoMuted);
+    } else {
+      setIsVideoOff((prev) => !prev);
+    }
+  };
+
   const handleLeaveSession = async () => {
     setIsTimerRunning(false);
+    if (webrtcRef.current) {
+      webrtcRef.current.endSession();
+    }
     await logAuditEvent(
       'TELEHEALTH_SESSION',
       'telehealth_room',
@@ -272,16 +324,23 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
             </div>
           </div>
 
-          {/* Central Clinician Simulation */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950/30">
+          {/* Central Clinician Stream */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950/30 overflow-hidden">
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`absolute inset-0 w-full h-full object-cover z-0 ${isVideoOff ? 'hidden' : 'block'}`}
+            />
             {isVideoOff ? (
-              <div className="text-center text-slate-500">
+              <div className="text-center text-slate-500 z-10">
                 <VideoOff className="h-12 w-12 mx-auto mb-2 text-slate-600" />
                 <span className="text-xs font-semibold">Camera is turned off</span>
               </div>
             ) : (
-              <div className="relative">
-                <div className="h-28 w-28 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-2xl">
+              <div className="relative z-10">
+                <div className="h-28 w-28 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-2xl opacity-80 backdrop-blur-xs">
                   SC
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-indigo-500 border-2 border-slate-950 flex items-center justify-center text-white">
@@ -289,15 +348,15 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
                 </div>
               </div>
             )}
-            <div className="mt-4 text-xs font-semibold text-slate-400">
-              Local Clinician Stream (HD)
+            <div className="mt-4 text-xs font-semibold text-slate-400 z-10">
+              Local Clinician Stream (HD) {webrtcConnected && '• WebRTC Peer Active'}
             </div>
           </div>
 
           {/* Bottom Status */}
           <div className="z-10 flex items-center justify-between text-[10px] text-slate-400">
             <span>Audio Device: MacBook Pro Microphone</span>
-            <span>Video Device: FaceTime HD Camera</span>
+            <span>Video Device: FaceTime HD Camera ({rttLatency}ms RTT)</span>
           </div>
         </div>
       </div>
@@ -334,7 +393,7 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
         {/* Media Toggles */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsMicMuted(!isMicMuted)}
+            onClick={handleToggleMic}
             className={`p-3 rounded-xl border font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer ${
               isMicMuted
                 ? 'bg-red-50 text-red-700 border-red-200'
@@ -346,7 +405,7 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
           </button>
 
           <button
-            onClick={() => setIsVideoOff(!isVideoOff)}
+            onClick={handleToggleVideo}
             className={`p-3 rounded-xl border font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer ${
               isVideoOff
                 ? 'bg-red-50 text-red-700 border-red-200'

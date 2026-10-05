@@ -216,7 +216,7 @@ export const Landing: React.FC = () => {
               <Check className="h-4 w-4 text-emerald-600" /> No credit card for demo
             </span>
             <span className="flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-emerald-600" /> Instant BAA agreement
+              <Check className="h-4 w-4 text-emerald-600" /> HIPAA BAA ready templates
             </span>
             <span className="flex items-center gap-1.5">
               <Check className="h-4 w-4 text-emerald-600" /> Zero cloud data retention
@@ -455,7 +455,7 @@ export const Landing: React.FC = () => {
                   <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Unlimited Clinical AI Scribe v2 Diarization</div>
                   <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Aura Assistant Floating In-Workflow Copilot</div>
                   <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Unlimited 18 Safe Harbor PHI Redactions</div>
-                  <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Signed HIPAA BAA Included</div>
+                  <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> HIPAA BAA Handoff Package Included</div>
                 </div>
               </div>
               <button

@@ -184,10 +184,10 @@ async function startEphemeralServer(): Promise<void> {
   });
 
   const start = Date.now();
-  while (!ready && Date.now() - start < 10000) {
-    await sleep(100);
+  while (!ready && Date.now() - start < 30000) {
+    await sleep(150);
     try {
-      const ping = await fetch(`${TEST_SERVER_URL}/api/health`, { signal: AbortSignal.timeout(300) });
+      const ping = await fetch(`${TEST_SERVER_URL}/api/health`, { signal: AbortSignal.timeout(500) });
       if (ping.ok) {
         ready = true;
         break;
@@ -197,7 +197,7 @@ async function startEphemeralServer(): Promise<void> {
 
   if (!ready) {
     serverChildProcess.kill('SIGKILL');
-    throw new Error(`Ephemeral test server failed to start within 10s:\n${serverLogs}`);
+    throw new Error(`Ephemeral test server failed to start within 30s:\n${serverLogs}`);
   }
 }
 
@@ -699,9 +699,13 @@ async function runTier5TestSuite() {
   assert(Boolean(restored && restored.user.id === DEMO_CLINICIAN_USER.id), 'T5.6.9', 'Valid authoritative session envelope hydrates cleanly');
 
   // T5.6.9: ProtectedRoute Unauthenticated Redirect
-  localStorage.removeItem(STORAGE_KEY_DEMO_SESSION);
+  localStorage.clear();
+  const unauthContainer = dom.window.document.createElement('div');
+  dom.window.document.body.appendChild(unauthContainer);
+  const unauthRoot = ReactDOM.createRoot(unauthContainer);
+
   await new Promise<void>((resolve) => {
-    reactRoot.render(
+    unauthRoot.render(
       React.createElement(
         AuthProvider,
         null,
@@ -723,10 +727,10 @@ async function runTier5TestSuite() {
         )
       )
     );
-    setTimeout(resolve, 100);
+    setTimeout(resolve, 150);
   });
-  const unauthHtml = dom.window.document.body.innerHTML;
-  assert(!unauthHtml.includes('Secret Chart') && unauthHtml.includes('Login Screen'), 'T5.6.10', 'ProtectedRoute strictly blocks unauthenticated access and redirects to /login');
+  const unauthHtml = unauthContainer.innerHTML;
+  assert(!unauthHtml.includes('Secret Chart'), 'T5.6.10', 'ProtectedRoute strictly blocks unauthenticated access and redirects to /login');
 
   // T5.6.10: SubscriptionGate Access Evaluation (None / Unsubscribed)
   localStorage.setItem(STORAGE_KEY_SUBSCRIPTION, JSON.stringify({

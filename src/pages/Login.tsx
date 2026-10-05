@@ -218,10 +218,10 @@ export const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* Security / HIPAA Seal */}
+        {/* Security / HIPAA Architecture Seal */}
         <div className="mt-6 text-center text-xs text-slate-600 flex items-center justify-center gap-1.5 font-medium">
           <Shield className="h-3.5 w-3.5 text-emerald-600" />
-          <span>Encrypted with TLS 1.3 • HIPAA BAA Certified Platform</span>
+          <span>Encrypted with TLS 1.3 • Privacy Architecture Designed to Support HIPAA Safe Harbor De-identification Workflows</span>
         </div>
       </div>
     </div>

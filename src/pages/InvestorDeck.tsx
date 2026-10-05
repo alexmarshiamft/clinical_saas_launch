@@ -239,7 +239,7 @@ export const InvestorDeck: React.FC = () => {
             </div>
             <ul className="text-[11px] text-teal-200 space-y-1 pt-3 border-t border-teal-900/50">
               <li>✓ Standard CMS-1500 claim format</li>
-              <li>✓ Direct FHIR export to Epic &amp; Cerner</li>
+              <li>✓ FHIR R4 &amp; SmartText export adapters (Epic/Cerner compatible)</li>
             </ul>
           </div>
         </div>
@@ -259,7 +259,7 @@ export const InvestorDeck: React.FC = () => {
               <div className="text-xs font-bold text-indigo-400 uppercase">Suite 1</div>
               <h3 className="text-base font-bold text-white mt-1 mb-2">Clinical AI Scribe v2</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Ambient acoustic diarization, real-time waveform visualizer, template studio (SOAP, DAP, Intake H&amp;P), and FHIR export to Epic and Cerner.
+                Ambient acoustic diarization, real-time waveform visualizer, template studio (SOAP, DAP, Intake H&amp;P), and FHIR R4 export formatting adapters (Epic and Cerner compatible).
               </p>
             </div>
             <div className="text-[11px] text-indigo-300 font-mono">Route: /dashboard/scribe</div>
@@ -402,7 +402,7 @@ export const InvestorDeck: React.FC = () => {
               <ul className="text-xs text-slate-300 space-y-1.5">
                 <li>✓ <strong>All Clinician Pro Features</strong></li>
                 <li>✓ <strong>Multi-Site Practice Switcher</strong></li>
-                <li>✓ <strong>Enterprise EHR Export (Epic, Cerner)</strong></li>
+                <li>✓ <strong>Enterprise EHR Export Adapters (Epic, Cerner compatible)</strong></li>
                 <li>✓ <strong>Centralized Billing &amp; Supervisor Approvals</strong></li>
               </ul>
             </div>

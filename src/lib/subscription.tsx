@@ -45,7 +45,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanDetails> = {
       'Unlimited Clinical AI Scribe v2 Diarization',
       'Aura Assistant Floating In-Workflow Copilot',
       'Unlimited 18 Safe Harbor PHI Redactions',
-      'Signed HIPAA Business Associate Agreement (BAA)',
+      'HIPAA BAA Architectural Handoff Package',
       'Priority 24/7 Clinical Support',
     ],
   },
