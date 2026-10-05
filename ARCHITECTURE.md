@@ -14,12 +14,20 @@ TheraFlow OS is architected as an **AI-native, privacy-centric behavioral health
 graph TD
     Client[Browser Single Page Application - React 19 + TypeScript + Vite]
     
-    subgraph Frontend Subsystems
+    subgraph Clinical & AI Subsystems
         EHR[TheraFlow EHR & Client Charting]
         Telehealth[Telehealth Engine - WebRTC / Daily / Chime Adapter]
         Scribe[Clinical AI Scribe v2 - Ambient Diarization & Audio Streaming]
         Aura[Aura Clinical Copilot - Floating In-Workflow Assistant]
         Billing[CMS-1500 & 837P EDI Billing Engine]
+    end
+
+    subgraph Practice OS & Financial Operations
+        Workforce[Workforce Roster & Provider Credentialing]
+        CompEngine[Clinician Compensation Engine - Tiered & CPT Splits]
+        PayrollOrch[TheraFlow Payroll Orchestrator - Gusto/ADP Abstraction]
+        EmbeddedMoney[TheraFlow Money - BaaS Treasury, Accounts & Tax Vault]
+        UnifiedLedger[One Encounter Ledger & Event Bus - Idempotent Downstream Cascade]
     end
 
     subgraph Privacy & Security Boundary
@@ -28,15 +36,17 @@ graph TD
     end
 
     subgraph Backend & Persistence Services
-        NodeServer[Express 4.21 Gateway & HMR Dev Server]
+        NodeServer[Express 4.22 Gateway & HMR Dev Server]
         DurableLedger[(Durable Append-Only Audit Ledger - JSONL + SHA-256)]
-        Supabase[(Supabase / PostgreSQL 15 - Multi-Tenant RLS Schema)]
+        Supabase[(Supabase / PostgreSQL 15 - Multi-Tenant RLS Schema - 24 Tables)]
     end
 
     subgraph External Provider Integrations
         Gemini[Google Gemini 2.5 Flash / Pro LLM]
         Deepgram[Deepgram Nova-2 Medical STT / WebSpeech API]
         StripeAPI[Stripe Billing & Subscription Webhooks]
+        PayrollAPI[Payroll Providers - Gusto / ADP / Sandbox ACH]
+        BaaS_API[BaaS Treasury - Evolve / Unit / Column]
         EHR_Export[Epic SmartText / FHIR R4 DocumentReference Adapters]
     end
 
@@ -45,6 +55,17 @@ graph TD
     Client --> Scribe
     Client --> Aura
     Client --> Billing
+    Client --> Workforce
+    Client --> CompEngine
+    Client --> PayrollOrch
+    Client --> EmbeddedMoney
+
+    EHR --> UnifiedLedger
+    UnifiedLedger --> CompEngine
+    CompEngine --> PayrollOrch
+    PayrollOrch --> PayrollAPI
+    Billing --> EmbeddedMoney
+    EmbeddedMoney --> BaaS_API
 
     Scribe --> LocalScrubber
     Aura --> Gateway

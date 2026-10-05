@@ -13,22 +13,33 @@ When an acquirer licenses or buys TheraFlow OS, they receive an enterprise-grade
 ### What the Buyer Receives:
 1. **Complete Clean TypeScript/React 19 Codebase**:
    - 4 interlocking clinical applications (TheraFlow EHR, Clinical AI Scribe v2, Aura Clinical Copilot, HIPAA PHI Scrubber).
+   - Unified Practice OS modules:
+     - Workforce Roster & Provider Credentialing (`src/pages/WorkforceView.tsx`)
+     - Clinician Compensation Rules Engine (`src/modules/compensation/compensation-engine.ts`, `src/pages/CompensationView.tsx`)
+     - TheraFlow Payroll Orchestrator with Gusto/ADP Adapters (`src/modules/payroll/payroll-provider.ts`, `src/pages/PayrollView.tsx`)
+     - TheraFlow Money Embedded BaaS Treasury (`src/modules/money/banking-provider.ts`, `src/pages/BankingMoneyView.tsx`)
+     - Start-a-Practice Onboarding Wizard (`src/pages/OnboardingWizard.tsx`)
+     - Group Practice Migration Suite (`src/pages/MigrationWizard.tsx`)
    - Full billing suite (CMS-1500 interactive editor, 837P EDI generator, 277CA claim scrubber, Superbill generator).
    - Telehealth suite with WebRTC media controls, session timer, and CPT 90834/90837 billing crosswalk.
 2. **Production Database & Persistence Assets**:
-   - Multi-tenant PostgreSQL 15 / Supabase migration schema (`supabase/migrations/20261005_init_schema.sql`).
-   - Strict Row-Level Security (RLS) policies enforcing multi-site group practice data isolation.
+   - Multi-tenant PostgreSQL 15 / Supabase migration schemas:
+     - `supabase/migrations/20261005_init_schema.sql` (Core clinical & EHR tables)
+     - `supabase/migrations/20261005_unified_practice_os.sql` (17 Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations)
+   - Strict Row-Level Security (RLS) policies enforcing multi-site group practice and financial data isolation.
    - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`).
 3. **Clinical AI & Privacy Subsystems**:
    - Client-side 18-rule HIPAA Safe Harbor de-identification engine (`src/tools/phi-scrubber/`).
    - Fail-closed PHI Privacy Gateway (`phi-privacy-gateway.ts`) intercepting outbound LLM payloads.
    - Dual-channel ambient speech diarization abstraction with live WebSpeech API provider and Deepgram WebSocket contracts.
 4. **Validation Corpora & Test Suites**:
-   - 12 automated test suites encompassing **510 unit/integration tests**.
+   - 13 automated test suites encompassing **547 unit/integration/stress tests**.
+   - 37/37 Unified Practice OS tests (`tests/practice-os-unified.test.ts`).
    - 87/87 adversarial Tier 5 security test cases.
    - Independent 610-snippet / 3,410-entity Safe Harbor holdout validation benchmark.
 5. **Interactive Demonstration Framework**:
    - Integrated buyer demo guide tour (`DemoGuideModal.tsx`) populated with 100% realistic synthetic clinical scenarios.
+   - One-click downstream cascade trigger executing encounter -> payment -> compensation -> payroll batch ripple.
 
 ---
 
@@ -38,6 +49,12 @@ Without configuring any third-party paid accounts or external vendor APIs, an ac
 
 | Subsystem | Immediate Out-of-the-Box Capability |
 | :--- | :--- |
+| **Unified Command Center** | Answers the 9 critical practice owner questions in real time; triggers one-click encounter-to-paycheck downstream cascade. |
+| **Workforce Roster** | Manage 14 clinicians, W-2 vs 1099 classification, supervisor relationships, Type 1 NPIs, licenses, and weekly target hours. |
+| **Compensation Engine** | Tiered volume splits (50%–60%), CPT flat rates (90837, 90834, 90847, 90791), late cancellation credits, documentation bonuses, and auditable math formulas. |
+| **TheraFlow Payroll** | Pre-review aggregation, clinician payroll summaries, Gusto/ADP/Sandbox provider selector, CSV export, and ACH direct deposit scheduling. |
+| **TheraFlow Money** | Multi-vault treasury (Operating Checking, 25% Tax Vault, Payroll Escrow), unit economics waterfall, and claim-to-bank reconciliation. |
+| **Onboarding & Migration** | 8-step start-a-practice wizard and 5-step group practice migration suite consolidating SimplePractice + Gusto stacks. |
 | **TheraFlow EHR** | Complete client chart navigation, vitals graphs, treatment plans, DSM-5 problem list, and appointment scheduling. |
 | **Clinical AI Scribe v2** | Live microphone recording via browser SpeechRecognition with acoustic waveform visualization, speaker turn alternation, and local deterministic SOAP/DAP note generation. |
 | **Telehealth Studio** | WebRTC local camera/mic stream capture, peer loopback simulation, hardware track muting, session timer, and CPT 90834/90837 duration tracker. |
@@ -45,7 +62,6 @@ Without configuring any third-party paid accounts or external vendor APIs, an ac
 | **Aura Clinical Copilot** | Draggable in-workflow drawer, contextual note suggestions, and DSM-5 differential diagnostic queries. |
 | **CMS-1500 & Billing** | Interactive 33-box CMS-1500 claim editor, instant Superbill generator, and raw X12 837P EDI transmission generator. |
 | **Cryptographic Audit Ledger** | SHA-256 chained tamper-evident logging persisting append-only to disk at `data/audit_ledger.jsonl` with CSV/JSON export. |
-| **Multi-Tenancy** | Practice switching between solo practice and group practice layouts. |
 
 ---
 

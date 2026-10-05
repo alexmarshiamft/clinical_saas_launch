@@ -13,9 +13,11 @@ TheraFlow OS contains an extensive multi-tier test harness covering functional w
 
 | Test Suite / Script | Functional Focus | Test Count | Status | Execution Command |
 | :--- | :--- | :---: | :---: | :--- |
+| **Unified Practice OS Suite** (`tests/practice-os-unified.test.ts`) | Workforce, tiered comp engine, CPT flat rates, doc bonus, timing policies, Gusto/ADP adapters, BaaS treasury, claim-to-bank recon, idempotency | **37** | **100% PASS** | `npx tsx tests/practice-os-unified.test.ts` |
 | **Tier 5 Adversarial Coverage** (`tests/tier5-adversarial-coverage.test.ts`) | Edge cases, ReDoS, prototype pollution, boundary durations, token forgery, route gates, ephemeral server | **87** | **100% PASS** | `npx tsx tests/tier5-adversarial-coverage.test.ts` |
 | **Clinical AI Scribe v2** (`tests/m4-clinical-scribe.test.ts`) | Ambient acoustic diarization, 6 note templates, dual-engine AI, template studio interpolation, ICD-10/CPT coding, multi-EHR adapters | **61** | **100% PASS** | `npx tsx tests/m4-clinical-scribe.test.ts` |
 | **TheraFlow EHR Engine** (`tests/m3-theraflow-ehr.test.ts`) | Client roster, chart timelines, vitals, problem list, treatment plan goals, appointment scheduling | **48** | **100% PASS** | `npm run test:ehr` |
+| **Aura & PHI Scrubber Engine** (`tests/m5-aura-scrubber.test.ts`) | Aura assistant, typewriter SOAP, 18 Safe Harbor rules, diff viewer, forensic audit table | **85** | **100% PASS** | `npm run test:aura` |
 | **Adversarial Security Audit** (`scripts/adversarial-security-audit.mjs`) | XSS injection in notes, SQL injection strings, JWT spoofing, CSRF headers, prototype tampering | **52** | **100% PASS** | `npm run test:security` |
 | **Auth & Session Gate** (`scripts/verify-auth-redirect.mjs` & `verify-subscription-gate.mjs`) | Session restoration, protected route redirection, tier upgrade locks, expired token eviction | **36** | **100% PASS** | `npm run test:auth` |
 | **Stripe Checkout Simulation** (`scripts/verify-stripe-checkout.mjs`) | Sandbox checkout session generation, annual/monthly price calculation, webhook signature verification | **24** | **100% PASS** | `npm run test:stripe` |

@@ -86,16 +86,23 @@ All outbound requests to external AI models (e.g., Google Gemini in `ai-template
 
 ---
 
-## 3. Authentication & Authorization Model
+## 3. Authentication, Authorization & Financial Access Control
 
 1. **Role-Based Access Control (RBAC)**:
-   - `clinical_admin`: Full practice configuration, user onboarding, audit export.
-   - `supervising_therapist`: Chart review, cosigning clinical notes, supervisor approval for billing.
-   - `staff_therapist`: Encounter charting, telehealth sessions, personal schedule management.
-   - `billing_specialist`: CMS-1500 claim editing, 837P transmission, superbill generation.
-2. **Session Verification**:
+   - `practice_owner`: Full administrative privileges, banking treasury access, payroll approval, and practice economics visibility.
+   - `clinical_admin`: Practice configuration, clinician roster management, audit exports.
+   - `supervising_therapist`: Chart review, cosigning clinical notes, supervisor approval for associate billing.
+   - `staff_therapist` / `associate_clinician`: Personal encounter charting, telehealth sessions, personal schedule, and **self-only** compensation earnings views (`worker_id = auth.uid()`). Clinicians cannot view practice-wide payroll or other clinicians' split rates.
+   - `billing_specialist`: CMS-1500 claim editing, 837P transmission, payment reconciliation matching.
+2. **Financial Data Isolation & Separation of Duties**:
+   - Clinician compensation rules, bank routing numbers, account balances, and tax reserve allocations are strictly isolated behind practice owner permissions.
+   - PostgreSQL RLS enforces that individual clinicians cannot inspect peer compensation plans or practice treasury reserves.
+3. **Ledger Idempotency & Double-Payment Defense**:
+   - The Practice Event Bus (`src/modules/ledger/practice-event-bus.ts`) enforces strict SHA-based idempotency keys on all financial trigger events (`claim.created`, `payment.received`, `compensation.accrued`, `payroll.funded`).
+   - Duplicate webhooks, retransmitted 835 remittance files, or repeated manual clicks are mathematically dropped before affecting clinician earnings or bank accounts.
+4. **Session Verification**:
    - Server-side subscription verification endpoint (`POST /api/subscription/verify`) validates practice entitlements and active plan status.
-3. **Stateless JWT Tokens**:
+5. **Stateless JWT Tokens**:
    - Designed for standard bearer token authorization containing `user_id`, `role`, and `practice_id` claims.
 
 ---

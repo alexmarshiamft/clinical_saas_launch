@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Stethoscope,
@@ -12,21 +12,57 @@ import {
   ArrowRight,
   Activity,
   Lock,
+  DollarSign,
+  Users,
+  Wallet,
+  Building2,
+  CheckCircle2,
+  TrendingUp,
+  AlertCircle,
+  Play,
+  Layers,
+  ChevronRight,
+  CreditCard,
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useClinicalContext } from '@/lib/clinical-context';
 import { useSubscription } from '@/lib/subscription';
 import { useDemoGuide } from '@/lib/demo-guide-context';
+import { usePracticeOs } from '@/lib/practice-os-context';
 
 export const DashboardHome: React.FC = () => {
   const { profile } = useAuth();
   const clinical = useClinicalContext();
   const { isSubscribed } = useSubscription();
   const { openGuide } = useDemoGuide();
+  const {
+    workers,
+    activePayPeriod,
+    operatingAccount,
+    reconciliations,
+    financialSummary,
+    executeCascadeSimulation,
+    simulatePrivatePaySettlement
+  } = usePracticeOs();
+
+  const [cascadeRunning, setCascadeRunning] = useState(false);
+  const [cascadeNotice, setCascadeNotice] = useState<string | null>(null);
 
   const activePatient = clinical.activePatient;
   const clinicianName = profile?.name || 'Dr. Sarah Chen, MD';
   const practiceName = profile?.practiceName || 'Bay Area Behavioral Health Group';
+
+  const handleRunCascade = () => {
+    setCascadeRunning(true);
+    setCascadeNotice(null);
+    setTimeout(() => {
+      executeCascadeSimulation();
+      setCascadeRunning(false);
+      setCascadeNotice('Cascade Executed: Encounter 90837 ($150) -> Deposit Reconciled -> $90 Comp Accrued to Sarah Chen -> Added to Oct 1–15 Payroll');
+      setTimeout(() => setCascadeNotice(null), 6000);
+    }, 700);
+  };
 
   // Today's Clinical Schedule
   const todayAppointments = [
@@ -120,33 +156,300 @@ export const DashboardHome: React.FC = () => {
     },
   ];
 
+  // Compute Practice Operating System Questions
+  const totalBilled = 34500;
+  const totalCollected = financialSummary.totalRevenue ?? financialSummary.monthlyTotalRevenue;
+  const accruedComp = financialSummary.clinicianCompensation ?? financialSummary.monthlyClinicianCompensation;
+  const grossMargin = financialSummary.grossMargin ?? financialSummary.monthlyGrossPracticeMargin;
+  const grossMarginPct = financialSummary.grossMarginPercentage ?? financialSummary.monthlyGrossMarginPercentage;
+  const operatingCash = operatingAccount.currentBalance;
+  const nextPayrollAmount = activePayPeriod.totalGrossCompensation;
+  const hasCashCoverage = operatingCash >= nextPayrollAmount;
+  const outstandingAR = reconciliations
+    .filter(r => r.status === 'pending_deposit')
+    .reduce((sum, r) => sum + r.allowedAmount, 0) || 12450;
+
   return (
     <div className="space-y-8">
       {/* Top Welcome & Clinician Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Clinical Command Center
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-700 font-bold text-[11px] uppercase tracking-wider">
+              Unified Practice OS
+            </span>
+            <span className="text-xs text-slate-600 font-medium">Session to Paycheck Engine</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+            Practice Owner Command Center
           </h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Welcome back, <strong>{clinicianName}</strong> — {practiceName}
+          <p className="text-sm text-slate-500 font-medium">
+            Operating: <strong>{practiceName}</strong> • Logged in as <strong>{clinicianName}</strong>
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <NavLink
-            to="/dashboard/scribe"
-            className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 shadow-md shadow-indigo-100 flex items-center gap-1.5 transition-all"
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={handleRunCascade}
+            disabled={cascadeRunning}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-bold text-xs shadow-md shadow-cyan-500/20 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
           >
-            <Mic className="h-4 w-4" />
-            <span>Start Scribe Session</span>
+            <Play className={`h-3.5 w-3.5 ${cascadeRunning ? 'animate-spin' : ''}`} />
+            <span>{cascadeRunning ? 'Cascading...' : 'Run One-Click Downstream Cascade'}</span>
+          </button>
+          <NavLink
+            to="/onboarding"
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 shadow-2xs flex items-center gap-1.5 transition-all"
+          >
+            <Building2 className="h-3.5 w-3.5 text-cyan-600" />
+            <span>Practice Setup</span>
           </NavLink>
           <NavLink
-            to="/dashboard/calendar"
-            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 shadow-2xs flex items-center gap-1.5 transition-all"
+            to="/migration"
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 shadow-2xs flex items-center gap-1.5 transition-all"
           >
-            <Calendar className="h-4 w-4" />
-            <span>Calendar</span>
+            <Layers className="h-3.5 w-3.5 text-indigo-600" />
+            <span>Migrate Stack</span>
+          </NavLink>
+        </div>
+      </div>
+
+      {/* Cascade Notification Banner */}
+      {cascadeNotice && (
+        <div className="p-4 rounded-xl bg-cyan-950 border border-cyan-500/40 text-cyan-200 text-xs flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
+            <span><strong>Automated Ledger Ripple:</strong> {cascadeNotice}</span>
+          </div>
+          <NavLink to="/dashboard/payroll" className="underline font-bold text-cyan-300 hover:text-white shrink-0 ml-4">
+            View in Payroll →
+          </NavLink>
+        </div>
+      )}
+
+      {/* 9-QUESTION UNIFIED OWNER HUD */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-800">
+          <div>
+            <h2 className="text-lg font-black tracking-tight flex items-center gap-2 text-white">
+              <Activity className="w-5 h-5 text-cyan-400" />
+              Unified Practice Operating System — Executive Health HUD
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Answer the 9 critical questions of group practice management in real time from one unified ledger.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Ledger Synchronized
+            </span>
+          </div>
+        </div>
+
+        {/* 9 Questions Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-5">
+          {/* Q1: Clinical Activity */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>1. What's Happening Clinically?</span>
+              <Stethoscope className="w-3.5 h-3.5 text-cyan-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-white">4 Today</span>
+              <span className="text-xs text-emerald-400 font-semibold">1 Active</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              98 completed encounters this cycle across {workers.length} clinicians.
+            </p>
+            <NavLink to="/dashboard/ehr" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-cyan-400 hover:text-cyan-300">
+              Inspect Clinical Encounters <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q2: Billed */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>2. What Has Been Billed?</span>
+              <FileText className="w-3.5 h-3.5 text-blue-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-white">${totalBilled.toLocaleString()}</span>
+              <span className="text-xs text-slate-400">Claims Submitted</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              CMS-1500 EDI 837 batches generated with 0 validation rejections.
+            </p>
+            <NavLink to="/dashboard/billing" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-blue-400 hover:text-blue-300">
+              Open Claims Ledger <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q3: Collected */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>3. What's Been Collected?</span>
+              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-emerald-400">${totalCollected.toLocaleString()}</span>
+              <span className="text-xs text-slate-400 font-medium">Net Realized</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              ${(financialSummary.insuranceCollections ?? financialSummary.monthlyRevenueInsurance).toLocaleString()} Insurance ERA + ${(financialSummary.privatePayCollections ?? financialSummary.monthlyRevenuePrivatePay).toLocaleString()} Private Pay.
+            </p>
+            <NavLink to="/dashboard/banking" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300">
+              View Bank Deposits <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q4: Clinician Comp Owed */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>4. What Are Clinicians Owed?</span>
+              <Users className="w-3.5 h-3.5 text-purple-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-purple-300">${accruedComp.toLocaleString()}</span>
+              <span className="text-xs text-slate-400">Accrued Comp</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Deterministic splits automatically calculated per signed encounter.
+            </p>
+            <NavLink to="/dashboard/compensation" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-purple-400 hover:text-purple-300">
+              Compensation Rules Engine <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q5: Next Payroll */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>5. What Is Next Payroll?</span>
+              <Wallet className="w-3.5 h-3.5 text-amber-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-amber-300">${nextPayrollAmount.toLocaleString()}</span>
+              <span className="text-xs text-slate-400">Oct 1–15 Cycle</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Pay Date: Oct 20, 2026 • Status: <span className="text-emerald-400 font-semibold">{activePayPeriod.status}</span>
+            </p>
+            <NavLink to="/dashboard/payroll" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 hover:text-amber-300">
+              Inspect Payroll Review Table <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q6: Cash Coverage */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>6. Can We Fund Payroll?</span>
+              <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className={`text-2xl font-black ${hasCashCoverage ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {hasCashCoverage ? 'Fully Covered' : 'Deficit'}
+              </span>
+              <span className="text-xs text-slate-400 font-mono">${operatingCash.toLocaleString()} Cash</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Operating account holds 3.6x total biweekly payroll obligation.
+            </p>
+            <NavLink to="/dashboard/banking" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300">
+              Embedded Banking Ledger <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q7: Outstanding AR */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>7. Outstanding Claims AR</span>
+              <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-amber-300">${outstandingAR.toLocaleString()}</span>
+              <span className="text-xs text-slate-400">Pending Remit</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Average reimbursement velocity: 11.2 days across commercial payers.
+            </p>
+            <NavLink to="/dashboard/banking" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 hover:text-amber-300">
+              Claim-to-Bank Reconciliation <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q8: Clinician Utilization */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>8. Clinician Productivity</span>
+              <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-cyan-300">86.4%</span>
+              <span className="text-xs text-slate-400">Target Billable</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Sarah Chen (92%), Marcus Vance (84%), Elena Rostova (88%).
+            </p>
+            <NavLink to="/dashboard/workforce" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-cyan-400 hover:text-cyan-300">
+              Workforce Roster &amp; Targets <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+
+          {/* Q9: Practice Gross Margin */}
+          <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>9. Practice Gross Margin</span>
+              <Briefcase className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-emerald-400">${grossMargin.toLocaleString()}</span>
+              <span className="text-xs text-emerald-400 font-bold">({grossMarginPct.toFixed(1)}%)</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Net operating cash flow after OpEx: +${(financialSummary.netOperatingCashFlow ?? financialSummary.monthlyNetCashFlow).toLocaleString()}.
+            </p>
+            <NavLink to="/dashboard/banking" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300">
+              Practice Economics Waterfall <ChevronRight className="w-3 h-3" />
+            </NavLink>
+          </div>
+        </div>
+
+        {/* 4 Practice OS Navigation Pills */}
+        <div className="mt-6 pt-5 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <NavLink
+            to="/dashboard/workforce"
+            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-center transition-all group"
+          >
+            <Users className="w-4 h-4 text-cyan-400 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <div className="text-xs font-bold text-white">Workforce Roster</div>
+            <div className="text-[10px] text-slate-400">{workers.length} Active Providers</div>
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/compensation"
+            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-center transition-all group"
+          >
+            <Briefcase className="w-4 h-4 text-purple-400 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <div className="text-xs font-bold text-white">Compensation Plans</div>
+            <div className="text-[10px] text-slate-400">Tiered &amp; CPT Splits</div>
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/payroll"
+            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-center transition-all group"
+          >
+            <Wallet className="w-4 h-4 text-amber-400 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <div className="text-xs font-bold text-white">TheraFlow Payroll</div>
+            <div className="text-[10px] text-slate-400">Gusto / ADP Abstraction</div>
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/banking"
+            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-center transition-all group"
+          >
+            <Building2 className="w-4 h-4 text-emerald-400 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <div className="text-xs font-bold text-white">TheraFlow Money</div>
+            <div className="text-[10px] text-slate-400">Embedded BaaS &amp; Recon</div>
           </NavLink>
         </div>
       </div>
@@ -168,11 +471,11 @@ export const DashboardHome: React.FC = () => {
               <Sparkles className="h-5 w-5 text-amber-400 shrink-0" />
             </h2>
             <p className="text-xs sm:text-sm text-indigo-100/80 leading-relaxed">
-              Experience the 4 unified clinical suites: Clinical EHR, Ambient AI Scribe v2, Aura Assistant Copilot, and 18 Safe Harbor PHI Scrubber. Follow our step-by-step clinical consultation journey or test tier access gates in the sandbox.
+              Experience the complete behavioral health operating system: Clinical EHR, Ambient AI Scribe v2, Aura Assistant, PHI Redaction, Workforce Rosters, Clinician Compensation Rules, Payroll Orchestration, and BaaS Embedded Banking.
             </p>
             <div className="pt-1 flex items-center gap-2 text-[11px] text-amber-200/90 bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-lg">
               <span className="font-bold text-amber-400 uppercase text-[10px] tracking-wider">⚠️ Synthetic Data Only:</span>
-              <span>All patient charts, transcripts, and records are 100% fictional computer-generated data (Not real people, not real PHI).</span>
+              <span>All patient charts, transcripts, provider rosters, compensation splits, and bank balances are 100% fictional computer-generated demonstration data.</span>
             </div>
           </div>
 
@@ -300,7 +603,7 @@ export const DashboardHome: React.FC = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-            Integrated Clinical Tools (The 4 Merged Apps)
+            Integrated Clinical Tools (EHR, AI Scribe, Aura, PHI Scrubber)
           </h2>
           <span className="text-xs text-slate-600 font-medium">Unified Context Active</span>
         </div>
@@ -448,68 +751,54 @@ export const DashboardHome: React.FC = () => {
           </div>
         )}
 
-        {/* Right (1 col): Cross-Tool Clinical Pipeline Status */}
+        {/* Right (1 col): The Unified Encounter-to-Paycheck Chain */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-extrabold text-slate-900">Clinical Pipeline</h3>
-              <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">
-                Cross-Tool Flow
+              <h3 className="text-base font-extrabold text-slate-900">Encounter → Paycheck</h3>
+              <span className="text-[10px] font-bold bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded">
+                One Practice Ledger
               </span>
             </div>
-            <p className="text-xs text-slate-600 mb-6">
-              How patient encounters flow seamlessly through the 4 merged applications:
+            <p className="text-xs text-slate-600 mb-5">
+              Enter clinical activity once. Downstream revenue, compensation, payroll, and banking derive automatically:
             </p>
 
-            <div className="space-y-4 relative">
-              <div className="flex items-start gap-3">
-                <div className="h-7 w-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  1
+            <div className="space-y-3 relative text-xs">
+              {[
+                { step: '1', title: 'Clinical Note & CPT', desc: 'Therapist signs SOAP note with CPT 90837 ($150).' },
+                { step: '2', title: 'Claim / Patient Charge', desc: 'Electronic 837 claim submitted or client card billed.' },
+                { step: '3', title: 'Bank Deposit & ERA Match', desc: 'Insurance remit or card settlement reconciled to checking.' },
+                { step: '4', title: 'Compensation Engine', desc: 'Rules apply (60% split = $90 payable to clinician).' },
+                { step: '5', title: 'Payroll Run & Direct Deposit', desc: '$90 aggregated into Oct 1–15 payroll batch for Gusto/ADP.' }
+              ].map((item) => (
+                <div key={item.step} className="flex items-start gap-2.5">
+                  <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    {item.step}
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-900">{item.title}</div>
+                    <div className="text-[11px] text-slate-600">{item.desc}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">TheraFlow Telehealth Session</div>
-                  <div className="text-[11px] text-slate-600">Secure WebRTC audio/video consultation.</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="h-7 w-7 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  2
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">Clinical AI Scribe v2 Diarization</div>
-                  <div className="text-[11px] text-slate-600">Real-time speaker separation &amp; SOAP generation.</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="h-7 w-7 rounded-full bg-amber-100 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  3
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">Aura Copilot Decision Support</div>
-                  <div className="text-[11px] text-slate-600">DSM-5 criteria &amp; typewriter note enrichment.</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="h-7 w-7 rounded-full bg-cyan-100 text-cyan-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  4
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">18 Safe Harbor PHI Redaction</div>
-                  <div className="text-[11px] text-slate-600">Forensic de-identification before external export.</div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-100 mt-6">
-            <NavLink
-              to="/dashboard/phi-scrubber"
-              className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+          <div className="pt-6 border-t border-slate-100 mt-6 space-y-2">
+            <button
+              onClick={handleRunCascade}
+              disabled={cascadeRunning}
+              className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span>Test Redaction Pipeline</span>
+              <Play className="h-3.5 w-3.5 text-cyan-400" />
+              <span>Simulate Downstream Cascade</span>
+            </button>
+            <NavLink
+              to="/dashboard/payroll"
+              className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <span>View Active Payroll Ledger</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </NavLink>
           </div>

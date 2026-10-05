@@ -1,12 +1,14 @@
 /**
  * Unified Clinical Telehealth & AI Scribe SaaS Platform
  * Root Application & React Router Configuration
+ * Extended with TheraFlow OS: Unified Practice Operating System
  */
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/lib/auth';
 import { SubscriptionProvider } from '@/lib/subscription';
 import { ClinicalContextProvider } from '@/lib/clinical-context';
+import { PracticeOsProvider } from '@/lib/practice-os-context';
 
 // Layout & Route Guards
 import AppLayout from '@/components/layout/AppLayout';
@@ -19,6 +21,14 @@ import Login from '@/pages/Login';
 import DashboardHome from '@/pages/DashboardHome';
 import Subscription from '@/pages/Subscription';
 import InvestorDeck from '@/pages/InvestorDeck';
+
+// Unified Practice OS Pages
+import WorkforceView from '@/pages/WorkforceView';
+import CompensationView from '@/pages/CompensationView';
+import PayrollView from '@/pages/PayrollView';
+import BankingMoneyView from '@/pages/BankingMoneyView';
+import { OnboardingWizard } from '@/pages/OnboardingWizard';
+import { MigrationWizard } from '@/pages/MigrationWizard';
 
 // The 4 Core Integrated Clinical Tool Workspaces
 import EhrWorkspace from '@/tools/theraflow/EhrWorkspace';
@@ -34,218 +44,244 @@ export const App: React.FC = () => {
     <AuthProvider>
       <SubscriptionProvider>
         <ClinicalContextProvider>
-          <Router>
-            <DemoGuideProvider>
-              <DemoGuideModal />
-              <Routes>
-              {/* Public Marketing & Auth Routes */}
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/investor" element={<InvestorDeck />} />
+          <PracticeOsProvider>
+            <Router>
+              <DemoGuideProvider>
+                <DemoGuideModal />
+                <Routes>
+                  {/* Public Marketing & Auth Routes */}
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/investor" element={<InvestorDeck />} />
 
-              {/* Protected Clinical Dashboard Shell */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout />
-                  </ProtectedRoute>
-                }
-              >
-                {/* Command Center Index */}
-                <Route index element={<DashboardHome />} />
+                  {/* Top-Level Practice Setup & Migration Wizards */}
+                  <Route
+                    path="/onboarding"
+                    element={
+                      <ProtectedRoute>
+                        <OnboardingWizard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/migration"
+                    element={
+                      <ProtectedRoute>
+                        <MigrationWizard />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* The 4 Core Integrated Clinical Tools (Gated by Subscription) */}
-                <Route
-                  path="ehr/*"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Clinical EHR & Telehealth"
-                      headline="Clinical EHR Subscription Required"
-                    >
-                      <EhrWorkspace />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="scribe"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="pro"
-                      featureName="Clinical AI Scribe v2"
-                      headline="Clinician Pro Subscription Required"
-                    >
-                      <ScribeWorkspace />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="scribe/*"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="pro"
-                      featureName="Clinical AI Scribe v2"
-                      headline="Clinician Pro Subscription Required"
-                    >
-                      <ScribeWorkspace />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="aura"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="pro"
-                      featureName="Aura Assistant Copilot"
-                      headline="Clinician Pro Subscription Required"
-                    >
-                      <AuraStudio />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="aura/*"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="pro"
-                      featureName="Aura Assistant Copilot"
-                      headline="Clinician Pro Subscription Required"
-                    >
-                      <AuraStudio />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="phi-scrubber"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="HIPAA PHI Scrubber"
-                      headline="PHI Scrubber Subscription Required"
-                    >
-                      <PhiScrubberView />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="phi-scrubber/*"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="HIPAA PHI Scrubber"
-                      headline="PHI Scrubber Subscription Required"
-                    >
-                      <PhiScrubberView />
-                    </SubscriptionGate>
-                  }
-                />
+                  {/* Protected Clinical Dashboard Shell */}
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    {/* Command Center Index */}
+                    <Route index element={<DashboardHome />} />
 
-                {/* Practice Operations Aliases */}
-                <Route
-                  path="calendar"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Appointment Calendar"
-                      headline="Calendar Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="calendar" />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="clients"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Client Roster"
-                      headline="Client Roster Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="clients" />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="clients/:id"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Client Roster"
-                      headline="Client Roster Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="clients" />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="billing"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Billing & Claims"
-                      headline="Billing Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="billing" />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="telehealth"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Telehealth Room"
-                      headline="Telehealth Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="telehealth" />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="telehealth/:id"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Telehealth Room"
-                      headline="Telehealth Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="telehealth" />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route
-                  path="audit-logs"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="HIPAA Audit Logs"
-                      headline="Audit Logs Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="audit-logs" />
-                    </SubscriptionGate>
-                  }
-                />
-                <Route path="subscription" element={<Subscription />} />
-                <Route
-                  path="settings"
-                  element={
-                    <SubscriptionGate
-                      requiredTier="starter"
-                      featureName="Practice Settings"
-                      headline="Settings Subscription Required"
-                    >
-                      <EhrWorkspace defaultTab="settings" />
-                    </SubscriptionGate>
-                  }
-                />
-              </Route>
+                    {/* Unified Practice OS Operations & Finances */}
+                    <Route path="workforce" element={<WorkforceView />} />
+                    <Route path="compensation" element={<CompensationView />} />
+                    <Route path="payroll" element={<PayrollView />} />
+                    <Route path="banking" element={<BankingMoneyView />} />
 
-              {/* Catch-all Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            </DemoGuideProvider>
-          </Router>
+                    {/* The 4 Core Integrated Clinical Tools (Gated by Subscription) */}
+                    <Route
+                      path="ehr/*"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Clinical EHR & Telehealth"
+                          headline="Clinical EHR Subscription Required"
+                        >
+                          <EhrWorkspace />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="scribe"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="pro"
+                          featureName="Clinical AI Scribe v2"
+                          headline="Clinician Pro Subscription Required"
+                        >
+                          <ScribeWorkspace />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="scribe/*"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="pro"
+                          featureName="Clinical AI Scribe v2"
+                          headline="Clinician Pro Subscription Required"
+                        >
+                          <ScribeWorkspace />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="aura"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="pro"
+                          featureName="Aura Assistant Copilot"
+                          headline="Clinician Pro Subscription Required"
+                        >
+                          <AuraStudio />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="aura/*"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="pro"
+                          featureName="Aura Assistant Copilot"
+                          headline="Clinician Pro Subscription Required"
+                        >
+                          <AuraStudio />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="phi-scrubber"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="HIPAA PHI Scrubber"
+                          headline="PHI Scrubber Subscription Required"
+                        >
+                          <PhiScrubberView />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="phi-scrubber/*"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="HIPAA PHI Scrubber"
+                          headline="PHI Scrubber Subscription Required"
+                        >
+                          <PhiScrubberView />
+                        </SubscriptionGate>
+                      }
+                    />
+
+                    {/* Practice Operations Aliases */}
+                    <Route
+                      path="calendar"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Appointment Calendar"
+                          headline="Calendar Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="calendar" />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="clients"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Client Roster"
+                          headline="Client Roster Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="clients" />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="clients/:id"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Client Roster"
+                          headline="Client Roster Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="clients" />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="billing"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Billing & Claims"
+                          headline="Billing Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="billing" />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="telehealth"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Telehealth Room"
+                          headline="Telehealth Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="telehealth" />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="telehealth/:id"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Telehealth Room"
+                          headline="Telehealth Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="telehealth" />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route
+                      path="audit-logs"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="HIPAA Audit Logs"
+                          headline="Audit Logs Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="audit-logs" />
+                        </SubscriptionGate>
+                      }
+                    />
+                    <Route path="subscription" element={<Subscription />} />
+                    <Route
+                      path="settings"
+                      element={
+                        <SubscriptionGate
+                          requiredTier="starter"
+                          featureName="Practice Settings"
+                          headline="Settings Subscription Required"
+                        >
+                          <EhrWorkspace defaultTab="settings" />
+                        </SubscriptionGate>
+                      }
+                    />
+                  </Route>
+
+                  {/* Catch-all Fallback */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </DemoGuideProvider>
+            </Router>
+          </PracticeOsProvider>
         </ClinicalContextProvider>
       </SubscriptionProvider>
     </AuthProvider>
