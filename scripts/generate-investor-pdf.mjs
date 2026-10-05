@@ -1045,7 +1045,7 @@ function buildSlidesHtml() {
           </div>
           <div>
             <span style="color: #94a3b8; font-weight: 600;">Evaluation Support:</span><br>
-            <span class="font-mono" style="color: #fde68a;">alexmarshiamft@gmail.com</span>
+            <span class="font-mono" style="color: #fde68a;">alex@alexmarshi.com</span>
           </div>
         </div>
       </div>

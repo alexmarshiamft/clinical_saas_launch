@@ -646,7 +646,9 @@ export const InvestorDeck: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-slate-400 font-semibold">Contact: </span>
-                  <span className="font-mono text-slate-200">alexmarshiamft@gmail.com</span>
+                  <a href="mailto:alex@alexmarshi.com" className="font-mono text-amber-300 hover:underline">
+                    alex@alexmarshi.com
+                  </a>
                 </div>
               </div>
             </div>
