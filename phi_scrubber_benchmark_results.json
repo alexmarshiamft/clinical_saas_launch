@@ -1,0 +1,4531 @@
+{
+  "benchmark_metadata": {
+    "date": "2026-10-05",
+    "corpus_size_snippets": 392,
+    "total_expected_entities": 1261,
+    "total_structured_entities": 846,
+    "total_unstructured_entities": 415
+  },
+  "metrics": {
+    "overall_recall": 67.72,
+    "overall_precision": 90.47,
+    "overall_f1": 77.46,
+    "true_positives_count": 854,
+    "false_negatives_count": 407,
+    "false_positives_count": 90,
+    "structured_recall": 90.78,
+    "unstructured_recall": 20.72
+  },
+  "category_performance": [
+    {
+      "rule_id": "NAME",
+      "category_name": "Names",
+      "total_expected": 196,
+      "true_positives": 98,
+      "false_negatives": 98,
+      "recall_percent": 50,
+      "structured_recall_percent": 57.65,
+      "unstructured_recall_percent": 0
+    },
+    {
+      "rule_id": "GEOGRAPHIC",
+      "category_name": "Geographic Subdivisions",
+      "total_expected": 305,
+      "true_positives": 69,
+      "false_negatives": 236,
+      "recall_percent": 22.62,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 0.84
+    },
+    {
+      "rule_id": "DATE",
+      "category_name": "Dates",
+      "total_expected": 138,
+      "true_positives": 120,
+      "false_negatives": 18,
+      "recall_percent": 86.96,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 0
+    },
+    {
+      "rule_id": "PHONE",
+      "category_name": "Telephone Numbers",
+      "total_expected": 75,
+      "true_positives": 71,
+      "false_negatives": 4,
+      "recall_percent": 94.67,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 66.67
+    },
+    {
+      "rule_id": "FAX",
+      "category_name": "Fax Numbers",
+      "total_expected": 68,
+      "true_positives": 68,
+      "false_negatives": 0,
+      "recall_percent": 100,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 100
+    },
+    {
+      "rule_id": "EMAIL",
+      "category_name": "Email Addresses",
+      "total_expected": 15,
+      "true_positives": 15,
+      "false_negatives": 0,
+      "recall_percent": 100,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 100
+    },
+    {
+      "rule_id": "SSN",
+      "category_name": "Social Security Numbers",
+      "total_expected": 69,
+      "true_positives": 69,
+      "false_negatives": 0,
+      "recall_percent": 100,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 100
+    },
+    {
+      "rule_id": "MRN",
+      "category_name": "Medical Record Numbers",
+      "total_expected": 74,
+      "true_positives": 68,
+      "false_negatives": 6,
+      "recall_percent": 91.89,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 50
+    },
+    {
+      "rule_id": "HEALTH_PLAN_NUM",
+      "category_name": "Health Plan Numbers",
+      "total_expected": 72,
+      "true_positives": 62,
+      "false_negatives": 10,
+      "recall_percent": 86.11,
+      "structured_recall_percent": 98.39,
+      "unstructured_recall_percent": 10
+    },
+    {
+      "rule_id": "ACCOUNT_NUM",
+      "category_name": "Account Numbers",
+      "total_expected": 15,
+      "true_positives": 9,
+      "false_negatives": 6,
+      "recall_percent": 60,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 33.33
+    },
+    {
+      "rule_id": "LICENSE_NUM",
+      "category_name": "Certificate / License Numbers",
+      "total_expected": 72,
+      "true_positives": 64,
+      "false_negatives": 8,
+      "recall_percent": 88.89,
+      "structured_recall_percent": 98.39,
+      "unstructured_recall_percent": 30
+    },
+    {
+      "rule_id": "VEHICLE_ID",
+      "category_name": "Vehicle Identifiers",
+      "total_expected": 15,
+      "true_positives": 10,
+      "false_negatives": 5,
+      "recall_percent": 66.67,
+      "structured_recall_percent": 85.71,
+      "unstructured_recall_percent": 50
+    },
+    {
+      "rule_id": "DEVICE_ID",
+      "category_name": "Device Identifiers",
+      "total_expected": 15,
+      "true_positives": 10,
+      "false_negatives": 5,
+      "recall_percent": 66.67,
+      "structured_recall_percent": 71.43,
+      "unstructured_recall_percent": 62.5
+    },
+    {
+      "rule_id": "URL",
+      "category_name": "Web URLs",
+      "total_expected": 69,
+      "true_positives": 69,
+      "false_negatives": 0,
+      "recall_percent": 100,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 100
+    },
+    {
+      "rule_id": "IP_ADDRESS",
+      "category_name": "IP Addresses",
+      "total_expected": 15,
+      "true_positives": 15,
+      "false_negatives": 0,
+      "recall_percent": 100,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 100
+    },
+    {
+      "rule_id": "BIOMETRIC",
+      "category_name": "Biometric Identifiers",
+      "total_expected": 15,
+      "true_positives": 13,
+      "false_negatives": 2,
+      "recall_percent": 86.67,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 75
+    },
+    {
+      "rule_id": "PHOTO_ID",
+      "category_name": "Photographic Images",
+      "total_expected": 15,
+      "true_positives": 11,
+      "false_negatives": 4,
+      "recall_percent": 73.33,
+      "structured_recall_percent": 100,
+      "unstructured_recall_percent": 60
+    },
+    {
+      "rule_id": "UNIQUE_ID",
+      "category_name": "Unique Identifiers",
+      "total_expected": 18,
+      "true_positives": 13,
+      "false_negatives": 5,
+      "recall_percent": 72.22,
+      "structured_recall_percent": 87.5,
+      "unstructured_recall_percent": 60
+    }
+  ],
+  "false_negatives_breakdown": {
+    "total_count": 407,
+    "sample_false_negatives": [
+      {
+        "snippetId": "NAME-009",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Jonathan Higgins",
+        "isStructured": false,
+        "contextSnippet": "g the 50-minute session, Jonathan Higgins discussed his grief rega",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-010",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elizabeth Montgomery",
+        "isStructured": false,
+        "contextSnippet": "On physical exam, Elizabeth Montgomery exhibited psychomotor sl",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-011",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Gregory House",
+        "isStructured": false,
+        "contextSnippet": "rview was conducted with Gregory House regarding observed confu",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-012",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Alexander Marshi",
+        "isStructured": false,
+        "contextSnippet": "Today Alexander Marshi participated in behavior",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-013",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Rachel Green-Geller",
+        "isStructured": false,
+        "contextSnippet": "mework logs submitted by Rachel Green-Geller prior to session.",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-014",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah",
+        "isStructured": false,
+        "contextSnippet": "ut recent panic attacks, Sarah reported that crowds tri",
+        "rootCause": "Regex requires two tokens or title prefix; single first name omitted"
+      },
+      {
+        "snippetId": "NAME-015",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Michael",
+        "isStructured": false,
+        "contextSnippet": "Client stated that Michael has been distant and arg",
+        "rootCause": "Regex requires two tokens or title prefix; single first name omitted"
+      },
+      {
+        "snippetId": "NAME-016",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David",
+        "isStructured": false,
+        "contextSnippet": "Phone check-in with David regarding medication adh",
+        "rootCause": "Regex requires two tokens or title prefix; single first name omitted"
+      },
+      {
+        "snippetId": "NAME-017",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena",
+        "isStructured": false,
+        "contextSnippet": "nt lives with her mother Elena who assists with meal pr",
+        "rootCause": "Regex requires two tokens or title prefix; single first name omitted"
+      },
+      {
+        "snippetId": "NAME-018",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Christopher",
+        "isStructured": false,
+        "contextSnippet": "Therapist observed that Christopher appeared restless and av",
+        "rootCause": "Regex requires two tokens or title prefix; single first name omitted"
+      },
+      {
+        "snippetId": "NAME-019",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Jessica",
+        "isStructured": false,
+        "contextSnippet": "ween patient and partner Jessica over financial decisions",
+        "rootCause": "Regex requires two tokens or title prefix; single first name omitted"
+      },
+      {
+        "snippetId": "NAME-020",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Hannah",
+        "isStructured": false,
+        "contextSnippet": "ly with patient daughter Hannah to confirm discharge tra",
+        "rootCause": "Regex requires two tokens or title prefix; single first name omitted"
+      },
+      {
+        "snippetId": "NAME-021",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García",
+        "isStructured": false,
+        "contextSnippet": "Intake session for José García focusing on adjustment d",
+        "rootCause": "Regex character class [A-Za-z] excludes accented unicode characters"
+      },
+      {
+        "snippetId": "NAME-022",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Renée Müller",
+        "isStructured": false,
+        "contextSnippet": "Chart notes for Renée Müller indicate satisfactory re",
+        "rootCause": "Regex character class [A-Za-z] excludes accented unicode characters"
+      },
+      {
+        "snippetId": "NAME-023",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "François Dubois",
+        "isStructured": false,
+        "contextSnippet": "Patient identified as François Dubois, presenting with chronic",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-024",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Ana-María Velásquez",
+        "isStructured": false,
+        "contextSnippet": "Met with Ana-María Velásquez to establish treatment g",
+        "rootCause": "Regex character class [A-Za-z] excludes accented unicode characters"
+      },
+      {
+        "snippetId": "NAME-025",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Jean-Luc Picard",
+        "isStructured": false,
+        "contextSnippet": "ychiatric evaluation for Jean-Luc Picard following acute occupati",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-026",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": false,
+        "contextSnippet": "Follow-up encounter with Chloë O’Connor regarding social anxiety",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-027",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "david smith",
+        "isStructured": false,
+        "contextSnippet": "session opened with david smith expressing worry about u",
+        "rootCause": "Regex requires capitalized name; lowercase name omitted"
+      },
+      {
+        "snippetId": "NAME-028",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "sarah jenkins",
+        "isStructured": false,
+        "contextSnippet": "telehealth check-in: sarah jenkins logged in from workplace",
+        "rootCause": "Regex requires capitalized name; lowercase name omitted"
+      },
+      {
+        "snippetId": "NAME-029",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "marcus vance",
+        "isStructured": false,
+        "contextSnippet": "clinician noted that marcus vance has missed two consecuti",
+        "rootCause": "Regex requires capitalized name; lowercase name omitted"
+      },
+      {
+        "snippetId": "NAME-030",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "emily watson",
+        "isStructured": false,
+        "contextSnippet": "risis plan reviewed with emily watson after brief panic episod",
+        "rootCause": "Regex requires capitalized name; lowercase name omitted"
+      },
+      {
+        "snippetId": "NAME-031",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Walter White",
+        "isStructured": false,
+        "contextSnippet": "t reports that his uncle Walter White recently passed away.",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-032",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Franklin Richards",
+        "isStructured": false,
+        "contextSnippet": "d to employer supervisor Franklin Richards for disability verificat",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-033",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Claire Redfield",
+        "isStructured": false,
+        "contextSnippet": "ontact listed as sibling Claire Redfield, residing out of state.",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "NAME-034",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Mateo Hernandez",
+        "isStructured": false,
+        "contextSnippet": "cent dispute with cousin Mateo Hernandez regarding inheritance.",
+        "rootCause": "Regex requires prefix (Patient:, Dr., Dictated by:); unlabelled narrative name omitted"
+      },
+      {
+        "snippetId": "GEOG-043",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "ient recently moved from Seattle to start a new job in ma",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "GEOG-044",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her from driving across Portland for appointments.",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "GEOG-045",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " attack during flight to Atlanta last week.",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "GEOG-046",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " in temporary housing in Austin after losing apartment.",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "GEOG-047",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Miami",
+        "isStructured": false,
+        "contextSnippet": " client visits family in Miami next month.",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "GEOG-048",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Minneapolis",
+        "isStructured": false,
+        "contextSnippet": "ks remotely from home in Minneapolis and reports isolation.",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "GEOG-049",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cook County",
+        "isStructured": false,
+        "contextSnippet": " by probation officer in Cook County.",
+        "rootCause": "No Safe Harbor regex pattern for standalone county subdivisions"
+      },
+      {
+        "snippetId": "GEOG-050",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Orange County",
+        "isStructured": false,
+        "contextSnippet": "ome safety assessment in Orange County.",
+        "rootCause": "No Safe Harbor regex pattern for standalone county subdivisions"
+      },
+      {
+        "snippetId": "GEOG-051",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Maricopa County",
+        "isStructured": false,
+        "contextSnippet": "Patient resides in Maricopa County and receives local commu",
+        "rootCause": "No Safe Harbor regex pattern for standalone county subdivisions"
+      },
+      {
+        "snippetId": "GEOG-052",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Ballard",
+        "isStructured": false,
+        "contextSnippet": " client residence in the Ballard neighborhood.",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "GEOG-053",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "King County",
+        "isStructured": false,
+        "contextSnippet": "ient was hospitalized in King County following acute suicidal",
+        "rootCause": "No Safe Harbor regex pattern for standalone county subdivisions"
+      },
+      {
+        "snippetId": "GEOG-054",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "s previously admitted to Cedars-Sinai Medical Center for observation.",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "GEOG-055",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "iatric inpatient unit at Bellevue Hospital.",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "GEOG-057",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Betty Ford Center",
+        "isStructured": false,
+        "contextSnippet": "oxification completed at Betty Ford Center in 2021.",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "GEOG-058",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "evaluation received from Massachusetts General Hospital.",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "GEOG-059",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " as software engineer at Google.",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "GEOG-060",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Boeing",
+        "isStructured": false,
+        "contextSnippet": "t recently laid off from Boeing after 15 years.",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "GEOG-061",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Stanford University",
+        "isStructured": false,
+        "contextSnippet": "dergraduate sophomore at Stanford University.",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "GEOG-062",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Amazon Fulfillment Center",
+        "isStructured": false,
+        "contextSnippet": "Shift work at Amazon Fulfillment Center severely exacerbates cir",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "GEOG-063",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Target",
+        "isStructured": false,
+        "contextSnippet": "ssment while employed at Target retail store.",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "DATE-077",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "October 14th",
+        "isStructured": false,
+        "contextSnippet": "pisode began abruptly on October 14th following marital separa",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-078",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "March 3rd",
+        "isStructured": false,
+        "contextSnippet": "arm incident occurred on March 3rd using superficial cuttin",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-079",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "June 22",
+        "isStructured": false,
+        "contextSnippet": "p appointment booked for June 22 at outpatient clinic.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-080",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "August 9th",
+        "isStructured": false,
+        "contextSnippet": "nic attack at concert on August 9th.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-081",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "May 1st",
+        "isStructured": false,
+        "contextSnippet": "Sober since May 1st, attending 12-step meeti",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-082",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "February 18",
+        "isStructured": false,
+        "contextSnippet": " previous appointment on February 18 due to car trouble.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-083",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "1974",
+        "isStructured": false,
+        "contextSnippet": "Patient was born in 1974 in Michigan and reports ",
+        "rootCause": "No Safe Harbor regex pattern for standalone birth/event year"
+      },
+      {
+        "snippetId": "DATE-084",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "1998",
+        "isStructured": false,
+        "contextSnippet": "talization took place in 1998 following manic episode.",
+        "rootCause": "No Safe Harbor regex pattern for standalone birth/event year"
+      },
+      {
+        "snippetId": "DATE-085",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "2016",
+        "isStructured": false,
+        "contextSnippet": "ent graduated college in 2016 and relocated to Califor",
+        "rootCause": "No Safe Harbor regex pattern for standalone birth/event year"
+      },
+      {
+        "snippetId": "DATE-086",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "2005",
+        "isStructured": false,
+        "contextSnippet": "ntal divorce occurred in 2005, contributing to attachm",
+        "rootCause": "No Safe Harbor regex pattern for standalone birth/event year"
+      },
+      {
+        "snippetId": "DATE-087",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "2019",
+        "isStructured": false,
+        "contextSnippet": "otor vehicle accident in 2019 precipitated ongoing PTS",
+        "rootCause": "No Safe Harbor regex pattern for standalone birth/event year"
+      },
+      {
+        "snippetId": "DATE-088",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "last Thanksgiving",
+        "isStructured": false,
+        "contextSnippet": "rted insomnia started on last Thanksgiving after family argument.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-089",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "Christmas Eve",
+        "isStructured": false,
+        "contextSnippet": "ed severe anxiety around Christmas Eve due to isolation.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-090",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "New Year’s Day",
+        "isStructured": false,
+        "contextSnippet": "Relapse with alcohol on New Year’s Day following party.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-091",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "Labor Day weekend",
+        "isStructured": false,
+        "contextSnippet": "ymptoms escalated around Labor Day weekend during transition to col",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-092",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "yesterday morning",
+        "isStructured": false,
+        "contextSnippet": "rimary care physician on yesterday morning for blood work.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-093",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "Monday evening",
+        "isStructured": false,
+        "contextSnippet": "reported crying spell on Monday evening after receiving performa",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "DATE-094",
+        "ruleId": "DATE",
+        "category": "Dates",
+        "text": "Friday",
+        "isStructured": false,
+        "contextSnippet": "tice grounding skills by Friday before next session.",
+        "rootCause": "Regex requires MM/DD/YYYY or month+day+year; natural language date without year omitted"
+      },
+      {
+        "snippetId": "PHONE-103",
+        "ruleId": "PHONE",
+        "category": "Telephone Numbers",
+        "text": "4155550192",
+        "isStructured": false,
+        "contextSnippet": "provided callback number 4155550192 during triage call.",
+        "rootCause": "Regex requires delimiters or label prefix for unpunctuated 10-digit number"
+      },
+      {
+        "snippetId": "PHONE-104",
+        "ruleId": "PHONE",
+        "category": "Telephone Numbers",
+        "text": "2065550188",
+        "isStructured": false,
+        "contextSnippet": "Spouse contact listed as 2065550188 in intake paperwork.",
+        "rootCause": "Regex requires delimiters or label prefix for unpunctuated 10-digit number"
+      },
+      {
+        "snippetId": "PHONE-105",
+        "ruleId": "PHONE",
+        "category": "Telephone Numbers",
+        "text": "9175550143",
+        "isStructured": false,
+        "contextSnippet": "Direct clinician line: 9175550143 provided for urgent coor",
+        "rootCause": "Regex requires delimiters or label prefix for unpunctuated 10-digit number"
+      },
+      {
+        "snippetId": "PHONE-106",
+        "ruleId": "PHONE",
+        "category": "Telephone Numbers",
+        "text": "3035550199",
+        "isStructured": false,
+        "contextSnippet": "Pharmacy contacted via 3035550199 regarding escitalopram r",
+        "rootCause": "Regex requires delimiters or label prefix for unpunctuated 10-digit number"
+      },
+      {
+        "snippetId": "MRN-168",
+        "ruleId": "MRN",
+        "category": "Medical Record Numbers",
+        "text": "UCLA-992148",
+        "isStructured": false,
+        "contextSnippet": "rchives under identifier UCLA-992148 for longitudinal review.",
+        "rootCause": "Regex requires MRN/MR# prefix; unlabelled alphanumeric hospital chart ID omitted"
+      },
+      {
+        "snippetId": "MRN-174",
+        "ruleId": "MRN",
+        "category": "Medical Record Numbers",
+        "text": "SUTTER-771928",
+        "isStructured": false,
+        "contextSnippet": " index references record SUTTER-771928 for medication reconcili",
+        "rootCause": "Regex requires MRN/MR# prefix; unlabelled alphanumeric hospital chart ID omitted"
+      },
+      {
+        "snippetId": "MRN-175",
+        "ruleId": "MRN",
+        "category": "Medical Record Numbers",
+        "text": "JHH-PSYCH-8821",
+        "isStructured": false,
+        "contextSnippet": " summary cataloged under JHH-PSYCH-8821 at Johns Hopkins.",
+        "rootCause": "Regex requires MRN/MR# prefix; unlabelled alphanumeric hospital chart ID omitted"
+      },
+      {
+        "snippetId": "MRN-177",
+        "ruleId": "MRN",
+        "category": "Medical Record Numbers",
+        "text": "STAN-MED-849102",
+        "isStructured": false,
+        "contextSnippet": "eleased under chart code STAN-MED-849102 per patient request.",
+        "rootCause": "Regex requires MRN/MR# prefix; unlabelled alphanumeric hospital chart ID omitted"
+      },
+      {
+        "snippetId": "MRN-178",
+        "ruleId": "MRN",
+        "category": "Medical Record Numbers",
+        "text": "VA-PBN-481920",
+        "isStructured": false,
+        "contextSnippet": "pital file identified as VA-PBN-481920 in veteran database.",
+        "rootCause": "Regex requires MRN/MR# prefix; unlabelled alphanumeric hospital chart ID omitted"
+      },
+      {
+        "snippetId": "MRN-179",
+        "ruleId": "MRN",
+        "category": "Medical Record Numbers",
+        "text": "ED-REC-994812",
+        "isStructured": false,
+        "contextSnippet": "ent triage file numbered ED-REC-994812 during crisis intake.",
+        "rootCause": "Regex requires MRN/MR# prefix; unlabelled alphanumeric hospital chart ID omitted"
+      },
+      {
+        "snippetId": "HLTH-182",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "1EG4-TE5-MK72",
+        "isStructured": true,
+        "contextSnippet": "Medicare Beneficiary ID: 1EG4-TE5-MK72 verified on CMS portal.",
+        "rootCause": "Unmatched by safeHarborRules pattern for HEALTH_PLAN_NUM"
+      },
+      {
+        "snippetId": "HLTH-188",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "BCBS-CA-9948201",
+        "isStructured": false,
+        "contextSnippet": "gainst subscriber policy BCBS-CA-9948201.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-189",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "AET-W99281748",
+        "isStructured": false,
+        "contextSnippet": "displays subscriber code AET-W99281748 on front face.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-190",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "HUMANA-AUTH-882194",
+        "isStructured": false,
+        "contextSnippet": "by payer under reference HUMANA-AUTH-882194.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-192",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "KAISER-HMO-491029",
+        "isStructured": false,
+        "contextSnippet": "rd for commercial policy KAISER-HMO-491029 during check-in.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-193",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "MAGELLAN-BH-882104",
+        "isStructured": false,
+        "contextSnippet": "routed to payer contract MAGELLAN-BH-882104.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-194",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "TRICARE-WEST-481920",
+        "isStructured": false,
+        "contextSnippet": "ficiary under identifier TRICARE-WEST-481920.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-195",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "AMBETTER-994821",
+        "isStructured": false,
+        "contextSnippet": "rmed coverage for policy AMBETTER-994821.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-196",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "CIG-BEHAV-882194",
+        "isStructured": false,
+        "contextSnippet": "d under insurance docket CIG-BEHAV-882194.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "HLTH-197",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "CAL-OPTIMA-882194",
+        "isStructured": false,
+        "contextSnippet": " HMO card bearing number CAL-OPTIMA-882194.",
+        "rootCause": "Regex requires carrier prefix (BCBS, AETNA) or Member ID prefix; unlabelled policy ID omitted"
+      },
+      {
+        "snippetId": "ACCT-204",
+        "ruleId": "ACCOUNT_NUM",
+        "category": "Account Numbers",
+        "text": "882194820194",
+        "isStructured": false,
+        "contextSnippet": " patient checking ledger 882194820194 for sliding-scale fee.",
+        "rootCause": "Unmatched by safeHarborRules pattern for ACCOUNT_NUM"
+      },
+      {
+        "snippetId": "ACCT-205",
+        "ruleId": "ACCOUNT_NUM",
+        "category": "Account Numbers",
+        "text": "99482019284",
+        "isStructured": false,
+        "contextSnippet": "de 121000358 and account 99482019284 for wire refund.",
+        "rootCause": "Unmatched by safeHarborRules pattern for ACCOUNT_NUM"
+      },
+      {
+        "snippetId": "ACCT-207",
+        "ruleId": "ACCOUNT_NUM",
+        "category": "Account Numbers",
+        "text": "FIN-ACCT-881920",
+        "isStructured": false,
+        "contextSnippet": "dited to internal ledger FIN-ACCT-881920.",
+        "rootCause": "Unmatched by safeHarborRules pattern for ACCOUNT_NUM"
+      },
+      {
+        "snippetId": "ACCT-210",
+        "ruleId": "ACCOUNT_NUM",
+        "category": "Account Numbers",
+        "text": "WIRE-ACCT-9928174",
+        "isStructured": false,
+        "contextSnippet": "nce for private billing: WIRE-ACCT-9928174.",
+        "rootCause": "Unmatched by safeHarborRules pattern for ACCOUNT_NUM"
+      },
+      {
+        "snippetId": "ACCT-211",
+        "ruleId": "ACCOUNT_NUM",
+        "category": "Account Numbers",
+        "text": "ESCROW-4819204",
+        "isStructured": false,
+        "contextSnippet": "ment from escrow account ESCROW-4819204.",
+        "rootCause": "Unmatched by safeHarborRules pattern for ACCOUNT_NUM"
+      },
+      {
+        "snippetId": "ACCT-212",
+        "ruleId": "ACCOUNT_NUM",
+        "category": "Account Numbers",
+        "text": "GUAR-ACCT-882194",
+        "isStructured": false,
+        "contextSnippet": "le cataloged under index GUAR-ACCT-882194.",
+        "rootCause": "Unmatched by safeHarborRules pattern for ACCOUNT_NUM"
+      },
+      {
+        "snippetId": "LIC-213",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "1234567890",
+        "isStructured": true,
+        "contextSnippet": "Attending Physician NPI: 1234567890, verified with NPPES.",
+        "rootCause": "Unmatched by safeHarborRules pattern for LICENSE_NUM"
+      },
+      {
+        "snippetId": "LIC-222",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "LMFT-104928",
+        "isStructured": false,
+        "contextSnippet": "amily therapy credential LMFT-104928 in Oregon.",
+        "rootCause": "Regex requires NPI or License prefix; unlabelled license ID omitted"
+      },
+      {
+        "snippetId": "LIC-223",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "BK4910294",
+        "isStructured": false,
+        "contextSnippet": "l narcotics registration BK4910294 to local pharmacy.",
+        "rootCause": "Regex requires NPI or License prefix; unlabelled license ID omitted"
+      },
+      {
+        "snippetId": "LIC-224",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "1029384756",
+        "isStructured": false,
+        "contextSnippet": "onal Provider identifier 1029384756.",
+        "rootCause": "Regex requires NPI or License prefix; unlabelled license ID omitted"
+      },
+      {
+        "snippetId": "LIC-225",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "CA-ID-D8821940",
+        "isStructured": false,
+        "contextSnippet": " Vehicles identification CA-ID-D8821940.",
+        "rootCause": "Regex requires NPI or License prefix; unlabelled license ID omitted"
+      },
+      {
+        "snippetId": "LIC-227",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "LPCC-882194",
+        "isStructured": false,
+        "contextSnippet": "horized under credential LPCC-882194.",
+        "rootCause": "Regex requires NPI or License prefix; unlabelled license ID omitted"
+      },
+      {
+        "snippetId": "LIC-228",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "RN-NY-491029",
+        "isStructured": false,
+        "contextSnippet": "ed under state roster as RN-NY-491029.",
+        "rootCause": "Regex requires NPI or License prefix; unlabelled license ID omitted"
+      },
+      {
+        "snippetId": "LIC-229",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "PA-C-881920",
+        "isStructured": false,
+        "contextSnippet": "ervised under credential PA-C-881920 in psychiatry clinic.",
+        "rootCause": "Regex requires NPI or License prefix; unlabelled license ID omitted"
+      },
+      {
+        "snippetId": "VEH-235",
+        "ruleId": "VEHICLE_ID",
+        "category": "Vehicle Identifiers",
+        "text": "3ABC890",
+        "isStructured": true,
+        "contextSnippet": "Plate #: 3ABC890 noted on hospital securi",
+        "rootCause": "Unmatched by safeHarborRules pattern for VEHICLE_ID"
+      },
+      {
+        "snippetId": "VEH-240",
+        "ruleId": "VEHICLE_ID",
+        "category": "Vehicle Identifiers",
+        "text": "8MNP492",
+        "isStructured": false,
+        "contextSnippet": "ng structure bearing tag 8MNP492 during wellness check.",
+        "rootCause": "Regex requires VIN or Plate prefix; unlabelled license plate omitted"
+      },
+      {
+        "snippetId": "VEH-241",
+        "ruleId": "VEHICLE_ID",
+        "category": "Vehicle Identifiers",
+        "text": "6TRK819",
+        "isStructured": false,
+        "contextSnippet": "ent vehicle registration 6TRK819 outside outpatient clini",
+        "rootCause": "Regex requires VIN or Plate prefix; unlabelled license plate omitted"
+      },
+      {
+        "snippetId": "VEH-242",
+        "ruleId": "VEHICLE_ID",
+        "category": "Vehicle Identifiers",
+        "text": "5WXY901",
+        "isStructured": false,
+        "contextSnippet": "nda civic displaying tag 5WXY901.",
+        "rootCause": "Regex requires VIN or Plate prefix; unlabelled license plate omitted"
+      },
+      {
+        "snippetId": "VEH-244",
+        "ruleId": "VEHICLE_ID",
+        "category": "Vehicle Identifiers",
+        "text": "9XYZ882",
+        "isStructured": false,
+        "contextSnippet": "ickup truck registration 9XYZ882.",
+        "rootCause": "Regex requires VIN or Plate prefix; unlabelled license plate omitted"
+      },
+      {
+        "snippetId": "DEV-246",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "PAC-882194-MD",
+        "isStructured": true,
+        "contextSnippet": "Pacemaker Serial Number: PAC-882194-MD implanted in 2021.",
+        "rootCause": "Unmatched by safeHarborRules pattern for DEVICE_ID"
+      },
+      {
+        "snippetId": "DEV-251",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "SN-48192049",
+        "isStructured": true,
+        "contextSnippet": "Hardware Serial #: SN-48192049 on neurological stimulat",
+        "rootCause": "Unmatched by safeHarborRules pattern for DEVICE_ID"
+      },
+      {
+        "snippetId": "DEV-253",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "VNS-STIM-882194",
+        "isStructured": false,
+        "contextSnippet": " rate using hardware tag VNS-STIM-882194.",
+        "rootCause": "Regex requires Serial/Device prefix; unlabelled hardware ID omitted"
+      },
+      {
+        "snippetId": "DEV-255",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "MEDTRONIC-MINIMED-4819",
+        "isStructured": false,
+        "contextSnippet": "sulin pump hardware unit MEDTRONIC-MINIMED-4819 inspected for infusion a",
+        "rootCause": "Regex requires Serial/Device prefix; unlabelled hardware ID omitted"
+      },
+      {
+        "snippetId": "DEV-259",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "OMRON-BP-882194",
+        "isStructured": false,
+        "contextSnippet": "h telehealth gateway via OMRON-BP-882194.",
+        "rootCause": "Regex requires Serial/Device prefix; unlabelled hardware ID omitted"
+      },
+      {
+        "snippetId": "BIO-301",
+        "ruleId": "BIOMETRIC",
+        "category": "Biometric Identifiers",
+        "text": "thumbprint scan record",
+        "isStructured": false,
+        "contextSnippet": "cument includes official thumbprint scan record on file.",
+        "rootCause": "Unmatched by safeHarborRules pattern for BIOMETRIC"
+      },
+      {
+        "snippetId": "BIO-302",
+        "ruleId": "BIOMETRIC",
+        "category": "Biometric Identifiers",
+        "text": "retinal scan identifier",
+        "isStructured": false,
+        "contextSnippet": "identity using automated retinal scan identifier at detention ward.",
+        "rootCause": "Unmatched by safeHarborRules pattern for BIOMETRIC"
+      },
+      {
+        "snippetId": "PHT-312",
+        "ruleId": "PHOTO_ID",
+        "category": "Photographic Images",
+        "text": "lobby_camera_headshot_992.png",
+        "isStructured": false,
+        "contextSnippet": "ploaded digital snapshot lobby_camera_headshot_992.png following elopement atte",
+        "rootCause": "Unmatched by safeHarborRules pattern for PHOTO_ID"
+      },
+      {
+        "snippetId": "PHT-313",
+        "ruleId": "PHOTO_ID",
+        "category": "Photographic Images",
+        "text": "malar_rash_face_close_up.tiff",
+        "isStructured": false,
+        "contextSnippet": "ncludes facial rash scan malar_rash_face_close_up.tiff attached to medical char",
+        "rootCause": "Unmatched by safeHarborRules pattern for PHOTO_ID"
+      },
+      {
+        "snippetId": "PHT-315",
+        "ruleId": "PHOTO_ID",
+        "category": "Photographic Images",
+        "text": "evidence_facial_contusion.jpg",
+        "isStructured": false,
+        "contextSnippet": "ace photographic exhibit evidence_facial_contusion.jpg.",
+        "rootCause": "Unmatched by safeHarborRules pattern for PHOTO_ID"
+      },
+      {
+        "snippetId": "PHT-319",
+        "ruleId": "PHOTO_ID",
+        "category": "Photographic Images",
+        "text": "webrtc_snapshot_client_882.png",
+        "isStructured": false,
+        "contextSnippet": "edicine session saved as webrtc_snapshot_client_882.png.",
+        "rootCause": "Unmatched by safeHarborRules pattern for PHOTO_ID"
+      },
+      {
+        "snippetId": "UID-322",
+        "ruleId": "UNIQUE_ID",
+        "category": "Unique Identifiers",
+        "text": "BAR-992817482",
+        "isStructured": true,
+        "contextSnippet": "Barcode Tracking ID: BAR-992817482 attached to lab specimen",
+        "rootCause": "Unmatched by safeHarborRules pattern for UNIQUE_ID"
+      },
+      {
+        "snippetId": "UID-331",
+        "ruleId": "UNIQUE_ID",
+        "category": "Unique Identifiers",
+        "text": "BARCODE-TOX-994821",
+        "isStructured": false,
+        "contextSnippet": "d by scanning identifier BARCODE-TOX-994821 into analyzer.",
+        "rootCause": "Unmatched by safeHarborRules pattern for UNIQUE_ID"
+      },
+      {
+        "snippetId": "UID-332",
+        "ruleId": "UNIQUE_ID",
+        "category": "Unique Identifiers",
+        "text": "RX-BARCODE-481920",
+        "isStructured": false,
+        "contextSnippet": "ed through specimen code RX-BARCODE-481920.",
+        "rootCause": "Unmatched by safeHarborRules pattern for UNIQUE_ID"
+      },
+      {
+        "snippetId": "UID-334",
+        "ruleId": "UNIQUE_ID",
+        "category": "Unique Identifiers",
+        "text": "GENOME-SAMPLE-882194",
+        "isStructured": false,
+        "contextSnippet": " to patient sample token GENOME-SAMPLE-882194.",
+        "rootCause": "Unmatched by safeHarborRules pattern for UNIQUE_ID"
+      },
+      {
+        "snippetId": "UID-336",
+        "ruleId": "UNIQUE_ID",
+        "category": "Unique Identifiers",
+        "text": "CRISIS-BED-992810",
+        "isStructured": false,
+        "contextSnippet": "d tracking registry code CRISIS-BED-992810 assigned for transfer.",
+        "rootCause": "Unmatched by safeHarborRules pattern for UNIQUE_ID"
+      },
+      {
+        "snippetId": "COMPLEX-339",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-339",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-339",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-339",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-339",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-340",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-340",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-340",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-340",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-340",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-341",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-341",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-341",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-341",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-341",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-342",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-342",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-342",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-342",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-342",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-343",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-343",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-343",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-343",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-343",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-343",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-345",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-345",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-345",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-345",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-345",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-346",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-346",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-346",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-346",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-346",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-347",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-347",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-347",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-347",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-347",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-348",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-348",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-348",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-348",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-348",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-349",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-349",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-349",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-349",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-349",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-349",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-351",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-351",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-351",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-351",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-351",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-352",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-352",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-352",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-352",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-352",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-353",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-353",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-353",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-353",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-353",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-354",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-354",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-354",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-354",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-354",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-355",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-355",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-355",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-355",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-355",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-355",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-357",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-357",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-357",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-357",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-357",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-358",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-358",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-358",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-358",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-358",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-359",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-359",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-359",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-359",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-359",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-360",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-360",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-360",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-360",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-360",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-361",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-361",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-361",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-361",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-361",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-361",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-363",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-363",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-363",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-363",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-363",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-364",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-364",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-364",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-364",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-364",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-365",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-365",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-365",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-365",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-365",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-366",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-366",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-366",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-366",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-366",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-367",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-367",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-367",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-367",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-367",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-367",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-369",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-369",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-369",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-369",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-369",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-370",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-370",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-370",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-370",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-370",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-371",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-371",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-371",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-371",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-371",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-372",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-372",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-372",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-372",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-372",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-373",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-373",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-373",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-373",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-373",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-373",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-375",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-375",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-375",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-375",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-375",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-376",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-376",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-376",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-376",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-376",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-377",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-377",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-377",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-377",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-377",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-378",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-378",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-378",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-378",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-378",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-379",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-379",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-379",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-379",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-379",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-379",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-381",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-381",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-381",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-381",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-381",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-382",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-382",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-382",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-382",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-382",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-383",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-383",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-383",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-383",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-383",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-384",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-384",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-384",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-384",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-384",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-385",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-385",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-385",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-385",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-385",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-385",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-387",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Sarah Jenkins",
+        "isStructured": true,
+        "contextSnippet": "een Terrace\n\nSUBJECTIVE:\nSarah Jenkins presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-387",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Portland, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-387",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Portland",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Portland to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-387",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-387",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Bellevue Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Bellevue Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-388",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Marcus Vance",
+        "isStructured": true,
+        "contextSnippet": " Elm Street\n\nSUBJECTIVE:\nMarcus Vance presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-388",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Seattle, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-388",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Seattle",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Seattle to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-388",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-388",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Cedars-Sinai Medical Center",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Cedars-Sinai Medical Center reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-389",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "David Smith",
+        "isStructured": true,
+        "contextSnippet": "n Boulevard\n\nSUBJECTIVE:\nDavid Smith presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-389",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Chicago, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-389",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Chicago",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Chicago to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-389",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-389",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Massachusetts General Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Massachusetts General Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-390",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Elena Rostova",
+        "isStructured": true,
+        "contextSnippet": "cean Avenue\n\nSUBJECTIVE:\nElena Rostova presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-390",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Denver, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-390",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Denver",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Denver to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-390",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-390",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mayo Clinic",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mayo Clinic reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      },
+      {
+        "snippetId": "COMPLEX-391",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": " Benjamin Vance\nPatient: José García-Rivera (DOB: 01/22/1983, SSN: 5",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-391",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "José García-Rivera",
+        "isStructured": true,
+        "contextSnippet": "n View Road\n\nSUBJECTIVE:\nJosé García-Rivera presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-391",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Austin, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-391",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Austin",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Austin to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-391",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-391",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Mount Sinai",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Mount Sinai reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "ur Pendelton Jr\nPatient: Chloë O’Connor (DOB: 09/30/1995, SSN: 2",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Chloë O’Connor",
+        "isStructured": true,
+        "contextSnippet": "k, NY 10005\n\nSUBJECTIVE:\nChloë O’Connor presented for scheduled ",
+        "rootCause": "Unmatched by safeHarborRules pattern for NAME"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": "pisodes while driving in Atlanta, and sleep disruption. D",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Atlanta",
+        "isStructured": false,
+        "contextSnippet": " her sister visited from Atlanta to help with childcare.\n",
+        "rootCause": "Regex requires street suffix or City, State Zip; standalone city omitted"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Google",
+        "isStructured": false,
+        "contextSnippet": " \"stressed about work at Google\". Thought process linear",
+        "rootCause": "No Safe Harbor regex pattern for employer/university entities"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "Highland Hospital",
+        "isStructured": false,
+        "contextSnippet": "psychiatric records from Highland Hospital reviewed.\n\nASSESSMENT:\nM",
+        "rootCause": "No Safe Harbor regex pattern for hospital/facility entities"
+      }
+    ]
+  },
+  "false_positives_breakdown": {
+    "total_count": 90,
+    "sample_false_positives": [
+      {
+        "snippetId": "GEOG-042",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "55 Wall Street, New York, NY 10005",
+        "contextSnippet": "Home Address: 55 Wall Street, New York, NY 1000555 Wall Street, New York,"
+      },
+      {
+        "snippetId": "DATE-092",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "physician on",
+        "contextSnippet": "Saw primary care physician on yesterday morning for bl"
+      },
+      {
+        "snippetId": "FAX-117",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "ization department",
+        "contextSnippet": "t to insurance pre-authorization department."
+      },
+      {
+        "snippetId": "FAX-120",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Provider Fax",
+        "contextSnippet": "Primary Care Provider Fax: (503) 555-0140."
+      },
+      {
+        "snippetId": "FAX-127",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "telecopier at",
+        "contextSnippet": "nation sent to attending telecopier at 617-555-0198."
+      },
+      {
+        "snippetId": "EMAIL-143",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "ization received",
+        "contextSnippet": "Insurance authorization received from appeals@bcbs-califo"
+      },
+      {
+        "snippetId": "SSN-147",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "Medicaid enrollment",
+        "contextSnippet": "87-65-4321 documented on Medicaid enrollment form."
+      },
+      {
+        "snippetId": "HLTH-182",
+        "ruleId": "HEALTH_PLAN_NUM",
+        "category": "Health Plan Numbers",
+        "text": "Medicare Beneficiary",
+        "contextSnippet": "Medicare Beneficiary ID: 1EG4-TE5-MK72 verifi"
+      },
+      {
+        "snippetId": "HLTH-186",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "90837",
+        "contextSnippet": "817482 submitted for CPT 90837."
+      },
+      {
+        "snippetId": "HLTH-190",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "ization approved",
+        "contextSnippet": "Prior authorization approved by payer under reference"
+      },
+      {
+        "snippetId": "HLTH-191",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "48192",
+        "contextSnippet": "e account MEDICARE-PARTB-48192."
+      },
+      {
+        "snippetId": "HLTH-196",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "certification",
+        "contextSnippet": "Pre-certification granted under insurance "
+      },
+      {
+        "snippetId": "ACCT-204",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "ized from",
+        "contextSnippet": "Direct debit authorized from patient checking ledger "
+      },
+      {
+        "snippetId": "LIC-213",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "Physician NPI",
+        "contextSnippet": "Attending Physician NPI: 1234567890, verified wi"
+      },
+      {
+        "snippetId": "LIC-214",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "ized for",
+        "contextSnippet": " Number: AB1234567 authorized for schedule II prescription"
+      },
+      {
+        "snippetId": "LIC-227",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "ized under",
+        "contextSnippet": "clinical counselor authorized under credential LPCC-882194."
+      },
+      {
+        "snippetId": "LIC-228",
+        "ruleId": "LICENSE_NUM",
+        "category": "Certificate / License Numbers",
+        "text": "license cataloged",
+        "contextSnippet": "Registered nursing license cataloged under state roster as RN"
+      },
+      {
+        "snippetId": "DEV-246",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "Pacemaker Serial Number",
+        "contextSnippet": "Pacemaker Serial Number: PAC-882194-MD implanted"
+      },
+      {
+        "snippetId": "DEV-250",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "Holter Monitor",
+        "contextSnippet": "Holter Monitor ID: HOLTER-99214 worn fo"
+      },
+      {
+        "snippetId": "DEV-251",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "Hardware Serial",
+        "contextSnippet": "Hardware Serial #: SN-48192049 on neurol"
+      },
+      {
+        "snippetId": "DEV-254",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "device inventory",
+        "contextSnippet": "enerator cataloged under device inventory code DBS-ACTIVA-99281."
+      },
+      {
+        "snippetId": "DEV-258",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "hardware barcode",
+        "contextSnippet": "ation unit identified by hardware barcode TENS-UNIT-48192."
+      },
+      {
+        "snippetId": "DEV-260",
+        "ruleId": "DEVICE_ID",
+        "category": "Device Identifiers",
+        "text": "sensor cataloged",
+        "contextSnippet": "Sleep tracking wearable sensor cataloged under clinical study ser"
+      },
+      {
+        "snippetId": "BIO-296",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "ized medication",
+        "contextSnippet": "Client authorized medication locker via hand geometry"
+      },
+      {
+        "snippetId": "PHT-306",
+        "ruleId": "PHOTO_ID",
+        "category": "Photographic Images",
+        "text": "Patient photograph on",
+        "contextSnippet": "Patient photograph on file: photo_patient_face"
+      },
+      {
+        "snippetId": "UID-322",
+        "ruleId": "UNIQUE_ID",
+        "category": "Unique Identifiers",
+        "text": "Barcode Tracking",
+        "contextSnippet": "Barcode Tracking ID: BAR-992817482 attach"
+      },
+      {
+        "snippetId": "UID-326",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "state mental",
+        "contextSnippet": "ID-992810482 assigned by state mental health registry."
+      },
+      {
+        "snippetId": "COMPLEX-339",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-340",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-341",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-342",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-343",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-344",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-345",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-346",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-347",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-348",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-349",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-350",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-351",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-352",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-353",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-354",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-355",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-356",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-357",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-358",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-359",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-360",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-361",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-362",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-363",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-364",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-365",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-366",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-367",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-368",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-369",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-370",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-371",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-372",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-373",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-374",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-375",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-376",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-377",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-378",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-379",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-380",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-381",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-382",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-383",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-384",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-385",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-386",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-387",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-388",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-389",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-390",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-391",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "GEOGRAPHIC",
+        "category": "Geographic Subdivisions",
+        "text": "New York, NY 10005",
+        "contextSnippet": " | Home: 55 Wall Street, New York, NY 10005\n\nSUBJECTIVE:\nChloë O’Con"
+      },
+      {
+        "snippetId": "COMPLEX-392",
+        "ruleId": "NAME",
+        "category": "Names",
+        "text": "provider via",
+        "contextSnippet": "dinate with primary care provider via fax 415-555-0190.\n3. Tel"
+      }
+    ]
+  },
+  "architectural_llm_audit": {
+    "outbound_llm_scrubber_enforced": false,
+    "leaked_call_paths": [
+      {
+        "file": "src/tools/scribe/ai-template-generator.ts",
+        "line": 265,
+        "function": "generateClinicalNote",
+        "payload_inspected": "raw transcript, context.patient_name, context.mrn, context.clinician_name",
+        "scrub_text_called": false,
+        "leak_risk": "CRITICAL"
+      },
+      {
+        "file": "src/tools/theraflow/ai-note-expander.ts",
+        "line": 42,
+        "function": "expandShorthandToDAP",
+        "payload_inspected": "raw clientName, diagnosis, shorthand transcript",
+        "scrub_text_called": false,
+        "leak_risk": "CRITICAL"
+      }
+    ],
+    "isolated_ui_paths": [
+      {
+        "file": "src/tools/phi-scrubber/PhiScrubberView.tsx",
+        "description": "Standalone playground view at /dashboard/phi-scrubber requiring manual paste or manual button navigation."
+      }
+    ]
+  }
+}
