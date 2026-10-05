@@ -9,6 +9,7 @@ import {
   Zap,
   Activity,
   Check,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useDemoGuide } from '@/lib/demo-guide-context';
@@ -130,6 +131,14 @@ export const Landing: React.FC = () => {
                   className="text-sm font-semibold text-slate-600 hover:text-slate-900 px-3 py-2"
                 >
                   Sign In
+                </NavLink>
+                <NavLink
+                  to="/investor"
+                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/90 border border-slate-200 text-slate-700 font-bold text-xs transition-all"
+                  title="View Series Seed Investor Presentation"
+                >
+                  <TrendingUp className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>Investor Deck</span>
                 </NavLink>
                 <button
                   onClick={() => openGuide('journey')}
@@ -498,7 +507,11 @@ export const Landing: React.FC = () => {
           <p className="max-w-3xl mx-auto text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 leading-normal">
             <strong>LEGAL NOTICE &amp; SYNTHETIC DEMO DATA:</strong> All patient profiles, case narratives, clinical encounters, dates, medical record numbers (MRNs), contact details, and transcripts displayed on this site and within the demo sandbox are <strong>100% synthetic, fictitious, and simulated</strong>. None of the data is real, no actual patients or persons are portrayed, and <strong>NO actual Protected Health Information (PHI)</strong> is processed or stored. Any resemblance to real persons is purely coincidental.
           </p>
-          <div className="flex items-center justify-center gap-6 font-medium text-slate-600">
+          <div className="flex flex-wrap items-center justify-center gap-6 font-medium text-slate-600">
+            <NavLink to="/investor" className="text-indigo-600 font-bold hover:underline flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              <span>Investor Presentation</span>
+            </NavLink>
             <a href="#security" className="hover:underline">HIPAA Compliance</a>
             <a href="#privacy" className="hover:underline">Privacy Policy</a>
             <a href="#terms" className="hover:underline">Terms of Service</a>

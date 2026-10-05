@@ -18,6 +18,7 @@ import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
 import DashboardHome from '@/pages/DashboardHome';
 import Subscription from '@/pages/Subscription';
+import InvestorDeck from '@/pages/InvestorDeck';
 
 // The 4 Core Integrated Clinical Tool Workspaces
 import EhrWorkspace from '@/tools/theraflow/EhrWorkspace';
@@ -40,6 +41,7 @@ export const App: React.FC = () => {
               {/* Public Marketing & Auth Routes */}
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/investor" element={<InvestorDeck />} />
 
               {/* Protected Clinical Dashboard Shell */}
               <Route

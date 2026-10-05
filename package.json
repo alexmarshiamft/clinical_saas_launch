@@ -25,7 +25,8 @@
     "test:e2e": "node tests/e2e/run-all.mjs",
     "record:demo": "node scripts/record-demo-tour.mjs",
     "screenshots:capture": "node scripts/capture-screenshots.mjs",
-    "pdf:walkthrough": "node scripts/generate-screenshots-pdf.mjs"
+    "pdf:walkthrough": "node scripts/generate-screenshots-pdf.mjs",
+    "deck:pdf": "node scripts/generate-investor-pdf.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-chime-sdk-meetings": "^3.1015.0",
