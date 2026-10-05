@@ -22,7 +22,8 @@
     "test:scribe": "tsx tests/m4-clinical-scribe.test.ts",
     "test:challenger:m4": "tsx tests/m4-challenger-stress.test.ts",
     "test:aura": "tsx tests/m5-aura-scrubber.test.ts",
-    "test:e2e": "node tests/e2e/run-all.mjs"
+    "test:e2e": "node tests/e2e/run-all.mjs",
+    "record:demo": "node scripts/record-demo-tour.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-chime-sdk-meetings": "^3.1015.0",
@@ -74,6 +75,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.21",
     "jsdom": "^29.1.1",
+    "playwright": "^1.63.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
