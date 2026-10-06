@@ -53,3 +53,12 @@ jobs:
 
       - name: Financial & Security Invariants
         run: npx tsx tests/adversarial-financial-and-security.test.ts
+
+      - name: Start PostgreSQL Service
+        run: |
+          sudo systemctl start postgresql.service
+          pg_isready
+          sudo -u postgres createuser -s -d -r -w runner || true
+
+      - name: Database Migration & RLS Security Pipeline
+        run: npx tsx tests/migration-pipeline.test.ts

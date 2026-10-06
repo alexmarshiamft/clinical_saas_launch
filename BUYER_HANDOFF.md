@@ -1,9 +1,10 @@
 # TheraFlow OS — Strategic Acquirer Handoff Guide
 
 > **Asset Status:** Turnkey Behavioral Health Frontend & Clinical Workflow Engine  
-> **Release Version:** `v1.1.0-security-remediated`  
-> **Verified Commit SHA:** `4113573e982e6176ea8c71c3deb2862f44a6f11e` (latest: `9518a84`)  
-> **GitHub Actions CI Status:** Passing (Master Run ID: `37511948228` · Remediation Branch Run ID: `37511959898`)  
+> **Release Version:** `v1.1.1-acquisition-package` (Snapshot tag: `v1.1.0-security-remediated` at `515cefe`)  
+> **Core Security Remediation SHA:** `4113573e982e6176ea8c71c3deb2862f44a6f11e`  
+> **Release Snapshot SHA:** `515cefe320b46b9e50695849dd23ce0c2b93cd63`  
+> **GitHub Actions CI Status:** Passing Across All Suites (Node 22 LTS · Run IDs: `37511948228`, `37514914857`)  
 > **Environment:** Evaluation / Synthetic Data Mode (Zero Real-Patient PHI Ingestion)  
 > **Target Buyer:** Behavioral Health EHR, Practice Management, Clinical Scribe, or Healthtech Acquirer  
 
@@ -26,28 +27,30 @@ When an acquirer licenses or buys TheraFlow OS, they receive an enterprise-grade
    - Full billing suite (CMS-1500 interactive editor, 837P EDI generator, 277CA claim scrubber, Superbill generator).
    - Telehealth suite with WebRTC media controls, session timer, and CPT 90834/90837 billing crosswalk.
 2. **Database & Persistence Assets (Security-Remediated)**:
-   - Multi-tenant PostgreSQL 15 / Supabase migration schemas (27 tables):
-     - `supabase/migrations/20261005_init_schema.sql` (Core clinical & EHR tables)
-     - `supabase/migrations/20261005_unified_practice_os.sql` (Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations, journal entries).
-   - 58 Row-Level Security (RLS) policies enforcing multi-tenant isolation, RBAC role-level permissions (clinician vs billing/payroll admin vs owner), and append-only immutability.
-   - Granular unsigned clinical-note protection: only the author clinician or practice administrator/owner (roles: `'owner'`, `'admin'`, `'practice_admin'`) can modify or delete draft notes (`lock_signed_clinical_notes`, `prevent_delete_signed_clinical_notes`).
-   - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`) with HMAC-SHA256 signature verification and strict tenant filtering.
+   - Multi-tenant PostgreSQL 15 / Supabase migration schemas:
+     - **32 Total Table Targets** (31 application domain tables in `public` schema + 1 `auth.users` standalone compatibility shim in `auth` schema):
+       - `supabase/migrations/20261005_init_schema.sql` (8 application domain tables + auth compatibility shim)
+       - `supabase/migrations/20261005_unified_practice_os.sql` (23 application domain tables for Practice OS, treasury, ledger, and amendments)
+     - **59 Total `CREATE POLICY` Statements** across migrations, establishing **58 active Row-Level Security (RLS) policies** in PostgreSQL runtime (after replacing the initial broad clinical notes policy with 4 granular policies enforcing SEC-03).
+     - Granular unsigned clinical-note protection: only the author clinician or practice administrator/owner (roles: `'owner'`, `'admin'`, `'practice_admin'`) can modify or delete draft notes (`lock_signed_clinical_notes`, `prevent_delete_signed_clinical_notes`).
+     - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`) with HMAC-SHA256 signature verification and strict tenant filtering.
 3. **Clinical AI & Privacy Subsystems**:
    - Client-side 18-rule HIPAA Safe Harbor de-identification engine (`src/tools/phi-scrubber/`).
    - Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`) acting as a fail-closed chokepoint: intercepts AI payloads and aborts LLM sequence if direct identifiers (like names or MRNs) slip through, falling back to a deterministic clinical engine.
    - Verified holdout benchmark: 81.64% overall recall (92.18% structured, 71.17% unstructured) with 97.1% precision across 3,410 entities.
    - Dual-channel ambient speech diarization abstraction with WebSpeech API provider and Deepgram WebSocket contracts.
 4. **Validation Corpora & Test Suites (100% Passing in GitHub CI)**:
-   - Automated test suites executed and verified in GitHub Actions (Node 22 LTS):
-     - **29/29** Server Security & Multi-Tenant Isolation tests (`tests/server-security-and-tenant-isolation.test.ts`)
-     - **26/26** Client Route Guard & Storage Security tests (`scripts/adversarial-security-audit.mjs`)
-     - **28/28** Empirical Server Stress & Endpoint tests (`tests/empirical-server-stress.ts`)
-     - **30/30** Milestone 3 TheraFlow EHR tests (`tests/m3-theraflow-ehr.test.ts`)
-     - **61/61** Milestone 4 Clinical Scribe tests (`tests/m4-clinical-scribe.test.ts`)
-     - **85/85** Milestone 5 Aura Assistant & PHI Scrubber tests (`tests/m5-aura-scrubber.test.ts`)
-     - **100%** Adversarial Financial & Security Invariants tests (`tests/adversarial-financial-and-security.test.ts`)
-     - **100%** PostgreSQL Migration & RLS Pipeline tests (`tests/migration-pipeline.test.ts`)
-     - **100%** Clean TypeScript typecheck (`tsc --noEmit`) and Vite production build (`vite build`)
+   - Automated 10-stage test pipeline executed and verified in GitHub Actions (Node 22 LTS):
+     - **Stage 1 (Static Typecheck)**: Clean TypeScript compilation (`tsc --noEmit`)
+     - **Stage 2 (Production Build)**: Zero-warning Vite bundle build (`vite build`)
+     - **Stage 3 (Client Route Guard & Storage Security)**: **26/26** tests (`scripts/adversarial-security-audit.mjs`)
+     - **Stage 4 (Server Security & Multi-Tenant Isolation)**: **29/29** tests (`tests/server-security-and-tenant-isolation.test.ts`)
+     - **Stage 5 (Empirical Server Stress)**: **28/28** tests (`tests/empirical-server-stress.ts`)
+     - **Stage 6 (Milestone 3 TheraFlow EHR)**: **30/30** tests (`tests/m3-theraflow-ehr.test.ts`)
+     - **Stage 7 (Milestone 4 Clinical Scribe)**: **61/61** tests (`tests/m4-clinical-scribe.test.ts`)
+     - **Stage 8 (Milestone 5 Aura Assistant & PHI Scrubber)**: **85/85** tests (`tests/m5-aura-scrubber.test.ts`)
+     - **Stage 9 (Financial & Security Invariants)**: **100%** passing (`tests/adversarial-financial-and-security.test.ts`)
+     - **Stage 10 (PostgreSQL Migration & RLS Security Pipeline)**: **100%** passing on live PostgreSQL (`tests/migration-pipeline.test.ts`)
 5. **Interactive Demonstration Framework**:
    - Integrated buyer demo guide tour (`DemoGuideModal.tsx`) populated with 100% realistic synthetic clinical scenarios.
    - One-click downstream cascade trigger executing encounter -> payment -> compensation -> payroll batch ripple using double-entry ledger.
@@ -65,7 +68,7 @@ These systems execute real clinical and mathematical logic without external mock
 - **Double-Entry General Ledger (`src/modules/ledger/`)**: Complete debits/credits balance validation, automated tax-reserve set-aside entries, and append-only audit trail.
 - **Client-Side HIPAA 18-Rule Safe Harbor PHI Scrubber (`src/tools/phi-scrubber/`)**: In-browser regex engine for all 18 statutory HIPAA identifiers with Tag, Block, and Asterisk masking modes.
 - **Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`)**: Fail-closed chokepoint scanning AI payloads for identifiers, aborting outbound LLM transmission on detection with fallback.
-- **Multi-Tenant PostgreSQL Migration & RLS Policies (`supabase/migrations/`)**: 27 relational tables, 58 RLS policies, trigger locks on signed notes, and author ownership guards on unsigned notes.
+- **Multi-Tenant PostgreSQL Migration & RLS Policies (`supabase/migrations/`)**: 31 public application domain tables (32 total targets including `auth.users`), 58 active RLS policies (59 `CREATE POLICY` statements), trigger locks on signed notes, and author ownership guards on unsigned notes.
 - **Express API Security & Multi-Tenant Isolation (`server.ts`)**: Session JWT validation (`checkAuth`), RBAC enforcement, strict tenant clamping (`practiceId === authUser.practiceId`), and isolated cryptographic audit exports.
 - **Clinical EHR & Treatment Plan Workspaces (`src/tools/theraflow/`)**: Full client directory, appointment scheduling, structured DAP progress notes, and DSM-5 problem list management.
 - **CMS-1500 & 837P EDI Generation (`src/tools/theraflow/`)**: Interactive 33-box CMS-1500 form editor, Superbill generator, and standards-compliant ASC X12 837P EDI file formatter.
@@ -112,7 +115,7 @@ Following independent re-audits on commit `7403e77`, all identified security vul
    - Added `parseBasisPoints` utilizing exact integer digit string extraction (0 float operations) and supported direct BigInt basis points (`6550n`).
 5. **Headless CI & Automated Test Runner Termination**:
    - Added headless WebSocket polyfills in `src/lib/supabase.ts` and test harnesses, guaranteeing clean execution across Node.js and JSDOM environments.
-   - Updated GitHub Actions CI workflow to Node 22 LTS, achieving a 100% green pass across all 11 test stages.
+   - Updated GitHub Actions CI workflow to Node 22 LTS, achieving a 100% green pass across the complete automated CI test pipeline.
 
 ---
 

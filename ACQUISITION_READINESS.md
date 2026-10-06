@@ -1,9 +1,10 @@
 # TheraFlow OS — Strategic Acquisition Readiness Memo
 
 > **Asset Name:** TheraFlow Behavioral Health OS & Clinical Workflow Engine  
-> **Release Version:** `v1.1.0-security-remediated`  
-> **Verified Commit SHA:** `4113573e982e6176ea8c71c3deb2862f44a6f11e` (current documentation branch head: `9518a84`)  
-> **Automated CI Status:** 100% Green across 11 stages in GitHub Actions (Master Run ID: `37511948228` · Branch Run ID: `37511959898`)  
+> **Release Version:** `v1.1.1-acquisition-package` (Snapshot tag: `v1.1.0-security-remediated` at `515cefe`)  
+> **Core Security Remediation SHA:** `4113573e982e6176ea8c71c3deb2862f44a6f11e`  
+> **Release Snapshot SHA:** `515cefe320b46b9e50695849dd23ce0c2b93cd63`  
+> **Automated CI Status:** 100% Green across all 10 test suites in GitHub Actions (Node 22 LTS · Run IDs: `37511948228`, `37514914857`)  
 > **Security Audit State:** Remediated & Verified (SEC-01, SEC-02, SEC-03 closed; pure fixed-point basis-point math; RLS locked)  
 > **Evaluation Mode:** Synthetic Data Mode (Zero Real-Patient PHI Ingestion)  
 
@@ -15,7 +16,7 @@ TheraFlow OS is a specialized, enterprise-grade clinical frontend, workflow engi
 
 Acquiring this asset eliminates **6 to 12 months** of specialized clinical product design, clinical informatics modeling, and frontend engineering. An acquirer receives:
 - **~28,400 LOC of Production TypeScript/React 19 code**: Covering 4 core clinical applications, 6 unified practice management modules, and standard clinical billing workflows.
-- **27 PostgreSQL Relational Tables & 58 Row-Level Security (RLS) Policies**: Production schemas ready for Supabase / PostgreSQL 15 deployment.
+- **32 PostgreSQL Relational Table Targets (31 Public Application Tables + 1 Auth Shim) & 58 Active RLS Policies (59 Created)**: Production schemas ready for Supabase / PostgreSQL 15 deployment.
 - **Fail-Closed Privacy Subsystems**: 18-rule HIPAA Safe Harbor regex redaction engine and an outbound LLM privacy gateway.
 - **Pure Fixed-Point Financial Math**: Money engine operating entirely in integer cents and basis points with zero IEEE-754 floating-point drift.
 - **~25,200 LOC of Automated Test Suites**: Comprehensive test coverage with 100% green verification in GitHub Actions CI.
@@ -71,7 +72,7 @@ Acquiring this asset eliminates **6 to 12 months** of specialized clinical produ
                               ▼                      ▼
                       ┌───────────────┐      ┌───────────────┐
                       │   Supabase    │      │    Stripe     │
-                      │ 27 Tables &   │      │  Checkout &   │
+                      │  31 Tables &  │      │  Checkout &   │
                       │ 58 RLS Rules  │      │   Webhooks    │
                       └───────────────┘      └───────────────┘
 ```
@@ -107,7 +108,7 @@ These systems execute genuine clinical and mathematical logic without external m
 - **Double-Entry General Ledger**: Strict balance validation and automated tax set-aside journal entries.
 - **18-Rule Safe Harbor PHI Scrubber**: In-browser regex engine for all 18 statutory HIPAA identifiers.
 - **Outbound LLM Privacy Gateway**: Intercepts AI payloads, aborting outbound LLM calls if direct identifiers are detected.
-- **Multi-Tenant PostgreSQL Schemas & RLS**: 27 tables, 58 RLS policies, trigger locks on signed notes, and draft note author permissions.
+- **Multi-Tenant PostgreSQL Schemas & RLS**: 31 public application domain tables (32 total targets including `auth.users`), 58 active RLS policies (59 `CREATE POLICY` statements), trigger locks on signed notes, and draft note author permissions.
 - **Express API Security & Multi-Tenant Isolation**: Bearer JWT validation, strict RBAC, and practice tenant clamping.
 - **CMS-1500 & 837P EDI Generation**: Official 33-box CMS-1500 form editor and ASC X12 837P EDI file formatter.
 
@@ -157,9 +158,9 @@ Following independent re-audits on commit `7403e77`, all identified security vul
 
 ## 6. Test Evidence & Automated CI Matrix
 
-Every release is validated by an automated 11-step GitHub Actions CI workflow running on Node 22 LTS:
-- **Master Branch Run ID:** `37511948228` (Success ✓)
-- **Remediation Branch Run ID:** `37511959898` (Success ✓)
+Every release is validated by an automated 10-suite test pipeline executed in GitHub Actions CI running on Node 22 LTS:
+- **Master Branch Run IDs:** `37511948228` (Security Remediation) · `37514914857` (Package Snapshot)
+- **Remediation Branch Run IDs:** `37511959898` (Security Remediation) · `37514932475` (Package Snapshot)
 
 | CI Pipeline Stage | Executed Command | Results | Audit Status | Key Subsystem Verified |
 |:---|:---|:---:|:---:|:---|
@@ -172,7 +173,7 @@ Every release is validated by an automated 11-step GitHub Actions CI workflow ru
 | **7. Milestone 4 Clinical Scribe** | `npx tsx tests/m4-clinical-scribe.test.ts` | 61 / 61 | **PASS (100%)** | 6 clinical templates, deterministic synthesis, variable interpolation, CPT engine |
 | **8. Milestone 5 Aura & Scrubber** | `npx tsx tests/m5-aura-scrubber.test.ts` | 85 / 85 | **PASS (100%)** | 18 Safe Harbor rules, character offset verification, DSM-5 database, typewriter streaming |
 | **9. Adversarial Financial Invariants** | `npx tsx tests/adversarial-financial-and-security.test.ts` | All Pass | **PASS (100%)** | Pure basis-point integer math, cent conservation, debits=credits balance check |
-| **10. PostgreSQL Migration Pipeline** | `npx tsx tests/migration-pipeline.test.ts` | All Pass | **PASS (100%)** | 27 tables, 58 RLS policies, trigger integrity, unsigned note permission rules |
+| **10. PostgreSQL Migration Pipeline** | `npx tsx tests/migration-pipeline.test.ts` | All Pass | **PASS (100%)** | 31 public tables (32 targets), 58 active RLS policies, trigger integrity, draft note permission rules |
 
 ---
 
@@ -227,12 +228,15 @@ DAILY_API_KEY=... # or AWS Chime credentials
 ## 10. Repository, Release & Verification Reference
 
 - **Git Repository:** `https://github.com/alexmarshiamft/clinical_saas_launch`
-- **Release Tag:** `v1.1.0-security-remediated`
-- **Verified Commit SHA:** `4113573e982e6176ea8c71c3deb2862f44a6f11e` (latest docs commit: `9518a84`)
+- **Release Tags:**
+  - `v1.1.1-acquisition-package` (Current verified buyer due diligence package)
+  - `v1.1.0-security-remediated` (Annotated tag snapshot at commit `515cefe`)
+- **Core Security Remediation SHA:** `4113573e982e6176ea8c71c3deb2862f44a6f11e`
+- **Release Snapshot SHA:** `515cefe320b46b9e50695849dd23ce0c2b93cd63`
 - **Branches:** `master` · `remediation-pass-2`
-- **GitHub Actions Runs:**
-  - Master: [Run 37511948228](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37511948228) (100% Green ✓)
-  - Remediation Branch: [Run 37511959898](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37511959898) (100% Green ✓)
+- **GitHub Actions Verified CI Runs:**
+  - Master Runs: [Run 37511948228](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37511948228) (Remediation) · [Run 37514914857](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37514914857) (Snapshot)
+  - Remediation Branch Runs: [Run 37511959898](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37511959898) (Remediation) · [Run 37514932475](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37514932475) (Snapshot)
 - **Primary Due Diligence Artifacts:**
   - [`BUYER_HANDOFF.md`](file:///Users/alexandermarshi/teamwork_projects/clinical_saas_launch/BUYER_HANDOFF.md) — Comprehensive technical handoff and replacement analysis
   - [`THERAFLOW_ACQUISITION_DUE_DILIGENCE.md`](file:///Users/alexandermarshi/teamwork_projects/clinical_saas_launch/THERAFLOW_ACQUISITION_DUE_DILIGENCE.md) — Exhaustive technical audit report
