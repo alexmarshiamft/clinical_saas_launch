@@ -73,13 +73,13 @@ export const Landing: React.FC = () => {
       name: 'HIPAA PHI Scrubber',
       tag: '18 Safe Harbor',
       icon: ShieldCheck,
-      headline: 'Zero-Leak Statutory 18-Rule HIPAA Redaction',
-      description: 'De-identify clinical narratives and notes in seconds before sharing. Enforces all 18 HIPAA Safe Harbor statutory identifiers with side-by-side diff and audit table.',
+      headline: 'Client-Side Statutory 18-Rule PHI Pattern Scrubber',
+      description: 'Redact clinical narratives and progress notes before external sharing. Targets 18 HIPAA Safe Harbor statutory identifier categories with side-by-side diff and audit table.',
       highlights: [
-        'Strict 18 Statutory Safe Harbor Regex Classifiers',
+        '18 Statutory Safe Harbor Regex Pattern Classifiers',
         'Synchronized Side-by-Side Redacted Diff Viewer',
         'Forensic Redaction Audit Logs with Confidence Scoring',
-        'Client-Side Execution: Zero Unredacted Cloud Leakage',
+        'Client-Side In-Browser Execution for Outbound AI Requests',
       ],
     },
   ];

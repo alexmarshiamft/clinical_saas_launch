@@ -23,12 +23,12 @@ TheraFlow Money is built as an **Embedded Finance / Banking-as-a-Service (BaaS) 
     |                                |                                |
     v                                v                                v
 [TheraFlow Sandbox Treasury]    [Unit / Stripe Treasury]      [Column / Direct]
- (Deterministic FDIC Sim)         (BaaS Partner - Buyer)    (API Banking - Buyer)
+ (Deterministic Treasury Sim)     (BaaS Partner - Buyer)    (API Banking - Buyer)
     |                                |                                |
     +--------------------------------+--------------------------------+
                                      |
                                      v
-                 [Underlying Regulated Partner Bank: FDIC Insured]
+                 [Underlying Regulated Partner Bank: Target FDIC Insured in Production]
 ```
 
 ---

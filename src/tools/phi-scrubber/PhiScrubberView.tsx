@@ -117,7 +117,7 @@ export const PhiScrubberView: React.FC = () => {
         </div>
 
         <p className="text-sm text-slate-600 mb-6">
-          Strict HIPAA Safe Harbor redaction removing all 18 statutory identifiers before external sharing. Includes side-by-side redacted diff viewer and forensic redaction audit logging.
+          Client-side HIPAA Safe Harbor redaction aid targeting 18 statutory identifier patterns before external sharing. Includes side-by-side redacted diff viewer and forensic redaction audit logging.
         </p>
 
         {/* Narrative Preset Switcher Bar */}
@@ -144,7 +144,7 @@ export const PhiScrubberView: React.FC = () => {
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
-              All 18 Safe Harbor Categories
+              18 Safe Harbor Pattern Categories
             </button>
             <button
               type="button"

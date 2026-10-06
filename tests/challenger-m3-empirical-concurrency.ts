@@ -63,6 +63,7 @@ import {
   DAPNote,
   Invoice,
 } from '../src/tools/theraflow/types';
+import { signJwtToken } from '../src/lib/jwt-auth';
 
 const TEST_PORT = 3998;
 const BASE_URL = `http://127.0.0.1:${TEST_PORT}`;
@@ -559,11 +560,14 @@ async function runConcurrencyStressHarness() {
 
     // 3.2 Concurrent Burst of 50 POST /api/audit-logs
     const AUDIT_POST_BURST = 50;
+    const testJwt = signJwtToken({ role: 'practice_owner' });
+    const authHeaders = { Authorization: `Bearer ${testJwt}` };
+
     console.log(`Firing burst of ${AUDIT_POST_BURST} concurrent POST /api/audit-logs requests...`);
     const auditPostRequests = Array.from({ length: AUDIT_POST_BURST }).map((_, i) =>
       fetch(`${BASE_URL}/api/audit-logs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           action: 'VIEW_EHR',
           actor: 'dr.tester@behavioralhealth.org',
@@ -607,7 +611,7 @@ async function runConcurrencyStressHarness() {
           ? `${BASE_URL}/api/audit-logs?mrn=SRV-0010`
           : `${BASE_URL}/api/audit-logs?limit=100`;
 
-      return fetch(url).then(async (res) => {
+      return fetch(url, { headers: authHeaders }).then(async (res) => {
         const body = await res.json();
         return {
           status: res.status,
@@ -647,7 +651,7 @@ async function runConcurrencyStressHarness() {
       ...Array.from({ length: 30 }).map((_, i) =>
         fetch(`${BASE_URL}/api/audit-logs`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify({
             action: 'TELEHEALTH_SESSION',
             patientMrn: `#MC-MIXED-${i}`,
@@ -656,7 +660,7 @@ async function runConcurrencyStressHarness() {
         }).then((r) => r.status)
       ),
       ...Array.from({ length: 30 }).map(() =>
-        fetch(`${BASE_URL}/api/audit-logs?limit=50`).then((r) => r.status)
+        fetch(`${BASE_URL}/api/audit-logs?limit=50`, { headers: authHeaders }).then((r) => r.status)
       ),
     ];
 
@@ -686,14 +690,14 @@ async function runConcurrencyStressHarness() {
     // Probe 2: POST /api/audit-logs with minimal payload
     const emptyAuditPost = await fetch(`${BASE_URL}/api/audit-logs`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({}),
     });
     const emptyAuditJson = await emptyAuditPost.json();
     const handlesEmptyAudit = emptyAuditPost.status === 201 && emptyAuditJson.success === true;
 
     // Probe 3: GET /api/audit-logs with extreme limit query (limit=0, limit=99999)
-    const limitRes = await fetch(`${BASE_URL}/api/audit-logs?limit=99999`);
+    const limitRes = await fetch(`${BASE_URL}/api/audit-logs?limit=99999`, { headers: authHeaders });
     const limitJson = await limitRes.json();
     const handlesExtremeLimit = limitRes.status === 200 && limitJson.logs.length <= 1000;
 

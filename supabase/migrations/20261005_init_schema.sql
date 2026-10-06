@@ -10,6 +10,43 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- Supabase Auth compatibility shim for standalone PostgreSQL
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'auth') THEN
+        CREATE SCHEMA auth;
+        CREATE TABLE auth.users (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            email TEXT,
+            raw_user_meta_data JSONB DEFAULT '{}'::jsonb,
+            raw_app_meta_data JSONB DEFAULT '{}'::jsonb,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+    END IF;
+END $$;
+
+CREATE OR REPLACE FUNCTION auth.jwt() RETURNS JSONB AS $$
+  SELECT COALESCE(
+    NULLIF(current_setting('request.jwt.claims', true), '')::JSONB,
+    '{}'::JSONB
+  );
+$$ LANGUAGE SQL STABLE;
+
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID AS $$
+  SELECT COALESCE(
+    NULLIF(current_setting('request.jwt.claim.sub', true), '')::UUID,
+    (NULLIF(current_setting('request.jwt.claims', true), '')::JSONB ->> 'sub')::UUID
+  );
+$$ LANGUAGE SQL STABLE;
+
+CREATE OR REPLACE FUNCTION auth.role() RETURNS TEXT AS $$
+  SELECT COALESCE(
+    NULLIF(current_setting('request.jwt.claim.role', true), ''),
+    (NULLIF(current_setting('request.jwt.claims', true), '')::JSONB ->> 'role'),
+    'authenticated'
+  );
+$$ LANGUAGE SQL STABLE;
+
 -- ------------------------------------------------------------------------------
 -- 1. TENANCY & PRACTICES (Group Practice Isolation)
 -- ------------------------------------------------------------------------------

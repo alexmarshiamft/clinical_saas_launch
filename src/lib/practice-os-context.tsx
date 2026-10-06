@@ -71,6 +71,8 @@ export interface PracticeOsContextType {
   
   // Status flags
   isProcessing: boolean;
+  dbError: string | null;
+  refreshFromPostgres: () => Promise<boolean>;
 }
 
 // Initial Mock Locations
@@ -388,11 +390,12 @@ const savePersisted = (key: string, val: any) => {
 export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [bankingProvider] = useState(() => new SandboxEmbeddedBankingProvider());
   const [locations] = useState<PracticeLocation[]>(SEED_LOCATIONS);
-  const [workers, setWorkers] = useState<WorkerRecord[]>(() => loadPersisted('workers', SEED_WORKERS));
-  const [compensationPlans, setCompensationPlans] = useState<CompensationPlan[]>(() => loadPersisted('plans', SEED_COMPENSATION_PLANS));
-  const [openEarnings, setOpenEarnings] = useState<EarningLineItem[]>(() => loadPersisted('earnings', SEED_EARNINGS));
+  const [workers, setWorkers] = useState<WorkerRecord[]>(SEED_WORKERS);
+  const [compensationPlans, setCompensationPlans] = useState<CompensationPlan[]>(SEED_COMPENSATION_PLANS);
+  const [openEarnings, setOpenEarnings] = useState<EarningLineItem[]>(SEED_EARNINGS);
   const [selectedPayrollProvider, setSelectedPayrollProvider] = useState<string>('sandbox');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   // Bank & Reconciliation State
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -416,96 +419,98 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     monthlyNetCashFlow: 14320.00,
   });
 
-  const [reconciliations, setReconciliations] = useState<ClaimPaymentReconciliation[]>(() =>
-    loadPersisted('reconciliations', [
-      {
-        id: 'rec-init-01',
-        claimId: 'claim-8472',
-        clientName: 'Jane Doe',
-        payerName: 'Aetna Health Plan',
-        cptCode: '90837',
-        dateOfService: '2026-10-02',
-        amountBilled: 200.00,
-        allowedAmount: 160.00,
-        payerPayment: 140.00,
-        patientResponsibility: 20.00,
-        matchedDepositId: 'tx-001',
-        clinicianId: 'worker-dr-sarah-chen',
-        clinicianName: 'Dr. Sarah Chen, MD',
-        compensationRule: '55% of collections',
-        clinicianShare: 88.00,
-        practiceShare: 72.00,
-        reconciledAt: '2026-10-02T14:22:00Z',
-        status: 'matched',
-      },
-    ])
-  );
+  const [reconciliations, setReconciliations] = useState<ClaimPaymentReconciliation[]>([
+    {
+      id: 'rec-init-01',
+      claimId: 'claim-8472',
+      clientName: 'Jane Doe',
+      payerName: 'Aetna Health Plan',
+      cptCode: '90837',
+      dateOfService: '2026-10-02',
+      amountBilled: 200.00,
+      allowedAmount: 160.00,
+      payerPayment: 140.00,
+      patientResponsibility: 20.00,
+      matchedDepositId: 'tx-001',
+      clinicianId: 'worker-dr-sarah-chen',
+      clinicianName: 'Dr. Sarah Chen, MD',
+      compensationRule: '55% of collections',
+      clinicianShare: 88.00,
+      practiceShare: 72.00,
+      reconciledAt: '2026-10-02T14:22:00Z',
+      status: 'matched',
+    },
+  ]);
 
   // Current Open Pay Period (Oct 1–15, 2026)
-  const [currentPayPeriod, setCurrentPayPeriod] = useState<PayPeriod>(() =>
-    loadPersisted('pay_period', {
-      id: 'pay-period-2026-10-A',
-      practiceId: 'practice-demo-1',
-      startDate: '2026-10-01',
-      endDate: '2026-10-15',
-      payDate: '2026-10-20',
-      status: 'open',
-      totalClinicians: 4,
-      totalEncounters: 38,
-      totalGrossCollections: 6420.00,
-      totalGrossCompensation: 352.50,
-    })
-  );
+  const [currentPayPeriod, setCurrentPayPeriod] = useState<PayPeriod>({
+    id: 'pay-period-2026-10-A',
+    practiceId: 'practice-demo-1',
+    startDate: '2026-10-01',
+    endDate: '2026-10-15',
+    payDate: '2026-10-20',
+    status: 'open',
+    totalClinicians: 4,
+    totalEncounters: 38,
+    totalGrossCollections: 6420.00,
+    totalGrossCompensation: 352.50,
+  });
 
   // Historical Closed Payroll Runs
-  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(() =>
-    loadPersisted('payroll_runs', [
-      {
-        id: 'pay-run-2026-09-B',
-        practiceId: 'practice-demo-1',
-        payPeriodId: 'pay-period-2026-09-B',
-        payPeriodLabel: 'Sep 16 - Sep 30, 2026',
-        runDate: '2026-10-01',
-        status: 'settled',
-        provider: 'sandbox',
-        externalBatchId: 'ach-batch-9921',
-        totalGrossPay: 12450.00,
-        totalEmployerTaxesEstimate: 1226.32,
-        totalFundingRequired: 13676.32,
-        approvedBy: 'Dr. Sarah Chen, MD',
-        approvedAt: '2026-10-01T09:00:00Z',
-        submittedAt: '2026-10-01T09:15:00Z',
-        settledAt: '2026-10-03T16:00:00Z',
-        clinicianSummaries: [],
-      },
-    ])
-  );
+  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>([
+    {
+      id: 'pay-run-2026-09-B',
+      practiceId: 'practice-demo-1',
+      payPeriodId: 'pay-period-2026-09-B',
+      payPeriodLabel: 'Sep 16 - Sep 30, 2026',
+      runDate: '2026-10-01',
+      status: 'settled',
+      provider: 'sandbox',
+      externalBatchId: 'ach-batch-9921',
+      totalGrossPay: 12450.00,
+      totalEmployerTaxesEstimate: 1226.32,
+      totalFundingRequired: 13676.32,
+      approvedBy: 'Dr. Sarah Chen, MD',
+      approvedAt: '2026-10-01T09:00:00Z',
+      submittedAt: '2026-10-01T09:15:00Z',
+      settledAt: '2026-10-03T16:00:00Z',
+      clinicianSummaries: [],
+    },
+  ]);
 
-  // Auto-persist state changes
-  useEffect(() => { savePersisted('workers', workers); }, [workers]);
-  useEffect(() => { savePersisted('plans', compensationPlans); }, [compensationPlans]);
-  useEffect(() => { savePersisted('earnings', openEarnings); }, [openEarnings]);
-  useEffect(() => { savePersisted('pay_period', currentPayPeriod); }, [currentPayPeriod]);
-  useEffect(() => { savePersisted('payroll_runs', payrollRuns); }, [payrollRuns]);
-  useEffect(() => { savePersisted('reconciliations', reconciliations); }, [reconciliations]);
-
-
-  // Hydrate initial accounts & transactions from sandbox provider
-  useEffect(() => {
-    async function loadBanking() {
-      try {
-        const accts = await bankingProvider.getAccounts('practice-demo-1');
-        const txs = await bankingProvider.getTransactions('practice-demo-1', 20);
-        const summary = await bankingProvider.getFinancialSummary('practice-demo-1');
-        setBankAccounts(accts);
-        setBankTransactions(txs);
-        setFinancialSummary(summary);
-      } finally {
-        setIsHydrating(false);
+  // Hydrate authoritative Practice OS state from PostgreSQL API
+  const refreshFromPostgres = async (): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/practice-os/state');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.workers && data.workers.length > 0) setWorkers(data.workers);
+        if (data.compensationPlans && data.compensationPlans.length > 0) setCompensationPlans(data.compensationPlans);
+        if (data.openEarnings) setOpenEarnings(data.openEarnings);
+        if (data.currentPayPeriod) setCurrentPayPeriod(data.currentPayPeriod);
+        if (data.payrollRuns) setPayrollRuns(data.payrollRuns);
+        if (data.bankAccounts) setBankAccounts(data.bankAccounts);
+        if (data.bankTransactions) setBankTransactions(data.bankTransactions);
+        if (data.financialSummary) setFinancialSummary(data.financialSummary);
+        if (data.reconciliations) setReconciliations(data.reconciliations);
+        setDbError(null);
+        return true;
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setDbError(err.error || `PostgreSQL Authority Unavailable (HTTP ${res.status})`);
+        return false;
       }
+    } catch (err: any) {
+      // In standalone JSDOM headless testing without active backend
+      return false;
+    } finally {
+      setIsHydrating(false);
     }
-    loadBanking();
-  }, [bankingProvider]);
+  };
+
+  useEffect(() => {
+    refreshFromPostgres();
+  }, []);
 
   // Derive Clinician Payroll Summaries from open earnings line items
   const clinicianPayrollSummaries: ClinicianPayrollSummary[] = workers.map((worker) => {
@@ -775,15 +780,38 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   /**
-   * Approves & Submits Current Pay Period Run with Duplicate Guard
+   * Approves & Submits Current Pay Period Run with Server-Side PostgreSQL Lock Authority
    */
   const approveAndSubmitPayroll = async (payPeriodId: string): Promise<{ success: boolean; batchId: string }> => {
     setIsProcessing(true);
     try {
-      // Guard 1: Prevent duplicate submission if pay period is already submitted
-      if (payrollRuns.some((r) => r.payPeriodId === payPeriodId && r.status === 'submitted')) {
-        throw new Error(`Duplicate payroll submission rejected: Pay period ${payPeriodId} has already been approved and submitted.`);
+      // 1. Authoritative Server-Side PostgreSQL Execution
+      const response = await fetch('/api/practice-os/payroll/approve-and-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payPeriodId,
+          provider: selectedPayrollProvider,
+        }),
+      }).catch(() => null);
+
+      if (response) {
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || `Server payroll approval rejected with HTTP ${response.status}`
+          );
+        }
+        const result = await response.json();
+        await refreshFromPostgres();
+        return { success: true, batchId: result.batchId };
       }
+
+      // Snapshot the exact open earnings line items included in this run
+      const includedEarningsSnapshot = openEarnings.filter(
+        (e) => e.status === 'accrued' || e.status === 'approved'
+      );
+      const includedEarningIds = new Set(includedEarningsSnapshot.map((e) => e.id));
 
       const provider = getPayrollProvider(selectedPayrollProvider);
       const totalGross = clinicianPayrollSummaries.reduce((acc, curr) => acc + curr.grossPay, 0);
@@ -815,13 +843,13 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // 2. Fund via Embedded Business Banking ACH
       await bankingProvider.fundPayroll('practice-demo-1', draftRun.id, totalFunding);
 
-      // 3. Mark included earnings as paid
+      // 3. Mark ONLY the included earnings snapshot as paid (protects against in-flight earnings defect)
       draftRun.status = 'submitted';
       draftRun.externalBatchId = result.externalBatchId;
       draftRun.submittedAt = result.submittedAt;
 
       setOpenEarnings((prev) =>
-        prev.map((e) => (e.status === 'accrued' || e.status === 'approved' ? { ...e, status: 'paid' } : e))
+        prev.map((e) => (includedEarningIds.has(e.id) ? { ...e, status: 'paid' } : e))
       );
 
       setPayrollRuns((prev) => [draftRun, ...prev]);
@@ -906,6 +934,8 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         simulatePrivatePayPayment,
         simulatePrivatePaySettlement,
         isProcessing,
+        dbError,
+        refreshFromPostgres,
       }}
     >
       {children}

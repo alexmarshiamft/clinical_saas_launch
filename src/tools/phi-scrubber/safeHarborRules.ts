@@ -14,7 +14,7 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
     patterns: [
       {
         name: 'labeled_patient_name',
-        regex: /(?:Patient|Client|Pt\.?|Subject|Resident|Member)\s*(?:Name)?\s*[:#]\s*([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}]\.?)?(?:\s+[\p{Lu}][\p{L}'-]+)+(?:\s+(?:Jr|Sr|II|III|IV)\.?)?)/giu,
+        regex: /(?:[Pp]atient|[Cc]lient|[Pp]t\.?|[Ss]ubject|[Rr]esident|[Mm]ember)\s*(?:[Nn]ame)?\s*[:#]\s*([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}]\.?)?(?:\s+[\p{Lu}][\p{L}'-]+)+(?:\s+(?:Jr|Sr|II|III|IV)\.?)?)/gu,
         extractGroup: 1,
         customConfidence: 0.98,
       },
@@ -26,25 +26,25 @@ export const SAFE_HARBOR_RULES: SafeHarborRuleDefinition[] = [
       },
       {
         name: 'dictated_author_signature',
-        regex: /(?:Attending(?:\s+Physician)?|Referring(?:\s+Physician)?|Primary\s+Clinician|Primary\s+Care|Dictated\s+by|Signed\s+by|Author|Transcribed\s+by)\s*[:#]?\s*([\p{Lu}][\p{L}'-]{1,20}(?:\s+[\p{Lu}]\.?)?\s+[\p{Lu}][\p{L}'-]{1,20}(?:,\s*(?:MD|DO|PhD|PsyD|NP|PA|RN|LCSW|LMFT))?)/giu,
+        regex: /(?:[Aa]ttending(?:\s+[Pp]hysician)?|[Rr]eferring(?:\s+[Pp]hysician)?|[Pp]rimary\s+[Cc]linician|[Pp]rimary\s+[Cc]are|[Dd]ictated\s+by|[Ss]igned\s+by|[Aa]uthor|[Tt]ranscribed\s+by)\s*[:#]?\s*([\p{Lu}][\p{L}'-]{1,20}(?:\s+[\p{Lu}]\.?)?\s+[\p{Lu}][\p{L}'-]{1,20}(?:,\s*(?:MD|DO|PhD|PsyD|NP|PA|RN|LCSW|LMFT))?)/gu,
         extractGroup: 1,
         customConfidence: 0.96,
       },
       {
         name: 'narrative_relatives_and_contacts',
-        regex: /(?:uncle|aunt|brother|sister|mother|father|spouse|partner|daughter|son|cousin|supervisor|sibling|patient|client)\s+([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}][\p{L}'-]+)+)/giu,
+        regex: /(?:[Uu]ncle|[Aa]unt|[Bb]rother|[Ss]ister|[Mm]other|[Ff]ather|[Ss]pouse|[Pp]artner|[Dd]aughter|[Ss]on|[Cc]ousin|[Ss]upervisor|[Ss]ibling|[Pp]atient|[Cc]lient)\s+([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}][\p{L}'-]+)+)/gu,
         extractGroup: 1,
         customConfidence: 0.94,
       },
       {
         name: 'clinical_context_named_individuals',
-        regex: /(?:During(?:\s+the)?\s+\d+[-\s]minute\s+session,?\s*|On\s+physical\s+exam,?\s*|Collateral\s+interview\s+(?:was\s+)?conducted\s+with\s+|Today\s+|logs\s+submitted\s+by\s+|Intake\s+session\s+for\s+|Chart\s+notes\s+for\s+|Patient\s+identified\s+as\s+|Met\s+with\s+|evaluation\s+for\s+|encounter\s+with\s+|evaluation\.\s*Pt:\s*|check-in\s+with\s+|emergency\s+contact\s+(?:listed\s+as\s+sibling\s+)?|call\s+placed\s+to\s+(?:employer\s+supervisor\s+)?)\s*([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}][\p{L}'-]+)+)/giu,
+        regex: /(?:[Dd]uring(?:\s+the)?\s+\d+[-\s]minute\s+session,?\s*|[Oo]n\s+physical\s+exam,?\s*|[Cc]ollateral\s+interview\s+(?:was\s+)?conducted\s+with\s+|[Tt]oday\s+|logs\s+submitted\s+by\s+|[Ii]ntake\s+session\s+for\s+|[Cc]hart\s+notes\s+for\s+|[Pp]atient\s+identified\s+as\s+|[Mm]et\s+with\s+|evaluation\s+for\s+|encounter\s+with\s+|evaluation\.\s*Pt:\s*|check-in\s+with\s+|emergency\s+contact\s+(?:listed\s+as\s+sibling\s+)?|call\s+placed\s+to\s+(?:employer\s+supervisor\s+)?)\s*([\p{Lu}][\p{L}'-]+(?:\s+[\p{Lu}][\p{L}'-]+)+)/gu,
         extractGroup: 1,
         customConfidence: 0.94,
       },
       {
         name: 'common_clinical_first_names_context',
-        regex: /(?:When\s+asked\s+about\s+recent\s+panic\s+attacks,?\s*|Client\s+stated\s+that\s+|Phone\s+check-in\s+with\s+|Patient\s+lives\s+with\s+her\s+mother\s+|Therapist\s+observed\s+that\s+|Session\s+focused\s+on\s+conflict\s+between\s+patient\s+and\s+partner\s+|Spoke\s+briefly\s+with\s+patient\s+daughter\s+|spoke\s+with\s+his\s+mother\s+)\s*([\p{Lu}][\p{L}'-]+)/giu,
+        regex: /(?:[Ww]hen\s+asked\s+about\s+recent\s+panic\s+attacks,?\s*|[Cc]lient\s+stated\s+that\s+|[Pp]hone\s+check-in\s+with\s+|[Pp]atient\s+lives\s+with\s+her\s+mother\s+|[Tt]herapist\s+observed\s+that\s+|[Ss]ession\s+focused\s+on\s+conflict\s+between\s+patient\s+and\s+partner\s+|[Ss]poke\s+briefly\s+with\s+patient\s+daughter\s+|spoke\s+with\s+his\s+mother\s+)\s*([\p{Lu}][\p{L}'-]+)/gu,
         extractGroup: 1,
         customConfidence: 0.92,
       },

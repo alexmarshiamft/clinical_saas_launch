@@ -19,6 +19,7 @@ import {
   calculateEncounterCompensation,
   dollarsToCents,
   centsToDollars,
+  multiplyPercentageBigInt,
   evaluateMinimumGuarantee,
   evaluateDocumentationBonus,
 } from '../src/modules/compensation/compensation-engine';
@@ -418,7 +419,119 @@ function runCompensationAdversarialSuite() {
     `Clinician: $${resClawback.clinicianEarning}, Retained: $${resClawback.practiceRetained}`
   );
 
-  // 11. Property-based randomized test over 50,000 cases with zero cent drift
+  // 11. Undefined percentage must throw validation error, never silently become 50%
+  let threwUndefined = false;
+  try {
+    const planWithUndefined: CompensationPlan = {
+      ...TEST_PLAN,
+      id: 'plan-undef',
+      rules: [
+        {
+          id: 'rule-undef',
+          name: 'Undefined Pct Rule',
+          ruleType: 'percentage_collected',
+          // percentage intentionally undefined
+          timingPolicy: 'on_cash_settlement',
+          description: 'Broken rule with undefined percentage',
+        },
+      ],
+    };
+    calculateEncounterCompensation(
+      {
+        encounterId: 'enc-undef',
+        workerId: 'worker-1',
+        workerName: 'Dr. Test',
+        clientName: 'Patient U',
+        dateOfService: '2026-10-05',
+        cptCode: '90837',
+        serviceType: 'individual',
+        status: 'completed',
+        amountBilled: 100,
+        amountCollected: 100,
+        timingEvent: 'cash_settled',
+      },
+      planWithUndefined
+    );
+  } catch (err: any) {
+    threwUndefined = true;
+  }
+  assert('Undefined percentage throws validation error (does not silently become 50%)', threwUndefined);
+
+  // 12. Flat fee cannot repeat across multiple payment remittances
+  const firstRemittance = calculateEncounterCompensation(
+    {
+      encounterId: 'enc-flat-multi',
+      workerId: 'worker-1',
+      workerName: 'Dr. Test',
+      clientName: 'Patient F',
+      dateOfService: '2026-10-05',
+      cptCode: '90791',
+      serviceType: 'intake',
+      status: 'completed',
+      amountBilled: 200,
+      amountCollected: 100,
+      timingEvent: 'cash_settled',
+    },
+    TEST_PLAN
+  );
+  const secondRemittance = calculateEncounterCompensation(
+    {
+      encounterId: 'enc-flat-multi',
+      workerId: 'worker-1',
+      workerName: 'Dr. Test',
+      clientName: 'Patient F',
+      dateOfService: '2026-10-05',
+      cptCode: '90791',
+      serviceType: 'intake',
+      status: 'completed',
+      amountBilled: 200,
+      amountCollected: 100,
+      timingEvent: 'cash_settled',
+      priorEncounterEarnings: [firstRemittance.lineItem!],
+    },
+    TEST_PLAN
+  );
+  assert(
+    'Flat fee once per encounter: subsequent remittance does not repeat flat compensation',
+    secondRemittance.eligibleForAccrual === false && secondRemittance.clinicianEarning === 0,
+    `Second remittance eligible: ${secondRemittance.eligibleForAccrual}, clinicianEarning: ${secondRemittance.clinicianEarning}`
+  );
+
+  // 13. Negative collection on flat fee triggers negative clawback, NEVER positive compensation
+  const flatClawback = calculateEncounterCompensation(
+    {
+      encounterId: 'enc-flat-clawback',
+      workerId: 'worker-1',
+      workerName: 'Dr. Test',
+      clientName: 'Patient F',
+      dateOfService: '2026-10-05',
+      cptCode: '90791',
+      serviceType: 'intake',
+      status: 'completed',
+      amountBilled: -110,
+      amountCollected: -110,
+      timingEvent: 'cash_settled',
+    },
+    TEST_PLAN
+  );
+  assert(
+    'Negative collection on flat fee triggers clawback (-$110), NEVER positive fee',
+    flatClawback.clinicianEarning === -110 && flatClawback.clinicianEarning! < 0,
+    `Clinician earning: $${flatClawback.clinicianEarning}`
+  );
+
+  // 14. BigInt reference precision across fractional percentages and partial amounts
+  // 52.375% on $173.49 (17349 cents):
+  // 17349 * 523750 = 9,086,538,750
+  // (9,086,538,750 + 500,000) / 1,000,000 = 9087 cents = $90.87
+  const bigIntCalc = multiplyPercentageBigInt(17349n, 52.375);
+  assert(
+    'BigInt rational integer arithmetic matches reference on fractional percentage (52.375% on $173.49 = 9087c)',
+    bigIntCalc === 9087n,
+    `Calculated: ${bigIntCalc} cents`
+  );
+
+  // 15. Property-based randomized test over 50,000 cases with zero cent drift
   console.log('\n[Phase 2] Running 50,000 Property-Based Randomized Monetary Tests...');
   let randomizedMismatches = 0;
   for (let i = 0; i < 50000; i++) {

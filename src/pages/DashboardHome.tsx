@@ -44,7 +44,8 @@ export const DashboardHome: React.FC = () => {
     reconciliations,
     financialSummary,
     executeCascadeSimulation,
-    simulatePrivatePaySettlement
+    simulatePrivatePaySettlement,
+    dbError
   } = usePracticeOs();
 
   const [cascadeRunning, setCascadeRunning] = useState(false);
@@ -74,7 +75,7 @@ export const DashboardHome: React.FC = () => {
       id: 'apt-1',
       time: '10:00 AM',
       duration: '60 min',
-      patient: 'Jane Doe',
+      patient: isSubscribed ? 'Jane Doe' : 'Confidential Client (Gated)',
       type: 'Telehealth',
       cpt: '90837',
       status: 'Active',
@@ -84,7 +85,7 @@ export const DashboardHome: React.FC = () => {
       id: 'apt-2',
       time: '11:30 AM',
       duration: '45 min',
-      patient: 'Marcus Vance',
+      patient: isSubscribed ? 'Marcus Vance' : 'Confidential Client (Gated)',
       type: 'In-Person',
       cpt: '90834',
       status: 'Confirmed',
@@ -94,7 +95,7 @@ export const DashboardHome: React.FC = () => {
       id: 'apt-3',
       time: '02:00 PM',
       duration: '60 min',
-      patient: 'Elena Rostova',
+      patient: isSubscribed ? 'Elena Rostova' : 'Confidential Client (Gated)',
       type: 'Telehealth',
       cpt: '90837',
       status: 'Confirmed',
@@ -104,7 +105,7 @@ export const DashboardHome: React.FC = () => {
       id: 'apt-4',
       time: '03:30 PM',
       duration: '90 min',
-      patient: 'Samuel Green',
+      patient: isSubscribed ? 'Samuel Green' : 'Confidential Client (Gated)',
       type: 'Intake Evaluation',
       cpt: '90791',
       status: 'Confirmed',
@@ -154,7 +155,7 @@ export const DashboardHome: React.FC = () => {
       icon: ShieldCheck,
       badge: '18 Safe Harbor',
       badgeClass: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-      description: 'Statutory 18-rule redaction engine with forensic audit table and zero-leak diff viewer.',
+      description: 'Statutory 18-rule pattern redaction engine with forensic audit table and side-by-side diff viewer.',
       stats: '1,280 Identifiers Scrubbed • Pattern De-Identification',
       actionLabel: 'Open Scrubber Engine',
     },
@@ -217,6 +218,17 @@ export const DashboardHome: React.FC = () => {
           </NavLink>
         </div>
       </div>
+
+      {/* Database Authority Failure Banner (Fail Visibly) */}
+      {dbError && (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-start gap-3 shadow-xs">
+          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+          <div>
+            <h4 className="font-bold text-sm">PostgreSQL Authoritative Backend Alert</h4>
+            <p className="text-xs text-amber-800 mt-0.5">{dbError}</p>
+          </div>
+        </div>
+      )}
 
       {/* Cascade Notification Banner */}
       {cascadeNotice && (
@@ -399,7 +411,7 @@ export const DashboardHome: React.FC = () => {
               <span className="text-xs text-slate-400">Target Billable</span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Sarah Chen (92%), Marcus Vance (84%), Elena Rostova (88%).
+              {isSubscribed ? 'Sarah Chen (92%), Marcus Vance (84%), Elena Rostova (88%).' : 'Lead Clinician (92%), Staff Clinicians (86% avg).'}
             </p>
             <NavLink to="/dashboard/workforce" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-cyan-400 hover:text-cyan-300">
               Workforce Roster &amp; Targets <ChevronRight className="w-3 h-3" />
@@ -559,22 +571,22 @@ export const DashboardHome: React.FC = () => {
                 </span>
               </div>
               <span className="text-xs font-mono bg-indigo-800/80 px-2.5 py-1 rounded-md text-indigo-200 border border-indigo-700">
-                MRN: {activePatient.mrn}
+                MRN: {isSubscribed ? activePatient.mrn : '#MC-•••••'}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               <div className="md:col-span-2">
                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-                  {activePatient.name}
+                  {isSubscribed ? activePatient.name : 'Confidential Client (Gated)'}
                 </h2>
                 <p className="text-indigo-200 text-sm leading-relaxed mb-4">
-                  DOB: <strong>{activePatient.dob}</strong> (Age {activePatient.age || 38}) • Current Session:{' '}
+                  DOB: <strong>{isSubscribed ? activePatient.dob : '••/••/••••'}</strong> (Age {isSubscribed ? (activePatient.age || 38) : '••'}) • Current Session:{' '}
                   <strong>CPT {activePatient.cptCode}</strong> ({activePatient.cptDesc || 'Psychotherapy, 60m'}).
                 </p>
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span className="bg-white/10 px-3 py-1 rounded-full text-indigo-100">
-                    Diagnosis: F41.1 Generalized Anxiety
+                    Diagnosis: {isSubscribed ? 'F41.1 Generalized Anxiety' : '[Protected Clinical Diagnosis]'}
                   </span>
                   <span className="bg-white/10 px-3 py-1 rounded-full text-indigo-100">
                     Treatment Plan: Cognitive Behavioral Therapy (CBT)

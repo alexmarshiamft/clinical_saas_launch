@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
       icon: ShieldCheck,
       badge: '18 Safe Harbor',
       badgeClass: 'bg-cyan-500/15 text-cyan-700 border-cyan-300 dark:border-cyan-700 dark:text-cyan-300',
-      description: 'Zero-Leak De-identification',
+      description: 'Client-Side PHI Redaction Aid',
     },
   ];
 

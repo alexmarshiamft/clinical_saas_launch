@@ -80,10 +80,10 @@ async function runMigrationPipelineTest() {
     console.log(`Total public tables created: ${tableCount}`);
 
     const criticalTables = [
-      'practices', 'users', 'clients', 'encounters', 'clinical_notes', 'billing_claims', 'audit_logs',
+      'practices', 'users', 'clients', 'appointments', 'encounters', 'clinical_notes', 'billing_claims', 'audit_logs',
       'practice_locations', 'workers', 'clinician_profiles', 'supervisor_relationships',
-      'compensation_plans', 'compensation_rules', 'compensation_plan_assignments',
-      'payment_events', 'pay_periods', 'payroll_runs', 'earning_line_items', 'compensation_events',
+      'compensation_plans', 'compensation_plan_versions', 'compensation_rules', 'compensation_plan_assignments',
+      'payment_events', 'pay_periods', 'payroll_runs', 'earning_line_items', 'payroll_run_line_items', 'compensation_events',
       'general_ledger_accounts', 'journal_entries', 'journal_entry_lines',
       'bank_accounts', 'bank_transactions', 'payment_reconciliations', 'payroll_funding_events'
     ];
@@ -192,7 +192,127 @@ async function runMigrationPipelineTest() {
     if (afterUpdateDebit !== '10000') {
       throw new Error(`Append-Only Violation: Journal line was mutated to ${afterUpdateDebit}!`);
     }
-    console.log('✓ [PASS] Accounting immutability holds: Journal lines are append-only (mutations blocked).');
+    // Probe 4: Signed Clinical Note Metadata & Deletion Immutability
+    console.log('\n[Phase 6] Auditing Signed Clinical Note Immutability & Deletion Guards...');
+    const clientUuid = '11111111-2222-3333-4444-555555555555';
+    const clinicianUuid = '11111111-1111-1111-1111-111111111111';
+    const noteUuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+
+    runPsql(`
+      INSERT INTO clients (id, practice_id, first_name, last_name, mrn, date_of_birth) VALUES
+        ('${clientUuid}', 'a0000000-0000-0000-0000-000000000001', 'Jane', 'Doe', '#MC-TEST-999', '1990-01-01');
+
+      INSERT INTO auth.users (id, email) VALUES
+        ('${clinicianUuid}', 'alice@a.com');
+
+      INSERT INTO users (id, practice_id, email, full_name, role) VALUES
+        ('${clinicianUuid}', 'a0000000-0000-0000-0000-000000000001', 'alice@a.com', 'Alice Clinician', 'clinician');
+
+      INSERT INTO clinical_notes (id, practice_id, client_id, clinician_id, template_type, rendered_markdown, structured_data, is_signed, signed_at, signature_hash) VALUES
+        ('${noteUuid}', 'a0000000-0000-0000-0000-000000000001', '${clientUuid}', '${clinicianUuid}', 'soap', 'Initial Note Content', '{"summary": "Test"}'::jsonb, true, NOW(), 'orig_hash_12345');
+    `);
+
+    // Probe 4.1: Attempting to clear signed_at or signature_hash must fail
+    let clearSigBlocked = false;
+    try {
+      runPsql(`UPDATE clinical_notes SET signed_at = NULL, signature_hash = NULL WHERE id = '${noteUuid}';`);
+    } catch {
+      clearSigBlocked = true;
+    }
+    if (!clearSigBlocked) throw new Error('Signed Note Immutability Violation: Able to clear signature metadata!');
+    console.log('✓ [PASS] Signed note metadata lock: Clearing signature metadata blocked.');
+
+    // Probe 4.2: Attempting to change template_type or clinician_id must fail
+    let alterClinicianBlocked = false;
+    try {
+      runPsql(`UPDATE clinical_notes SET template_type = 'dap' WHERE id = '${noteUuid}';`);
+    } catch {
+      alterClinicianBlocked = true;
+    }
+    if (!alterClinicianBlocked) throw new Error('Signed Note Immutability Violation: Able to alter template_type!');
+    console.log('✓ [PASS] Signed note metadata lock: Changing template_type blocked.');
+
+    // Probe 4.3: Attempting to DELETE signed note must fail
+    let deleteSignedBlocked = false;
+    try {
+      runPsql(`DELETE FROM clinical_notes WHERE id = '${noteUuid}';`);
+    } catch {
+      deleteSignedBlocked = true;
+    }
+    if (!deleteSignedBlocked) throw new Error('Signed Note Immutability Violation: Able to DELETE a signed clinical note!');
+    console.log('✓ [PASS] Signed note deletion guard: Deleting signed note rejected by trigger.');
+
+    // Probe 5: Colleague Identity Modification & Privileged User Insert Guards
+    console.log('\n[Phase 7] Auditing User Modification and Privilege Escalation Guards...');
+    const otherClinicianUuid = '22222222-3333-4444-5555-666666666666';
+    runPsql(`
+      INSERT INTO auth.users (id, email) VALUES
+        ('${otherClinicianUuid}', 'bob@a.com');
+
+      INSERT INTO users (id, practice_id, email, full_name, role) VALUES
+        ('${otherClinicianUuid}', 'a0000000-0000-0000-0000-000000000001', 'bob@a.com', 'Bob Clinician', 'clinician');
+    `);
+
+    // Clinician Alice trying to edit Bob's email/name must fail
+    let editColleagueBlocked = false;
+    try {
+      runPsql(`
+        SET ROLE authenticated;
+        SET "request.jwt.claim.sub" = '${clinicianUuid}';
+        SET "request.jwt.claims" = '{"sub": "${clinicianUuid}", "role": "authenticated", "app_metadata": {"practice_id": "a0000000-0000-0000-0000-000000000001"}}';
+        UPDATE users SET email = 'hacked_bob@a.com' WHERE id = '${otherClinicianUuid}';
+      `);
+    } catch {
+      editColleagueBlocked = true;
+    }
+    if (!editColleagueBlocked) throw new Error('RBAC Violation: Clinician was able to edit colleague identity field!');
+    console.log('✓ [PASS] User identity protection: Non-admin editing colleague profile blocked.');
+
+    // Non-admin trying to INSERT a user with role 'owner' must fail
+    const attackerUuid = '99999999-9999-9999-9999-999999999999';
+    runPsql(`
+      INSERT INTO auth.users (id, email) VALUES
+        ('${attackerUuid}', 'attacker@a.com');
+    `);
+
+    let insertOwnerBlocked = false;
+    try {
+      runPsql(`
+        SET ROLE authenticated;
+        SET "request.jwt.claim.sub" = '${clinicianUuid}';
+        SET "request.jwt.claims" = '{"sub": "${clinicianUuid}", "role": "authenticated", "app_metadata": {"practice_id": "a0000000-0000-0000-0000-000000000001"}}';
+        INSERT INTO users (id, practice_id, email, full_name, role) VALUES
+          ('${attackerUuid}', 'a0000000-0000-0000-0000-000000000001', 'attacker@a.com', 'Attacker', 'owner');
+      `);
+    } catch {
+      insertOwnerBlocked = true;
+    }
+    if (!insertOwnerBlocked) throw new Error('RBAC Violation: Non-admin was able to insert a privileged owner user!');
+    console.log('✓ [PASS] User privilege guard: Unauthorized insertion of owner/admin role blocked.');
+
+    // Probe 6: Accrual Idempotency Partial Index (Repeat manual adjustments succeed without zero-UUID collapse)
+    console.log('\n[Phase 8] Auditing Accrual Idempotency Partial Indexes...');
+    runPsql(`
+      -- Insert two legitimate manual adjustment accruals with null encounter_id and null payment_event_id
+      INSERT INTO earning_line_items (practice_id, worker_id, date_of_service, client_name, cpt_code, service_description, amount_billed_cents, amount_collected_cents, clinician_earning_cents, practice_retained_cents, status, rule_applied, calculation_explanation, accrual_type) VALUES
+        ('a0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '2026-10-01', 'Practice Adjustment', 'ADJ', 'Admin Allowance 1', 0, 0, 5000, -5000, 'accrued', 'admin_allowance', 'First allowance', 'admin_allowance'),
+        ('a0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '2026-10-01', 'Practice Adjustment', 'ADJ', 'Admin Allowance 2', 0, 0, 3000, -3000, 'accrued', 'admin_allowance', 'Second allowance', 'admin_allowance');
+    `);
+    console.log('✓ [PASS] Accrual partial indexes: Multiple manual adjustments for same worker succeed without zero-UUID collision.');
+
+    // Probe 7: TRUNCATE Revocation
+    console.log('\n[Phase 9] Auditing TRUNCATE Privilege Revocation...');
+    let truncateBlocked = false;
+    try {
+      runPsql(`
+        SET ROLE authenticated;
+        TRUNCATE journal_entry_lines;
+      `);
+    } catch {
+      truncateBlocked = true;
+    }
+    if (!truncateBlocked) throw new Error('Security Violation: authenticated role was able to TRUNCATE journal_entry_lines!');
+    console.log('✓ [PASS] TRUNCATE permission revoked: authenticated role cannot TRUNCATE domain tables.');
 
     console.log('\n====================================================================');
     console.log('✓ ALL DATABASE MIGRATION & RLS AUDIT TESTS PASSED (100% SUCCESS)');

@@ -47,8 +47,12 @@ $$ LANGUAGE SQL STABLE;
 
 CREATE OR REPLACE FUNCTION current_user_role() RETURNS TEXT AS $$
   SELECT COALESCE(
-    auth.jwt() -> 'app_metadata' ->> 'role',
-    auth.jwt() ->> 'role',
+    NULLIF(auth.jwt() -> 'app_metadata' ->> 'role', ''),
+    NULLIF(auth.jwt() ->> 'app_role', ''),
+    CASE 
+      WHEN auth.jwt() ->> 'role' IN ('owner', 'admin', 'practice_admin', 'payroll_admin', 'supervising_clinician', 'clinician', 'biller', 'auditor') THEN auth.jwt() ->> 'role'
+      ELSE NULL
+    END,
     (SELECT role FROM users WHERE id = auth.uid()),
     'clinician'
   );
@@ -61,6 +65,10 @@ $$ LANGUAGE SQL STABLE;
 CREATE OR REPLACE FUNCTION is_payroll_admin() RETURNS BOOLEAN AS $$
   SELECT current_user_role() IN ('owner', 'admin', 'practice_admin', 'payroll_admin');
 $$ LANGUAGE SQL STABLE;
+
+-- Ensure users.role check constraint permits practice_admin and payroll_admin
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('owner', 'admin', 'practice_admin', 'payroll_admin', 'supervising_clinician', 'clinician', 'biller', 'auditor'));
 
 -- ------------------------------------------------------------------------------
 -- 1. PRACTICE LOCATIONS
@@ -78,7 +86,22 @@ CREATE TABLE IF NOT EXISTS practice_locations (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_locations_practice ON practice_locations(practice_id);
+-- ------------------------------------------------------------------------------
+-- 1B. CLINICAL APPOINTMENTS & ENCOUNTERS WIRE
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS appointments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    practice_id UUID NOT NULL REFERENCES practices(id) ON DELETE CASCADE,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    clinician_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    scheduled_start TIMESTAMPTZ NOT NULL,
+    scheduled_end TIMESTAMPTZ NOT NULL,
+    status VARCHAR(50) DEFAULT 'completed' CHECK (status IN ('scheduled', 'in_progress', 'completed', 'canceled', 'no_show')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_appointments_practice ON appointments(practice_id);
+ALTER TABLE encounters ADD COLUMN IF NOT EXISTS appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL;
 
 -- ------------------------------------------------------------------------------
 -- 2. WORKERS & CLINICIAN PROFILES
@@ -180,6 +203,21 @@ CREATE TABLE IF NOT EXISTS compensation_rules (
 );
 CREATE INDEX IF NOT EXISTS idx_comp_rules_plan ON compensation_rules(plan_id);
 
+CREATE TABLE IF NOT EXISTS compensation_plan_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    practice_id UUID NOT NULL REFERENCES practices(id) ON DELETE CASCADE,
+    plan_id UUID NOT NULL REFERENCES compensation_plans(id) ON DELETE CASCADE,
+    version INTEGER NOT NULL DEFAULT 1,
+    effective_from DATE NOT NULL DEFAULT CURRENT_DATE,
+    effective_to DATE,
+    rules JSONB NOT NULL DEFAULT '[]'::jsonb,
+    minimum_pay_guarantee_cents BIGINT DEFAULT 0,
+    documentation_bonus_cents BIGINT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(plan_id, version)
+);
+CREATE INDEX IF NOT EXISTS idx_comp_plan_versions ON compensation_plan_versions(plan_id, version);
+
 CREATE TABLE IF NOT EXISTS compensation_plan_assignments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     worker_id UUID NOT NULL REFERENCES workers(id) ON DELETE CASCADE,
@@ -251,6 +289,7 @@ CREATE TABLE IF NOT EXISTS payroll_runs (
     UNIQUE(practice_id, pay_period_id, version)
 );
 CREATE INDEX IF NOT EXISTS idx_payroll_runs_period ON payroll_runs(pay_period_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_active_payroll_submission ON payroll_runs(practice_id, pay_period_id) WHERE status IN ('submitted', 'settled');
 
 CREATE TABLE IF NOT EXISTS earning_line_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -261,6 +300,9 @@ CREATE TABLE IF NOT EXISTS earning_line_items (
     claim_id UUID REFERENCES billing_claims(id) ON DELETE SET NULL,
     payment_event_id UUID REFERENCES payment_events(id) ON DELETE SET NULL,
     compensation_rule_id UUID REFERENCES compensation_rules(id) ON DELETE SET NULL,
+    plan_version_id UUID REFERENCES compensation_plan_versions(id) ON DELETE SET NULL,
+    rule_version INTEGER DEFAULT 1,
+    idempotency_key VARCHAR(255),
     accrual_type VARCHAR(50) NOT NULL DEFAULT 'session_compensation' CHECK (accrual_type IN (
         'session_compensation', 'documentation_bonus', 'supervision_stipend',
         'admin_allowance', 'late_cancellation', 'no_show_fee', 'adjustment_clawback', 'minimum_guarantee_topup'
@@ -280,16 +322,47 @@ CREATE TABLE IF NOT EXISTS earning_line_items (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_accrual_idempotency ON earning_line_items (
+-- Separate partial unique indexes to prevent NULL-key zero-UUID collapse on manual adjustments (C-1)
+DROP INDEX IF EXISTS idx_unq_accrual_idempotency;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_accrual_encounter ON earning_line_items (
     practice_id,
     worker_id,
-    COALESCE(encounter_id, '00000000-0000-0000-0000-000000000000'::uuid),
-    COALESCE(compensation_rule_id, '00000000-0000-0000-0000-000000000000'::uuid),
-    COALESCE(payment_event_id, '00000000-0000-0000-0000-000000000000'::uuid),
+    encounter_id,
+    compensation_rule_id,
     accrual_type
-);
+) WHERE encounter_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_accrual_payment ON earning_line_items (
+    practice_id,
+    worker_id,
+    payment_event_id,
+    accrual_type
+) WHERE payment_event_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_earning_idempotency_key ON earning_line_items (
+    practice_id,
+    idempotency_key
+) WHERE idempotency_key IS NOT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_earnings_period ON earning_line_items(pay_period_id);
 CREATE INDEX IF NOT EXISTS idx_earnings_worker ON earning_line_items(worker_id);
+
+-- ------------------------------------------------------------------------------
+-- 6B. IMMUTABLE PAYROLL RUN SNAPSHOT LINE ITEMS
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS payroll_run_line_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    practice_id UUID NOT NULL REFERENCES practices(id) ON DELETE CASCADE,
+    payroll_run_id UUID NOT NULL REFERENCES payroll_runs(id) ON DELETE CASCADE,
+    earning_line_item_id UUID NOT NULL REFERENCES earning_line_items(id) ON DELETE RESTRICT,
+    worker_id UUID NOT NULL REFERENCES workers(id) ON DELETE RESTRICT,
+    gross_amount_cents BIGINT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'included' CHECK (status IN ('included', 'paid', 'voided')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(payroll_run_id, earning_line_item_id)
+);
+CREATE INDEX IF NOT EXISTS idx_payroll_run_lines_run ON payroll_run_line_items(payroll_run_id);
+CREATE INDEX IF NOT EXISTS idx_payroll_run_lines_earning ON payroll_run_line_items(earning_line_item_id);
 
 CREATE TABLE IF NOT EXISTS compensation_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -325,18 +398,25 @@ CREATE TABLE IF NOT EXISTS journal_entries (
     practice_id UUID NOT NULL REFERENCES practices(id) ON DELETE CASCADE,
     entry_number BIGSERIAL,
     transaction_ref VARCHAR(100) NOT NULL,
+    source VARCHAR(50) DEFAULT 'practice_ops',
+    external_reference VARCHAR(255),
+    reversal_of_entry_id UUID REFERENCES journal_entries(id) ON DELETE RESTRICT,
     payment_event_id UUID REFERENCES payment_events(id) ON DELETE SET NULL,
     payroll_run_id UUID REFERENCES payroll_runs(id) ON DELETE SET NULL,
     entry_type VARCHAR(50) NOT NULL CHECK (entry_type IN (
         'insurance_deposit', 'patient_private_pay', 'clinician_accrual',
-        'tax_reserve_transfer', 'payroll_funding', 'refund_payout', 'chargeback_reversal'
+        'tax_reserve_transfer', 'payroll_funding', 'refund_payout', 'chargeback_reversal',
+        'opening_balance', 'reversal', 'general_adjustment'
     )),
     description TEXT NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'posted' CHECK (status IN ('draft', 'posted', 'voided')),
     posted_at TIMESTAMPTZ DEFAULT NOW(),
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(practice_id, transaction_ref)
 );
 CREATE INDEX IF NOT EXISTS idx_journal_entries_ref ON journal_entries(practice_id, transaction_ref);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_journal_external ON journal_entries(practice_id, source, external_reference) WHERE external_reference IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unq_journal_single_reversal ON journal_entries(reversal_of_entry_id) WHERE reversal_of_entry_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS journal_entry_lines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -383,7 +463,9 @@ CREATE TABLE IF NOT EXISTS bank_transactions (
     journal_entry_id UUID REFERENCES journal_entries(id) ON DELETE SET NULL,
     type VARCHAR(30) NOT NULL CHECK (type IN ('deposit', 'withdrawal', 'ach_debit', 'ach_credit', 'internal_transfer')),
     category VARCHAR(50) NOT NULL CHECK (category IN (
-        'insurance_remittance', 'patient_private_pay', 'payroll_funding', 'tax_set_aside', 'operating_expense'
+        'insurance_deposit', 'insurance_remittance', 'patient_private_pay', 'payroll_funding',
+        'tax_set_aside', 'tax_reserve_transfer', 'operating_expense', 'refund_payout',
+        'chargeback_reversal', 'opening_balance', 'reversal', 'general_adjustment'
     )),
     amount_cents BIGINT NOT NULL, -- Positive = Credit/Deposit, Negative = Debit
     description VARCHAR(255) NOT NULL,
@@ -423,6 +505,9 @@ CREATE TABLE IF NOT EXISTS payment_reconciliations (
 CREATE INDEX IF NOT EXISTS idx_recon_practice ON payment_reconciliations(practice_id);
 CREATE INDEX IF NOT EXISTS idx_recon_claim ON payment_reconciliations(claim_id);
 
+ALTER TABLE earning_line_items ADD COLUMN IF NOT EXISTS reconciliation_id UUID REFERENCES payment_reconciliations(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_earnings_reconciliation ON earning_line_items(reconciliation_id);
+
 CREATE TABLE IF NOT EXISTS payroll_funding_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     payroll_run_id UUID NOT NULL REFERENCES payroll_runs(id) ON DELETE CASCADE,
@@ -452,16 +537,19 @@ CREATE TABLE IF NOT EXISTS payroll_provider_connections (
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) & RBAC POLICIES
 -- ==============================================================================
+ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE practice_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clinician_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE supervisor_relationships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE compensation_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE compensation_plan_versions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE compensation_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE compensation_plan_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pay_periods ENABLE ROW LEVEL SECURITY;
 ALTER TABLE earning_line_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payroll_run_line_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE compensation_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE general_ledger_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
@@ -472,6 +560,12 @@ ALTER TABLE bank_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bank_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_reconciliations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payroll_funding_events ENABLE ROW LEVEL SECURITY;
+
+-- 0. Clinical Appointments
+CREATE POLICY rls_appointments_select ON appointments
+    FOR SELECT USING (practice_id = current_practice_id());
+CREATE POLICY rls_appointments_write ON appointments
+    FOR ALL USING (practice_id = current_practice_id() AND is_practice_admin_or_owner());
 
 -- 1. Practice Locations
 CREATE POLICY rls_locations_select ON practice_locations
@@ -502,6 +596,11 @@ CREATE POLICY rls_supervisors_write ON supervisor_relationships
 CREATE POLICY rls_comp_plans_select ON compensation_plans
     FOR SELECT USING (practice_id = current_practice_id());
 CREATE POLICY rls_comp_plans_write ON compensation_plans
+    FOR ALL USING (practice_id = current_practice_id() AND is_practice_admin_or_owner());
+
+CREATE POLICY rls_comp_versions_select ON compensation_plan_versions
+    FOR SELECT USING (practice_id = current_practice_id());
+CREATE POLICY rls_comp_versions_write ON compensation_plan_versions
     FOR ALL USING (practice_id = current_practice_id() AND is_practice_admin_or_owner());
 
 CREATE POLICY rls_comp_rules_select ON compensation_rules
@@ -540,6 +639,17 @@ CREATE POLICY rls_earnings_select ON earning_line_items
         )
     );
 CREATE POLICY rls_earnings_write ON earning_line_items
+    FOR ALL USING (practice_id = current_practice_id() AND is_payroll_admin());
+
+-- 5B. Payroll Run Line Items (Immutable snapshot of approved earnings)
+CREATE POLICY rls_payroll_run_lines_select ON payroll_run_line_items
+    FOR SELECT USING (
+        practice_id = current_practice_id() AND (
+            is_payroll_admin() OR
+            worker_id IN (SELECT id FROM workers WHERE user_id = auth.uid())
+        )
+    );
+CREATE POLICY rls_payroll_run_lines_write ON payroll_run_line_items
     FOR ALL USING (practice_id = current_practice_id() AND is_payroll_admin());
 
 -- 6. Payroll Runs & Funding (Admins view/execute; clinician cannot approve own payroll)
@@ -602,35 +712,85 @@ CREATE POLICY rls_payroll_provider_conn ON payroll_provider_connections
 -- 9. IMMUTABILITY & ROLE INTEGRITY TRIGGERS
 -- ------------------------------------------------------------------------------
 
--- Prevent regular users from escalating their own or others' roles
-CREATE OR REPLACE FUNCTION prevent_unauthorized_role_escalation()
+-- Prevent regular users from modifying colleague identity fields or escalating roles (C-3)
+CREATE OR REPLACE FUNCTION prevent_unauthorized_user_modifications()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF (NEW.role IS DISTINCT FROM OLD.role) THEN
-        IF NOT is_practice_admin_or_owner() THEN
+    -- Only practice owners/admins can modify other users' profiles or change roles
+    IF NOT is_practice_admin_or_owner() THEN
+        -- Non-admins cannot modify other users' profiles (E7: NPI, license, email)
+        IF OLD.id IS DISTINCT FROM auth.uid() THEN
+            RAISE EXCEPTION 'Unauthorized: Users can only modify their own profile';
+        END IF;
+
+        -- Non-admins cannot modify their own role
+        IF NEW.role IS DISTINCT FROM OLD.role THEN
             RAISE EXCEPTION 'Unauthorized: Only practice owners and administrators can modify user roles';
+        END IF;
+
+        -- Non-admins cannot modify practice affiliation
+        IF NEW.practice_id IS DISTINCT FROM OLD.practice_id THEN
+            RAISE EXCEPTION 'Unauthorized: Users cannot reassign practice affiliation';
+        END IF;
+    END IF;
+
+    -- Prevent demoting or removing the sole practice owner
+    IF OLD.role = 'owner' AND NEW.role != 'owner' THEN
+        IF (SELECT COUNT(*) FROM users WHERE practice_id = OLD.practice_id AND role = 'owner') <= 1 THEN
+            RAISE EXCEPTION 'Unauthorized: Cannot demote or remove the sole practice owner';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_role_escalation ON users;
+DROP TRIGGER IF EXISTS trg_prevent_user_modifications ON users;
+CREATE TRIGGER trg_prevent_user_modifications
+BEFORE UPDATE ON users
+FOR EACH ROW
+EXECUTE FUNCTION prevent_unauthorized_user_modifications();
+
+-- Prevent unauthorized insertion of privileged accounts (E11)
+CREATE OR REPLACE FUNCTION prevent_unauthorized_user_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.role IN ('owner', 'admin', 'practice_admin', 'payroll_admin') THEN
+        IF auth.uid() IS NOT NULL AND NOT is_practice_admin_or_owner() THEN
+            RAISE EXCEPTION 'Unauthorized: Only practice administrators can provision privileged user accounts';
         END IF;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_prevent_role_escalation ON users;
-CREATE TRIGGER trg_prevent_role_escalation
-BEFORE UPDATE ON users
+DROP TRIGGER IF EXISTS trg_prevent_user_insert ON users;
+CREATE TRIGGER trg_prevent_user_insert
+BEFORE INSERT ON users
 FOR EACH ROW
-EXECUTE FUNCTION prevent_unauthorized_role_escalation();
+EXECUTE FUNCTION prevent_unauthorized_user_insert();
 
--- Prevent alteration or un-signing of signed clinical notes
+-- Prevent alteration or un-signing of signed clinical notes (complete metadata protection)
 CREATE OR REPLACE FUNCTION lock_signed_clinical_notes()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF OLD.is_signed = true AND (
-        NEW.rendered_markdown IS DISTINCT FROM OLD.rendered_markdown OR
-        NEW.structured_data IS DISTINCT FROM OLD.structured_data OR
-        NEW.is_signed = false
-    ) THEN
-        RAISE EXCEPTION 'Signed clinical notes cannot be altered or unlocked (HIPAA §164.312 immutability)';
+    IF OLD.is_signed = true THEN
+        IF (
+            NEW.rendered_markdown IS DISTINCT FROM OLD.rendered_markdown OR
+            NEW.structured_data IS DISTINCT FROM OLD.structured_data OR
+            NEW.is_signed IS DISTINCT FROM OLD.is_signed OR
+            NEW.signed_at IS DISTINCT FROM OLD.signed_at OR
+            NEW.signed_by IS DISTINCT FROM OLD.signed_by OR
+            NEW.signature_hash IS DISTINCT FROM OLD.signature_hash OR
+            NEW.clinician_id IS DISTINCT FROM OLD.clinician_id OR
+            NEW.template_type IS DISTINCT FROM OLD.template_type OR
+            NEW.client_id IS DISTINCT FROM OLD.client_id OR
+            NEW.encounter_id IS DISTINCT FROM OLD.encounter_id OR
+            NEW.practice_id IS DISTINCT FROM OLD.practice_id
+        ) THEN
+            RAISE EXCEPTION 'Signed clinical notes cannot be altered or unlocked (HIPAA §164.312 immutability)';
+        END IF;
     END IF;
     RETURN NEW;
 END;
@@ -641,4 +801,106 @@ CREATE TRIGGER trg_lock_signed_clinical_notes
 BEFORE UPDATE ON clinical_notes
 FOR EACH ROW
 EXECUTE FUNCTION lock_signed_clinical_notes();
+
+-- Prevent deletion of signed clinical notes
+CREATE OR REPLACE FUNCTION prevent_delete_signed_clinical_notes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.is_signed = true THEN
+        RAISE EXCEPTION 'Signed clinical notes cannot be deleted (HIPAA §164.312 retention and auditability)';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_delete_signed_notes ON clinical_notes;
+CREATE TRIGGER trg_prevent_delete_signed_notes
+BEFORE DELETE ON clinical_notes
+FOR EACH ROW
+EXECUTE FUNCTION prevent_delete_signed_clinical_notes();
+
+-- ------------------------------------------------------------------------------
+-- 10. CLINICAL NOTE AMENDMENTS (Append-only corrections for signed notes)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS clinical_note_amendments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    note_id UUID NOT NULL REFERENCES clinical_notes(id) ON DELETE RESTRICT,
+    practice_id UUID NOT NULL REFERENCES practices(id) ON DELETE CASCADE,
+    author_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    amendment_reason TEXT NOT NULL,
+    amendment_text TEXT NOT NULL,
+    signed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    signature_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE clinical_note_amendments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY rls_note_amendments_select ON clinical_note_amendments
+    FOR SELECT USING (practice_id = current_practice_id());
+CREATE POLICY rls_note_amendments_insert ON clinical_note_amendments
+    FOR INSERT WITH CHECK (practice_id = current_practice_id() AND (author_id = auth.uid() OR is_practice_admin_or_owner()));
+
+-- ------------------------------------------------------------------------------
+-- 11. REVOKE TRUNCATE PRIVILEGES & ATTACH TRUNCATE PREVENTION TRIGGERS (C-9)
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION prevent_table_truncate()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'TRUNCATE is strictly forbidden on compliance, audit, and accounting tables (HIPAA §164.312 immutability)';
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_truncate_clinical_notes ON clinical_notes;
+CREATE TRIGGER trg_prevent_truncate_clinical_notes
+BEFORE TRUNCATE ON clinical_notes
+FOR EACH STATEMENT
+EXECUTE FUNCTION prevent_table_truncate();
+
+DROP TRIGGER IF EXISTS trg_prevent_truncate_journal_lines ON journal_entry_lines;
+CREATE TRIGGER trg_prevent_truncate_journal_lines
+BEFORE TRUNCATE ON journal_entry_lines
+FOR EACH STATEMENT
+EXECUTE FUNCTION prevent_table_truncate();
+
+DROP TRIGGER IF EXISTS trg_prevent_truncate_journal_entries ON journal_entries;
+CREATE TRIGGER trg_prevent_truncate_journal_entries
+BEFORE TRUNCATE ON journal_entries
+FOR EACH STATEMENT
+EXECUTE FUNCTION prevent_table_truncate();
+
+DROP TRIGGER IF EXISTS trg_prevent_truncate_audit_logs ON audit_logs;
+CREATE TRIGGER trg_prevent_truncate_audit_logs
+BEFORE TRUNCATE ON audit_logs
+FOR EACH STATEMENT
+EXECUTE FUNCTION prevent_table_truncate();
+
+DROP TRIGGER IF EXISTS trg_prevent_truncate_earnings ON earning_line_items;
+CREATE TRIGGER trg_prevent_truncate_earnings
+BEFORE TRUNCATE ON earning_line_items
+FOR EACH STATEMENT
+EXECUTE FUNCTION prevent_table_truncate();
+
+DROP TRIGGER IF EXISTS trg_prevent_truncate_payroll_runs ON payroll_runs;
+CREATE TRIGGER trg_prevent_truncate_payroll_runs
+BEFORE TRUNCATE ON payroll_runs
+FOR EACH STATEMENT
+EXECUTE FUNCTION prevent_table_truncate();
+
+DROP TRIGGER IF EXISTS trg_prevent_truncate_payroll_run_lines ON payroll_run_line_items;
+CREATE TRIGGER trg_prevent_truncate_payroll_run_lines
+BEFORE TRUNCATE ON payroll_run_line_items
+FOR EACH STATEMENT
+EXECUTE FUNCTION prevent_table_truncate();
+
+REVOKE TRUNCATE ON clinical_notes, journal_entry_lines, journal_entries, audit_logs, payment_reconciliations, payroll_runs, payroll_run_line_items, earning_line_items, users, clients, appointments, compensation_plan_versions FROM PUBLIC;
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'anon') THEN
+        EXECUTE 'REVOKE TRUNCATE ON clinical_notes, journal_entry_lines, journal_entries, audit_logs, payment_reconciliations, payroll_runs, payroll_run_line_items, earning_line_items, users, clients, appointments, compensation_plan_versions FROM anon;';
+    END IF;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'authenticated') THEN
+        EXECUTE 'REVOKE TRUNCATE ON clinical_notes, journal_entry_lines, journal_entries, audit_logs, payment_reconciliations, payroll_runs, payroll_run_line_items, earning_line_items, users, clients, appointments, compensation_plan_versions FROM authenticated;';
+    END IF;
+END $$;
+
 

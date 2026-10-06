@@ -175,7 +175,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onSelectClient }) => {
             <DialogHeader>
               <DialogTitle>Enroll New Clinical Patient</DialogTitle>
               <DialogDescription>
-                Create a HIPAA-compliant medical record. MRN is automatically assigned.
+                Create a client clinical record. MRN is automatically assigned.
               </DialogDescription>
             </DialogHeader>
 

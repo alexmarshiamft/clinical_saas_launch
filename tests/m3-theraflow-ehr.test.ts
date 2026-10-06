@@ -38,6 +38,7 @@ import {
   logAuditEvent,
   resetTheraFlowStore,
 } from '../src/tools/theraflow/data/theraflow-store';
+import { signJwtToken } from '../src/lib/jwt-auth';
 import { expandShorthandToDAP } from '../src/tools/theraflow/ai-note-expander';
 import { computeRecordHash, verifyAuditChain } from '../src/lib/audit';
 import { AuditLogEntry } from '../src/tools/theraflow/types';
@@ -503,9 +504,12 @@ async function runM3TestSuite() {
   // 5.4 Backend Audit Log Ingestion & Query
   let auditApiPass = false;
   try {
+    const validJwt = signJwtToken({ role: 'practice_owner' });
+    const authHeaders = { Authorization: `Bearer ${validJwt}` };
+
     const postRes = await fetch(`${BASE_URL}/api/audit-logs`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({
         action: 'VIEW_EHR',
         patientMrn: '#MC-88219',
@@ -514,13 +518,15 @@ async function runM3TestSuite() {
         details: { verification: 'm3_automated_test' },
       }),
     });
-    const getRes = await fetch(`${BASE_URL}/api/audit-logs?mrn=88219`);
+    const getRes = await fetch(`${BASE_URL}/api/audit-logs?mrn=88219`, {
+      headers: authHeaders,
+    });
     if (postRes.ok && getRes.ok) {
       const getJson = await getRes.json();
       auditApiPass = getJson.integrityStatus === 'verified' && getJson.logs.length > 0;
     }
   } catch (err: any) {
-    console.warn(`Audit API check: ${err.message}`);
+    console.warn(`Audit API check error: ${err.message}`);
   }
 
   recordTest(

@@ -107,12 +107,25 @@ export interface CompensationRule {
   description: string;
 }
 
+export interface CompensationPlanVersion {
+  version: number;
+  effectiveFrom: string;
+  effectiveTo?: string;
+  rules: CompensationRule[];
+  minimumPayGuarantee?: number;
+  documentationBonusAmount?: number;
+}
+
 export interface CompensationPlan {
   id: string;
   practiceId: string;
   name: string;
   description: string;
   isDefault: boolean;
+  version?: number;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  versions?: CompensationPlanVersion[];
   rules: CompensationRule[];
   minimumPayGuarantee?: number; // Minimum monthly floor if active
   documentationBonusAmount?: number; // e.g. $10 per note signed <24h
@@ -127,6 +140,12 @@ export interface EarningLineItem {
   encounterId?: string;
   claimId?: string;
   paymentId?: string;
+  paymentEventId?: string;
+  reconciliationId?: string;
+  planVersionId?: string;
+  ruleVersion?: number;
+  idempotencyKey?: string;
+  accrualType?: string;
   dateOfService: string;
   clientName: string;
   serviceDescription: string;
@@ -137,7 +156,7 @@ export interface EarningLineItem {
   practiceRetained: number;
   ruleApplied: string;
   explanation: string; // Exact auditable breakdown
-  status: 'accrued' | 'approved' | 'paid' | 'adjusted';
+  status: 'accrued' | 'approved' | 'paid' | 'adjusted' | 'voided';
   createdAt: string;
 }
 
@@ -213,7 +232,7 @@ export interface BankAccount {
   routingNumberMasked: string; // e.g. "•••• 0210"
   currentBalance: number;
   availableBalance: number;
-  institutionName: string; // e.g. "TheraFlow Banking (Evolve Bank & Trust, Member FDIC)"
+  institutionName: string; // e.g. "TheraFlow Banking Sandbox Treasury"
   currency: 'USD';
   status: 'active' | 'restricted';
 }

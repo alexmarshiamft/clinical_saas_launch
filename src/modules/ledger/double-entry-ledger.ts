@@ -1,7 +1,7 @@
 /**
  * TheraFlow OS — Enterprise Double-Entry Practice General Ledger
  * 
- * Strict GAAP double-entry general ledger engine.
+ * Double-entry general ledger engine.
  * Architectural Invariants:
  * 1. Every transaction has balanced debit and credit entries: SUM(debits) == SUM(credits).
  * 2. Balances cannot be arbitrarily mutated; they are derived from append-only journal entries.

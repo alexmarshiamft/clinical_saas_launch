@@ -6,7 +6,7 @@
  * and intelligent claim-to-deposit reconciliation.
  * 
  * REMEDIATED ARCHITECTURE:
- * - Backed by GAAP Double-Entry General Ledger (DoubleEntryLedger).
+ * - Backed by Double-Entry General Ledger (DoubleEntryLedger).
  * - Integer-cents precision with zero floating point drift.
  * - Tax reserves transfer cash between internal vaults (credits operating, debits tax vault)
  *   so net practice money is never artificially created or destroyed.

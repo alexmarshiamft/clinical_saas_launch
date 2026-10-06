@@ -222,7 +222,7 @@ export const DemoGuideModal: React.FC = () => {
       demoAction: 'Test PHI Scrubber Engine',
       injectPhi: true,
       highlights: [
-        'Strict 18 statutory HIPAA Safe Harbor regex engine executed 100% client-side (zero cloud leak)',
+        'Strict 18 statutory HIPAA Safe Harbor regex pattern engine executed 100% client-side in-browser',
         'Interactive masking styles: semantic Tag [PATIENT_NAME], Block ████, or Asterisk ***',
         'Forensic Redaction Audit Table with confidence scores, exact character offsets, and JSON export',
         'Cross-tool clinical pipeline: seamless flow from Scribe & Aura directly into Scrubber',
@@ -757,7 +757,7 @@ export const DemoGuideModal: React.FC = () => {
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900">HIPAA Safe Harbor PHI Scrubber</h3>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Statutory 18-rule HIPAA Safe Harbor de-identification engine running 100% locally in your browser. Guarantees zero sensitive PHI escapes to the cloud unmasked.
+                        Statutory 18-rule HIPAA Safe Harbor redaction aid running 100% locally in your browser to scrub known identifier patterns before transmission.
                       </p>
                     </div>
 

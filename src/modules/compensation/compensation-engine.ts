@@ -34,6 +34,7 @@ export interface EncounterCompensationInput {
   timingEvent: 'service_completed' | 'claim_accepted' | 'remittance_received' | 'cash_settled';
   triggerEvent?: 'service_completed' | 'claim_accepted' | 'remittance_received' | 'cash_settled'; // Convenient alias
   ruleVersion?: number;
+  priorEncounterEarnings?: Array<{ accrualType?: string; explanation?: string; ruleApplied?: string; clinicianEarning?: number }>;
 }
 
 export interface CompensationCalculationResult {
@@ -56,6 +57,23 @@ export function dollarsToCents(dollars: number): bigint {
 
 export function centsToDollars(cents: bigint | number): number {
   return Number(cents) / 100;
+}
+
+/**
+ * Pure Integer / Rational Arithmetic for Percentage Calculations:
+ * Converts percentage to rational basis points (or ppm) and executes pure BigInt arithmetic
+ * with exact symmetric half-up rounding. Eliminates float drift completely.
+ */
+export function multiplyPercentageBigInt(amountCents: bigint, percentage: number): bigint {
+  if (typeof percentage !== 'number' || isNaN(percentage)) {
+    throw new Error(`Invalid percentage: ${percentage}. Must be a valid numeric percentage.`);
+  }
+  // Convert percentage to parts per million (4 decimal places of % precision, e.g. 52.375% -> 523750 ppm)
+  const ppm = BigInt(Math.round(percentage * 10000));
+  const denominator = 1000000n;
+  const half = denominator / 2n;
+  const product = amountCents * ppm;
+  return product >= 0n ? (product + half) / denominator : (product - half) / denominator;
 }
 
 /**
@@ -158,39 +176,62 @@ export function calculateEncounterCompensation(
       const rate = selectedRule.flatAmount !== undefined && selectedRule.flatAmount !== null
         ? selectedRule.flatAmount
         : 0;
-      clinicianEarningCents = dollarsToCents(rate);
-      explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} (${input.serviceType}) | Flat Rate: $${rate.toFixed(2)} | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
+
+      // Deduplication: flat fee once per encounter across multiple remittances
+      const priorFlatAwarded = input.priorEncounterEarnings && input.priorEncounterEarnings.some(
+        (e) => e.accrualType === 'session_compensation' || (e.ruleApplied && e.ruleApplied.includes(selectedRule!.name))
+      );
+
+      if (priorFlatAwarded && collectedCents > 0n) {
+        return {
+          eligibleForAccrual: false,
+          ineligibilityReason: `Flat encounter compensation has already been awarded on prior payment remittance for encounter ${input.encounterId}.`,
+          clinicianEarning: 0,
+          practiceRetained: input.amountCollected,
+          clinicianEarningCents: 0n,
+          practiceRetainedCents: collectedCents,
+          explanation: `Subsequent remittance for encounter ${input.encounterId}; flat fee already awarded.`,
+        };
+      }
+
+      // Explicit clawback/reversal semantics: negative collection NEVER triggers positive flat fee
+      if (collectedCents < 0n) {
+        clinicianEarningCents = -dollarsToCents(Math.abs(rate));
+        explanation = `Clawback/Reversal for Encounter ${input.encounterId} | CPT ${input.cptCode} | Negative Collection: $${centsToDollars(collectedCents).toFixed(2)} | Clawback clinician fee: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
+      } else {
+        clinicianEarningCents = dollarsToCents(rate);
+        explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} (${input.serviceType}) | Flat Rate: $${rate.toFixed(2)} | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
+      }
       break;
     }
 
     case 'percentage_collected': {
-      // CRITICAL AUDIT FIX: percentage === 0 must remain 0% (not default to 50%)
-      const pct = selectedRule.percentage !== undefined && selectedRule.percentage !== null
-        ? selectedRule.percentage
-        : 50;
-      // Integer cents half-up rounding: Math.round(collectedCents * pct / 100)
-      const earned = Math.round(Number(collectedCents) * (pct / 100));
-      clinicianEarningCents = BigInt(earned);
+      // CRITICAL AUDIT FIX: Undefined percentage must fail validation, never silently become 50%
+      if (selectedRule.percentage === undefined || selectedRule.percentage === null || typeof selectedRule.percentage !== 'number' || isNaN(selectedRule.percentage)) {
+        throw new Error(`Compensation rule "${selectedRule.name}" specifies percentage_collected compensation but has undefined percentage. Validation failed.`);
+      }
+      const pct = selectedRule.percentage;
+      clinicianEarningCents = multiplyPercentageBigInt(collectedCents, pct);
       explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Cash Collected: $${centsToDollars(collectedCents).toFixed(2)} | Rule: ${pct}% of collections | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'percentage_allowed': {
-      const pct = selectedRule.percentage !== undefined && selectedRule.percentage !== null
-        ? selectedRule.percentage
-        : 50;
-      const earned = Math.round(Number(allowedCents) * (pct / 100));
-      clinicianEarningCents = BigInt(earned);
+      if (selectedRule.percentage === undefined || selectedRule.percentage === null || typeof selectedRule.percentage !== 'number' || isNaN(selectedRule.percentage)) {
+        throw new Error(`Compensation rule "${selectedRule.name}" specifies percentage_allowed compensation but has undefined percentage. Validation failed.`);
+      }
+      const pct = selectedRule.percentage;
+      clinicianEarningCents = multiplyPercentageBigInt(allowedCents, pct);
       explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Payer Allowed: $${centsToDollars(allowedCents).toFixed(2)} | Rule: ${pct}% of allowed amount | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
 
     case 'percentage_billed': {
-      const pct = selectedRule.percentage !== undefined && selectedRule.percentage !== null
-        ? selectedRule.percentage
-        : 40;
-      const earned = Math.round(Number(billedCents) * (pct / 100));
-      clinicianEarningCents = BigInt(earned);
+      if (selectedRule.percentage === undefined || selectedRule.percentage === null || typeof selectedRule.percentage !== 'number' || isNaN(selectedRule.percentage)) {
+        throw new Error(`Compensation rule "${selectedRule.name}" specifies percentage_billed compensation but has undefined percentage. Validation failed.`);
+      }
+      const pct = selectedRule.percentage;
+      clinicianEarningCents = multiplyPercentageBigInt(billedCents, pct);
       explanation = `Encounter ${input.encounterId} | CPT ${input.cptCode} | Billed Gross: $${centsToDollars(billedCents).toFixed(2)} | Rule: ${pct}% of billed charge | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
@@ -209,8 +250,7 @@ export function calculateEncounterCompensation(
           }
         }
       }
-      const earned = Math.round(Number(collectedCents) * (appliedPct / 100));
-      clinicianEarningCents = BigInt(earned);
+      clinicianEarningCents = multiplyPercentageBigInt(collectedCents, appliedPct);
       explanation = `Encounter ${input.encounterId} | Session #${sessionIndex} in period | Tier ${appliedPct}% of collected ($${centsToDollars(collectedCents).toFixed(2)}) | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
@@ -227,8 +267,7 @@ export function calculateEncounterCompensation(
           }
         }
       }
-      const earned = Math.round(Number(collectedCents) * (appliedPct / 100));
-      clinicianEarningCents = BigInt(earned);
+      clinicianEarningCents = multiplyPercentageBigInt(collectedCents, appliedPct);
       explanation = `Encounter ${input.encounterId} | Cumulative collections $${currentGross.toFixed(2)} | Tier ${appliedPct}% of $${centsToDollars(collectedCents).toFixed(2)} | Clinician earning: $${centsToDollars(clinicianEarningCents).toFixed(2)}`;
       break;
     }
@@ -268,15 +307,21 @@ export function calculateEncounterCompensation(
   }
 
   // 5. Add documentation promptness bonus ONCE per encounter (if not already awarded)
-  // CRITICAL AUDIT FIX: Partial payments or subsequent events must not repeatedly trigger bonus
-  if (input.isNoteSignedOnTime && !input.bonusAlreadyAwarded && (plan.documentationBonusAmount || 0) > 0) {
+  // Automatically detects prior award from priorEncounterEarnings without requiring caller bonusAlreadyAwarded flag
+  const docBonusAlreadyAwarded = Boolean(
+    input.bonusAlreadyAwarded ||
+    (input.priorEncounterEarnings && input.priorEncounterEarnings.some(
+      (e) => e.accrualType === 'documentation_bonus' || (e.explanation && e.explanation.includes('Documentation Bonus'))
+    ))
+  );
+
+  if (input.isNoteSignedOnTime && !docBonusAlreadyAwarded && (plan.documentationBonusAmount || 0) > 0) {
     const bonusCents = dollarsToCents(plan.documentationBonusAmount!);
     clinicianEarningCents += bonusCents;
     explanation += ` + $${centsToDollars(bonusCents).toFixed(2)} Documentation Bonus (signed <24h)`;
   }
 
   // 6. Practice Retained: Exact accounting reconciliation
-  // CRITICAL AUDIT FIX: Do NOT clamp to Math.max(0, ...). Practice retained can be negative if flat fee exceeds collected.
   // Invariant: clinicianEarningCents + practiceRetainedCents === collectedCents
   const practiceRetainedCents = collectedCents - clinicianEarningCents;
 
@@ -297,6 +342,8 @@ export function calculateEncounterCompensation(
     clinicianEarning,
     practiceRetained,
     ruleApplied: selectedRule.name,
+    ruleVersion: plan.version || input.ruleVersion || 1,
+    accrualType: selectedRule.ruleType === 'documentation_bonus' ? 'documentation_bonus' : 'session_compensation',
     explanation,
     status: 'accrued',
     createdAt: new Date().toISOString(),

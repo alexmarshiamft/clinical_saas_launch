@@ -66,7 +66,7 @@ export const BankingMoneyView: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            FDIC-insured business checking, automatic tax set-asides, claim-to-bank deposit matching, and practice unit economics.
+            Embedded treasury checking sandbox, automatic tax set-asides, claim-to-bank deposit matching, and practice unit economics.
           </p>
         </div>
 

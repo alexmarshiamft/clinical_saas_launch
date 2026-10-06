@@ -50,7 +50,7 @@ export const InvestorDeck: React.FC = () => {
               Live on Production
             </span>
             <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-              HIPAA Safe Harbor Compliant
+              HIPAA Safe Harbor Pattern Scrubber
             </span>
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
@@ -108,7 +108,7 @@ export const InvestorDeck: React.FC = () => {
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Client-Side Privacy</div>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              All 18 statutory HIPAA Safe Harbor identifiers are redacted in-browser before any data reaches cloud AI models.
+              Client-side Safe Harbor pattern scrubber targets statutory identifier patterns in-browser before data reaches cloud AI models.
             </p>
           </div>
 
@@ -270,7 +270,7 @@ export const InvestorDeck: React.FC = () => {
               <div className="text-xs font-bold text-emerald-400 uppercase">Suite 2</div>
               <h3 className="text-base font-bold text-white mt-1 mb-2">HIPAA PHI Scrubber</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Statutory 18-rule Safe Harbor de-identification running 100% locally in-browser with Tag, Block, and Asterisk masking plus cryptographic audit trails.
+                Statutory 18-rule Safe Harbor redaction aid running 100% locally in-browser with Tag, Block, and Asterisk masking plus cryptographic audit trails.
               </p>
             </div>
             <div className="text-[11px] text-emerald-300 font-mono">Route: /dashboard/phi-scrubber</div>
@@ -386,7 +386,7 @@ export const InvestorDeck: React.FC = () => {
               <ul className="text-xs text-slate-200 space-y-1.5">
                 <li>✓ <strong>All Starter Features Included</strong></li>
                 <li>✓ <strong>Unlimited Ambient AI Scribe v2</strong></li>
-                <li>✓ <strong>100% Local HIPAA PHI Scrubber</strong></li>
+                <li>✓ <strong>100% Local HIPAA PHI Pattern Scrubber</strong></li>
                 <li>✓ <strong>Aura DSM-5 Diagnostic Copilot</strong></li>
                 <li>✓ <strong>Template Studio &amp; Unlimited Superbills</strong></li>
               </ul>
@@ -441,7 +441,7 @@ export const InvestorDeck: React.FC = () => {
               </tr>
               <tr>
                 <td className="p-3 font-semibold text-white">100% In-Browser PHI Scrubber</td>
-                <td className="p-3 font-bold text-emerald-400 bg-indigo-950/40 border-x border-indigo-900/50">✓ Zero Cloud Leak</td>
+                <td className="p-3 font-bold text-emerald-400 bg-indigo-950/40 border-x border-indigo-900/50">✓ Local Pattern Scrubber</td>
                 <td className="p-3 text-slate-500">N/A</td>
                 <td className="p-3 text-red-400 font-semibold">✗ Cloud Only</td>
                 <td className="p-3 text-red-400 font-semibold">✗ Cloud Only</td>
