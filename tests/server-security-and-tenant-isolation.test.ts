@@ -37,6 +37,19 @@ function assertTest(name: string, condition: boolean, details?: string) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function killServer(p?: ChildProcess | null) {
+  if (!p || !p.pid) return;
+  try {
+    if (process.platform !== 'win32') {
+      process.kill(-p.pid, 'SIGKILL');
+    } else {
+      p.kill('SIGKILL');
+    }
+  } catch {
+    try { p.kill('SIGKILL'); } catch {}
+  }
+}
+
 async function startServer(): Promise<ChildProcess> {
   const serverPath = path.resolve(process.cwd(), 'server.ts');
   const serverProcess = spawn('npx', ['tsx', serverPath], {
@@ -46,6 +59,7 @@ async function startServer(): Promise<ChildProcess> {
       NODE_ENV: 'test',
       AUDIT_HMAC_SECRET: process.env.AUDIT_HMAC_SECRET || 'e7b4f8a12903c5d6e87f1a2b3c4d5e6f708192a3b4c5d6e7f8a9b0c1d2e3f4a5',
     },
+    detached: process.platform !== 'win32',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
@@ -417,7 +431,7 @@ async function runTestSuite() {
     );
 
   } finally {
-    server.kill();
+    killServer(server);
     if (originalLedgerBackup !== null) {
       try {
         fs.writeFileSync(ledgerPath, originalLedgerBackup, 'utf8');
@@ -435,6 +449,7 @@ async function runTestSuite() {
     process.exit(1);
   } else {
     console.log('\n✓ [CERTIFIED] All Server Security & Tenant Isolation checks passed with 100% success.');
+    process.exit(0);
   }
 }
 

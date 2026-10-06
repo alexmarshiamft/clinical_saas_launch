@@ -239,6 +239,7 @@ async function runAdversarialAudit() {
   console.log('\n====================================================================');
   console.log('✓ ALL ADVERSARIAL FINANCIAL & SECURITY INVARIANT TESTS PASSED (100%)');
   console.log('====================================================================\n');
+  process.exit(0);
 }
 
 runAdversarialAudit().catch((err) => {
