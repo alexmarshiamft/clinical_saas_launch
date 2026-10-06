@@ -32,23 +32,23 @@ export const Landing: React.FC = () => {
       tag: 'Practice OS',
       icon: Stethoscope,
       headline: 'Complete Clinical Management Without Administrative Fatigue',
-      description: 'Streamline patient charting, DSM-5 progress notes, interactive scheduling, and HD browser-based telehealth with automated billing and CMS-1500 Superbills.',
+      description: 'Streamline patient charting, DSM-5 progress notes, interactive scheduling, and local media telehealth simulation and superbill reimbursement statements.',
       highlights: [
         'DAP and SOAP Clinical Progress Notes',
         'Interactive Drag-and-Drop Appointment Calendar',
         'Built-in WebRTC Telehealth Video Sessions',
-        'CMS-1500 Superbill & Client Invoicing Engine',
+        'Superbill Statements & Simulated Invoicing',
       ],
     },
     {
       id: 'scribe',
       name: 'Clinical AI Scribe v2',
-      tag: 'Ambient Diarization',
+      tag: 'Browser Speech & Templates',
       icon: Mic,
       headline: 'Next-Generation Multi-Speaker Ambient Scribe',
-      description: 'Listen to clinical consultations and separate clinician and patient acoustic feeds in real time. Generates structured SOAP notes across 6 medical specialties.',
+      description: 'Browser speech and manual/demo speaker labels support structured note templates across 6 medical specialties.',
       highlights: [
-        'Dual-Speaker Real-Time Acoustic Diarization',
+        'Browser Speech with Manual Speaker Labels',
         '6 Standard Formats: SOAP, H&P, Referral, Aftercare',
         'Interactive Template Studio for Custom Formats',
         'Automated ICD-10 & CPT Billing Code Suggester',
@@ -184,7 +184,7 @@ export const Landing: React.FC = () => {
 
           <p className="mt-6 text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
             Replace four fragmented software subscriptions with one unified clinical operating system.
-            Ambient multi-speaker diarization, in-workflow AI copilot, 18-rule PHI redaction, and complete EHR practice management.
+            Browser speech, note drafting, PHI pattern redaction and synthetic EHR practice workflows.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -216,7 +216,7 @@ export const Landing: React.FC = () => {
               <Check className="h-4 w-4 text-emerald-600" /> No credit card for demo
             </span>
             <span className="flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-emerald-600" /> HIPAA BAA ready templates
+              <Check className="h-4 w-4 text-emerald-600" /> Synthetic evaluation templates
             </span>
             <span className="flex items-center gap-1.5">
               <Check className="h-4 w-4 text-emerald-600" /> Zero cloud data retention
@@ -313,7 +313,7 @@ export const Landing: React.FC = () => {
                     <div className="space-y-3 text-xs">
                       <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-lg">
                         <div className="font-bold text-indigo-900 mb-1 flex items-center justify-between">
-                          <span>🎙️ Clinician Acoustic Feed</span>
+                          <span>🎙️ Demo Clinician Transcript</span>
                           <span className="text-[10px] text-indigo-600 font-mono">00:14:22</span>
                         </div>
                         <p className="text-slate-700">"How have your sleep patterns been since we adjusted your evening wind-down routine?"</p>
@@ -386,7 +386,7 @@ export const Landing: React.FC = () => {
                         </span>
                       </div>
                       <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-900 font-medium">
-                        CMS-1500 Superbill generated and queued for export.
+                        Superbill reimbursement statement prepared for export.
                       </div>
                     </div>
                   )}
@@ -452,10 +452,10 @@ export const Landing: React.FC = () => {
                 </p>
                 <div className="space-y-3 text-xs font-semibold text-indigo-100">
                   <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Full TheraFlow EHR &amp; Telehealth</div>
-                  <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Unlimited Clinical AI Scribe v2 Diarization</div>
+                  <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Clinical Scribe Templates & Browser Speech</div>
                   <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Aura Assistant Floating In-Workflow Copilot</div>
                   <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Unlimited 18 Safe Harbor PHI Redactions</div>
-                  <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> HIPAA BAA Handoff Package Included</div>
+                  <div className="flex items-center gap-2.5"><Check className="h-4 w-4 text-amber-300" /> Buyer Setup Documentation Included</div>
                 </div>
               </div>
               <button
@@ -515,7 +515,7 @@ export const Landing: React.FC = () => {
             <a href="#security" className="hover:underline">HIPAA Compliance</a>
             <a href="#privacy" className="hover:underline">Privacy Policy</a>
             <a href="#terms" className="hover:underline">Terms of Service</a>
-            <a href="#baa" className="hover:underline">Request BAA</a>
+            <a href="#features" className="hover:underline">Evaluation Features</a>
           </div>
         </div>
       </footer>

@@ -165,31 +165,31 @@ export const DemoGuideModal: React.FC = () => {
     },
     {
       step: 2,
-      title: 'HD Telehealth Video Room',
+      title: 'Local Media Telehealth Sandbox',
       category: 'TheraFlow EHR',
       icon: Video,
       color: 'teal',
       path: '/dashboard/telehealth',
-      description: 'Launch the browser-based, encrypted WebRTC clinical telehealth consultation room with live patient feed.',
+      description: 'Explore local camera/microphone controls and synthetic telehealth session UI; remote consultations require integration.',
       demoAction: 'Enter Telehealth Room',
       highlights: [
-        'Browser-based HD video consultation with integrated mute, camera, and screen share controls',
-        'Side-by-side clinical charting panel directly alongside the patient stream',
-        'Zero plugins required, designed for strict clinical privacy',
+        'Browser local camera/microphone controls in a synthetic session',
+        'Side-by-side clinical charting alongside local/demo media',
+        'Remote telehealth and privacy controls require deployment-specific validation',
       ],
     },
     {
       step: 3,
-      title: 'Ambient AI Scribe Diarization',
+      title: 'Browser Speech & Note Drafting',
       category: 'Clinical AI Scribe v2',
       icon: Mic,
       color: 'purple',
       path: '/dashboard/scribe',
-      description: 'Experience real-time dual-speaker acoustic diarization separating clinician and patient voices with instant SOAP generation.',
+      description: 'Explore browser speech with manual/demo speaker attribution and deterministic SOAP note drafting.',
       demoAction: 'Launch Ambient AI Scribe',
       injectTranscript: true,
       highlights: [
-        'Acoustic waveform visualizer with live clinician vs. patient voice isolation',
+        'Waveform visualizer with manual/demo speaker attribution',
         '6 specialized clinical note templates (SOAP, H&P, Referral, Aftercare, Specialty, Requisition)',
         'Automated ICD-10 diagnostic & CPT billing code reconciler with one-click chart sync',
         'Multi-EHR export adapters for Epic, Cerner, Athena, and clipboard',
@@ -230,17 +230,17 @@ export const DemoGuideModal: React.FC = () => {
     },
     {
       step: 6,
-      title: 'EHR Charting & CMS-1500 Billing',
+      title: 'EHR Charting & Superbill Statements',
       category: 'TheraFlow EHR',
       icon: CreditCard,
       color: 'emerald',
       path: '/dashboard/billing',
-      description: 'Complete the encounter by locking DAP progress notes, generating patient invoices, and producing CMS-1500 Superbills.',
+      description: 'Complete the encounter by locking DAP progress notes, generating patient invoices, and producing reimbursement statements.',
       demoAction: 'View Invoices & Superbills',
       highlights: [
-        'One-click CMS-1500 compliant insurance Superbill generation with ICD-10 and CPT codes',
-        'Automated patient invoice creation with payment status tracking and Stripe integration',
-        'HIPAA cryptographic audit log registering every chart edit and export event',
+        'Superbill reimbursement statements with ICD-10 and CPT inputs; payer acceptance not verified',
+        'Demo patient invoices and simulated payment status tracking',
+        'Audit logging for implemented workflow events; complete coverage not established',
       ],
     },
   ];
@@ -593,11 +593,11 @@ export const DemoGuideModal: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                        <span>Encrypted WebRTC Telehealth Room with side-by-side charting</span>
+                        <span>Local Media Telehealth Sandbox with side-by-side charting</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                        <span>CMS-1500 Superbill &amp; patient invoice generator</span>
+                        <span>Superbill statements &amp; simulated patient invoices</span>
                       </div>
                     </div>
                   </div>
@@ -634,7 +634,7 @@ export const DemoGuideModal: React.FC = () => {
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900">Clinical AI Scribe v2</h3>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Ambient listening engine with dual-speaker acoustic diarization that isolates clinician and patient voices in real time, automatically formatting structured notes.
+                        Browser speech and manual/demo speaker labels feed structured note templates. Validated cloud speaker diarization remains integration work.
                       </p>
                     </div>
 
@@ -644,7 +644,7 @@ export const DemoGuideModal: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="h-3.5 w-3.5 text-purple-600 shrink-0" />
-                        <span>Real-Time Waveform &amp; Acoustic Voice Separation</span>
+                        <span>Waveform &amp; Manual Speaker Labels</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Check className="h-3.5 w-3.5 text-purple-600 shrink-0" />
@@ -1031,7 +1031,7 @@ export const DemoGuideModal: React.FC = () => {
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="font-bold text-xs text-slate-900">
-                          Dual-Speaker Diarization Acoustic Feed
+                          Manual / Demo Speaker Transcript Feed
                         </span>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
                           Audio &amp; Text

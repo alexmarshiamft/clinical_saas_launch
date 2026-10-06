@@ -110,7 +110,7 @@ export const EhrWorkspace: React.FC<EhrWorkspaceProps> = ({ defaultTab }) => {
         </div>
 
         <p className="text-sm text-slate-600 mb-6">
-          Patient roster, interactive appointment calendar, DAP progress notes, treatment plans, and CMS-1500 Superbill generator.
+          Patient roster, interactive appointment calendar, DAP progress notes, treatment plans, and superbill reimbursement statements.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
@@ -234,7 +234,7 @@ export const EhrWorkspace: React.FC<EhrWorkspaceProps> = ({ defaultTab }) => {
                 </div>
                 <div className="text-xs font-medium text-slate-500">Claims &amp; Invoices</div>
                 <div className="text-base font-bold text-slate-900 mt-0.5 flex items-center gap-1">
-                  CMS-1500 Superbill
+                  Superbill Statement
                   <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform text-slate-400" />
                 </div>
                 <div className="text-[11px] text-slate-500 mt-2">
@@ -344,7 +344,7 @@ export const EhrWorkspace: React.FC<EhrWorkspaceProps> = ({ defaultTab }) => {
                       <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                       <span className="font-medium text-slate-700">Business Associate</span>
                     </div>
-                    <span className="font-semibold text-slate-900">Active BAA</span>
+                    <span className="font-semibold text-slate-900">Synthetic evaluation</span>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
@@ -352,7 +352,7 @@ export const EhrWorkspace: React.FC<EhrWorkspaceProps> = ({ defaultTab }) => {
                       <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                       <span className="font-medium text-slate-700">Claims Standard</span>
                     </div>
-                    <span className="font-semibold text-slate-900">CMS-1500 (HCFA)</span>
+                    <span className="font-semibold text-slate-900">Reimbursement statement</span>
                   </div>
                 </div>
 
@@ -407,7 +407,7 @@ export const EhrWorkspace: React.FC<EhrWorkspaceProps> = ({ defaultTab }) => {
           <TreatmentPlanView initialClientId={selectedClientId || undefined} />
         )}
 
-        {/* Feature 11: Invoicing & CMS-1500 Superbills */}
+        {/* Feature 11: Invoicing & Superbill Statements */}
         {activeTab === 'billing' && <BillingView />}
 
         {/* Feature 12: Telehealth WebRTC Simulation */}
