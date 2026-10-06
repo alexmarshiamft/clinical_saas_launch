@@ -289,3 +289,14 @@ Following an independent second-round security review on commit `7403e77`, sever
    - Added headless WebSocket polyfills in `src/lib/supabase.ts` and test harnesses, guaranteeing clean execution across Node.js and JSDOM environments.
    - Configured `.github/workflows/ci.yml` targeting Node 22 LTS to automatically execute typecheck, build, client security audit, server security and multi-tenant isolation, empirical stress, and all milestone test suites.
    - Created `tests/server-security-and-tenant-isolation.test.ts` (29/29 tests passed) testing unauthenticated rejections (HTTP 401), RBAC blocks (HTTP 403), cross-tenant rejections (HTTP 403), audit log tenant isolation, and basis-point math invariants.
+
+### 9.1 Independent Audit Verification & CI Certification Sign-Off
+
+| Milestone | Commit | Scope of Work | CI Run Status |
+| :--- | :--- | :--- | :--- |
+| **Pass 2A** | `6bca9f6` | • Enforced authentication & RBAC on `/api/telehealth/meeting` and `/api/billing/create-checkout`<br>• Enforced strict tenant boundary on financial mutations (`POST /payment-event`, `/journal/entry`, `/journal/reverse`, `/cascade-simulation`)<br>• Removed owner/admin cross-tenant escape hatch from `/api/practice-os/state`<br>• Eradicated `!l.practiceId` leak in audit log store & export<br>• Added PostgreSQL triggers and RLS policies guarding unsigned clinical notes<br>• Added initial `.github/workflows/ci.yml` and `tests/server-security-and-tenant-isolation.test.ts` | Initial CI failed on JSDOM WebSocket environment missing in Node runner |
+| **Pass 2B** | `73d03f2` | • Polyfilled headless WebSocket in `src/lib/supabase.ts` and test harnesses<br>• Upgraded GitHub Actions workflow to Node 22 LTS<br>• Replaced `Math.round(percentage * 100)` float math with `parseBasisPoints` decimal string parsing and native `bigint` basis points<br>• Aligned clinical-note trigger exception messages, SQL comments, and documentation to `practice administrator or owner (roles: 'owner', 'admin', 'practice_admin')` | Initial run stalled on lingering subprocess pipe handles |
+| **Pass 2C** | `4113573` | • Added detached process-group `killServer` termination to prevent unclosed pipe handles<br>• Added explicit `process.exit(0)` to `tests/server-security-and-tenant-isolation.test.ts` and `tests/adversarial-financial-and-security.test.ts` | **master:** [37511948228](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37511948228) (Passed ✓)<br>**remediation-pass-2:** [37511959898](https://github.com/alexmarshiamft/clinical_saas_launch/actions/runs/37511959898) (Passed ✓) |
+
+**Final Audit Verdict:** The identified SEC-01, SEC-02, SEC-03, audit isolation, and financial arithmetic findings have been remediated and independently verified in source, with the complete automated CI suite passing.
+
