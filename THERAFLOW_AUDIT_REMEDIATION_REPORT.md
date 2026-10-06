@@ -276,14 +276,16 @@ Following an independent second-round security review on commit `7403e77`, sever
    - Enforced strict practice matching: tenants strictly receive only their own practice's audit logs.
 
 3. **SEC-03 (PostgreSQL RLS & Unsigned Clinical Notes Protection)**:
-   - Updated `lock_signed_clinical_notes` trigger to block colleague tampering on draft/unsigned notes: only the author clinician or practice owner/supervisor can update an unsigned note.
+   - Updated `lock_signed_clinical_notes` trigger to block colleague tampering on draft/unsigned notes: only the author clinician or practice administrator/owner (roles: `'owner'`, `'admin'`, `'practice_admin'`) can update an unsigned note.
    - Updated `prevent_delete_signed_clinical_notes` trigger to prevent same-practice colleagues from deleting another clinician's draft notes.
    - Replaced generic practice-wide RLS policy on `clinical_notes` with granular SELECT, INSERT, UPDATE, and DELETE policies restricting write operations to note authors or practice administrators.
 
-4. **Integer Basis-Point Math Eradication of Floating-Point Calculations**:
-   - Replaced floating-point conversion and multiplication (`centsToDollars(...) * pct` and `* 0.25`) in `banking-provider.ts` with pure integer basis-point math (`(baseCents * bps) / 10000n`).
+4. **Fixed-Point Basis-Point Math Eradication of Floating-Point Calculations**:
+   - Replaced floating-point conversion and multiplication (`centsToDollars(...) * pct` and `* 0.25`) in `banking-provider.ts` with pure fixed-point basis-point math (`calculateBasisPointsCents`).
+   - Supports direct BigInt basis points (e.g. `6550n` for 65.50%) as well as decimal percentages parsed purely through string extraction with zero IEEE-754 float multiplications.
    - Guaranteed exact cent conservation: `clinicianShareCents + practiceShareCents === totalCollectedCents` with zero floating-point drift.
 
-5. **Automated CI & Server Security Verification**:
-   - Added `.github/workflows/ci.yml` to automatically execute typecheck, build, and all test suites on GitHub for all pushes and pull requests.
-   - Created `tests/server-security-and-tenant-isolation.test.ts` (28/28 tests passed) testing unauthenticated rejections (HTTP 401), RBAC blocks (HTTP 403), cross-tenant rejections (HTTP 403), and audit log tenant isolation.
+5. **Automated CI, Headless WebSocket Resilience & Server Security Verification**:
+   - Added headless WebSocket polyfills in `src/lib/supabase.ts` and test harnesses, guaranteeing clean execution across Node.js and JSDOM environments.
+   - Configured `.github/workflows/ci.yml` targeting Node 22 LTS to automatically execute typecheck, build, client security audit, server security and multi-tenant isolation, empirical stress, and all milestone test suites.
+   - Created `tests/server-security-and-tenant-isolation.test.ts` (29/29 tests passed) testing unauthenticated rejections (HTTP 401), RBAC blocks (HTTP 403), cross-tenant rejections (HTTP 403), audit log tenant isolation, and basis-point math invariants.

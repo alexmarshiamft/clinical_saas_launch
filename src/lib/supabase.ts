@@ -12,6 +12,29 @@ const getEnvVar = (key: string): string => {
   return '';
 };
 
+// Headless / Node.js test environment WebSocket fallback
+// Prevents @supabase/realtime-js constructor throwing when running in Node environments < 22 or JSDOM
+if (typeof window === 'undefined' && typeof globalThis.WebSocket === 'undefined') {
+  class HeadlessMockWebSocket {
+    static CONNECTING = 0;
+    static OPEN = 1;
+    static CLOSING = 2;
+    static CLOSED = 3;
+    readyState = 3;
+    onopen = null;
+    onclose = null;
+    onerror = null;
+    onmessage = null;
+    constructor() {}
+    send() {}
+    close() {}
+  }
+  (globalThis as any).WebSocket = HeadlessMockWebSocket;
+  if (typeof global !== 'undefined') {
+    (global as any).WebSocket = HeadlessMockWebSocket;
+  }
+}
+
 const rawSupabaseUrl = getEnvVar('VITE_SUPABASE_URL');
 const rawSupabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 

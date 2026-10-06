@@ -796,10 +796,10 @@ CREATE OR REPLACE FUNCTION lock_signed_clinical_notes()
 RETURNS TRIGGER AS $$
 BEGIN
     -- 1. Unsigned note modification protection:
-    -- Clinicians can only modify their own unsigned notes; practice owners/supervisors can supervise
+    -- Clinicians can only modify their own unsigned notes; practice administrators/owners can administer
     IF OLD.is_signed = false AND NEW.is_signed = false THEN
         IF auth.uid() IS NOT NULL AND OLD.clinician_id IS DISTINCT FROM auth.uid() AND NOT is_practice_admin_or_owner() THEN
-            RAISE EXCEPTION 'Unauthorized: Clinicians can only modify their own unsigned notes unless practice supervisor or owner';
+            RAISE EXCEPTION 'Unauthorized: Clinicians can only modify their own unsigned notes unless practice administrator or owner';
         END IF;
         IF auth.uid() IS NOT NULL AND NEW.clinician_id IS DISTINCT FROM OLD.clinician_id AND NOT is_practice_admin_or_owner() THEN
             RAISE EXCEPTION 'Unauthorized: Cannot reassign clinical note author';
@@ -812,7 +812,7 @@ BEGIN
             RAISE EXCEPTION 'Unauthorized: Clinicians can only sign notes under their own authenticated identity';
         END IF;
         IF auth.uid() IS NOT NULL AND OLD.clinician_id IS DISTINCT FROM auth.uid() AND NOT is_practice_admin_or_owner() THEN
-            RAISE EXCEPTION 'Unauthorized: Only the author clinician or practice supervisor can sign this clinical note';
+            RAISE EXCEPTION 'Unauthorized: Only the author clinician or practice administrator/owner can sign this clinical note';
         END IF;
         IF NEW.signature_hash IS NULL OR LENGTH(NEW.signature_hash) < 32 THEN
             RAISE EXCEPTION 'Invalid signature: Digital cryptographic signature hash is required to sign note';
@@ -854,9 +854,9 @@ BEGIN
     IF OLD.is_signed = true THEN
         RAISE EXCEPTION 'Signed clinical notes cannot be deleted (HIPAA §164.312 retention and auditability)';
     END IF;
-    -- Unsigned notes can only be deleted by the author clinician or practice supervisor/owner
+    -- Unsigned notes can only be deleted by the author clinician or practice administrator/owner
     IF auth.uid() IS NOT NULL AND OLD.clinician_id IS DISTINCT FROM auth.uid() AND NOT is_practice_admin_or_owner() THEN
-        RAISE EXCEPTION 'Unauthorized: Clinicians can only delete their own unsigned notes unless practice supervisor or owner';
+        RAISE EXCEPTION 'Unauthorized: Clinicians can only delete their own unsigned notes unless practice administrator or owner';
     END IF;
     RETURN OLD;
 END;

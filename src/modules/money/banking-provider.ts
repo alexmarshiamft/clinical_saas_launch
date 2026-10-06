@@ -24,12 +24,48 @@ import { DoubleEntryLedger } from '@/modules/ledger/double-entry-ledger';
 import { dollarsToCents, centsToDollars } from '@/modules/compensation/compensation-engine';
 
 /**
- * Pure Integer Basis-Point Arithmetic:
- * Calculates percentage of an integer cent amount using basis points (1% = 100 bps, 100% = 10,000 bps).
- * Avoids IEEE-754 floating-point operations and precision drift.
+ * Converts a percentage representation or basis points into exact BigInt basis points (1 bp = 0.01% = 1/10000).
+ * Completely eliminates IEEE-754 floating-point arithmetic (zero float multiplications).
+ *
+ * Supported inputs:
+ * - Direct BigInt basis points: 6550n -> 6550n
+ * - Whole percentage number/string: 70 -> 7000n, "70" -> 7000n
+ * - Fractional percentage number/string: 65.5 -> 6550n, "65.5" -> 6550n (via exact string parsing, 0 floats)
  */
-export function calculateBasisPointsCents(baseCents: bigint, percentage: number): bigint {
-  const bps = BigInt(Math.round(percentage * 100));
+export function parseBasisPoints(input: bigint | number | string): bigint {
+  if (typeof input === 'bigint') {
+    return input;
+  }
+  const str = String(input).trim();
+  if (!str) return 0n;
+  const parts = str.split('.');
+  const wholePart = BigInt(parts[0] || '0');
+  if (parts.length === 1) {
+    return wholePart * 100n;
+  }
+  // Extract up to 2 decimal places (hundredths of a percent = basis points)
+  const fracStr = (parts[1] + '00').slice(0, 2);
+  const sign = wholePart < 0n || str.startsWith('-') ? -1n : 1n;
+  const absWhole = wholePart < 0n ? -wholePart : wholePart;
+  return sign * (absWhole * 100n + BigInt(fracStr));
+}
+
+/**
+ * Pure Fixed-Point Basis-Point Arithmetic:
+ * Calculates percentage of an integer cent amount using basis points (1 bp = 0.01%, 10,000 bps = 100%):
+ * `(baseCents * basisPoints) / 10000n`
+ *
+ * Supports direct BigInt basis points (e.g. 6550n for 65.50%) as well as percentage
+ * values parsed purely through decimal string conversion with zero floating-point operations.
+ */
+export function calculateBasisPointsCents(
+  baseCents: bigint,
+  percentageOrBasisPoints: bigint | number | string,
+  isExplicitBasisPoints: boolean = false
+): bigint {
+  const bps: bigint = isExplicitBasisPoints
+    ? BigInt(percentageOrBasisPoints)
+    : parseBasisPoints(percentageOrBasisPoints);
   return (baseCents * bps) / 10000n;
 }
 
@@ -52,7 +88,8 @@ export interface BusinessBankingProvider {
     patientResponsibility: number;
     clinicianId: string;
     clinicianName: string;
-    compensationPercentage: number;
+    compensationPercentage?: number;
+    compensationBasisPoints?: bigint | number;
   }): Promise<ClaimPaymentReconciliation>;
   processPrivatePayCharge(params: {
     clientName: string;
@@ -60,7 +97,8 @@ export interface BusinessBankingProvider {
     cptCode: string;
     clinicianId: string;
     clinicianName: string;
-    clinicianPercentage: number;
+    clinicianPercentage?: number;
+    clinicianBasisPoints?: bigint | number;
   }): Promise<{ transaction: BankTransaction; reconciliation: ClaimPaymentReconciliation }>;
 }
 
@@ -283,7 +321,8 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     patientResponsibility: number;
     clinicianId: string;
     clinicianName: string;
-    compensationPercentage: number;
+    compensationPercentage?: number;
+    compensationBasisPoints?: bigint | number;
   }): Promise<ClaimPaymentReconciliation> {
     // Idempotency check: prevent duplicate compensation if claim is reprocessed
     if (this.processedClaims.has(params.claimId)) {
@@ -300,8 +339,15 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     // Actual bank deposit from insurance EFT is strictly the payer payment
     const actualBankDepositCents = payerPaymentCents > 0n ? payerPaymentCents : totalCollectedCents;
 
-    // Pure integer basis-point calculation (zero floating-point drift)
-    const clinicianShareCents = calculateBasisPointsCents(totalCollectedCents, params.compensationPercentage);
+    // Pure fixed-point basis-point calculation (zero floating-point operations)
+    const bpsArg = params.compensationBasisPoints !== undefined
+      ? params.compensationBasisPoints
+      : (params.compensationPercentage ?? 70);
+    const clinicianShareCents = calculateBasisPointsCents(
+      totalCollectedCents,
+      bpsArg,
+      params.compensationBasisPoints !== undefined
+    );
     const practiceShareCents = totalCollectedCents - clinicianShareCents;
 
     // 1. Record Double-Entry Journal for deposit
@@ -387,13 +433,21 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     cptCode: string;
     clinicianId: string;
     clinicianName: string;
-    clinicianPercentage: number;
+    clinicianPercentage?: number;
+    clinicianBasisPoints?: bigint | number;
   }): Promise<{ transaction: BankTransaction; reconciliation: ClaimPaymentReconciliation }> {
     const chargeId = `chg-stripe-${Date.now()}`;
     const amountCents = dollarsToCents(params.amount);
 
-    // Pure integer basis-point calculation (zero floating-point drift)
-    const clinicianShareCents = calculateBasisPointsCents(amountCents, params.clinicianPercentage);
+    // Pure fixed-point basis-point calculation (zero floating-point operations)
+    const bpsArg = params.clinicianBasisPoints !== undefined
+      ? params.clinicianBasisPoints
+      : (params.clinicianPercentage ?? 70);
+    const clinicianShareCents = calculateBasisPointsCents(
+      amountCents,
+      bpsArg,
+      params.clinicianBasisPoints !== undefined
+    );
     const practiceShareCents = amountCents - clinicianShareCents;
 
     // Record double entry settlement

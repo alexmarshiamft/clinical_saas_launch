@@ -11,10 +11,11 @@
 
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
+import fs from 'fs';
 import { signJwtToken } from '../src/lib/jwt-auth';
-import { calculateBasisPointsCents, SandboxEmbeddedBankingProvider } from '../src/modules/money/banking-provider';
+import { calculateBasisPointsCents, parseBasisPoints, SandboxEmbeddedBankingProvider } from '../src/modules/money/banking-provider';
 
-const TEST_PORT = 3995;
+const TEST_PORT = 3996;
 const BASE_URL = `http://127.0.0.1:${TEST_PORT}`;
 
 let passCount = 0;
@@ -112,6 +113,22 @@ async function runTestSuite() {
       taxSetAside === 1125n,
       `Tax Reserve: ${taxSetAside} cents`
     );
+
+    // Test 0.4: Pure Direct BigInt basis points (6550n) and exact string percentage parsing (0 floats)
+    const splitDirectBps = calculateBasisPointsCents(base2, 6550n, true);
+    const parsedBpsFromFloat = parseBasisPoints(65.5);
+    const parsedBpsFromString = parseBasisPoints('65.5');
+    assertTest(
+      '0.4 Pure BigInt basis-point input (6550n) and float-free parsing (65.5 -> 6550n) match',
+      splitDirectBps === split2 && parsedBpsFromFloat === 6550n && parsedBpsFromString === 6550n,
+      `Direct Bps: ${splitDirectBps}c, Parsed Bps: ${parsedBpsFromFloat}n`
+    );
+  }
+
+  const ledgerPath = path.resolve(process.cwd(), 'data/audit_ledger.jsonl');
+  let originalLedgerBackup: string | null = null;
+  if (fs.existsSync(ledgerPath)) {
+    originalLedgerBackup = fs.readFileSync(ledgerPath, 'utf8');
   }
 
   let server: ChildProcess;
@@ -401,6 +418,11 @@ async function runTestSuite() {
 
   } finally {
     server.kill();
+    if (originalLedgerBackup !== null) {
+      try {
+        fs.writeFileSync(ledgerPath, originalLedgerBackup, 'utf8');
+      } catch {}
+    }
   }
 
   console.log('\n====================================================================');

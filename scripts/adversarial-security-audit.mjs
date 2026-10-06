@@ -46,6 +46,9 @@ function setupGlobals(dom) {
   global.localStorage = dom.window.localStorage;
   global.location = dom.window.location;
   global.HTMLElement = dom.window.HTMLElement;
+  if (typeof globalThis.WebSocket !== 'undefined') {
+    dom.window.WebSocket = globalThis.WebSocket;
+  }
   try {
     Object.defineProperty(globalThis, 'navigator', {
       value: dom.window.navigator,
@@ -56,6 +59,32 @@ function setupGlobals(dom) {
 }
 
 async function runHarness() {
+  // Ensure WebSocket is defined before loading any Supabase/App components in Node < 22
+  if (typeof globalThis.WebSocket === 'undefined') {
+    try {
+      const { default: ws } = await import('ws');
+      globalThis.WebSocket = ws;
+      global.WebSocket = ws;
+    } catch {
+      class HeadlessMockWebSocket {
+        static CONNECTING = 0;
+        static OPEN = 1;
+        static CLOSING = 2;
+        static CLOSED = 3;
+        readyState = 3;
+        onopen = null;
+        onclose = null;
+        onerror = null;
+        onmessage = null;
+        constructor() {}
+        send() {}
+        close() {}
+      }
+      globalThis.WebSocket = HeadlessMockWebSocket;
+      global.WebSocket = HeadlessMockWebSocket;
+    }
+  }
+
   const { JSDOM } = await import('jsdom');
   const React = (await import('react')).default;
   const ReactDOM = (await import('react-dom/client')).default;

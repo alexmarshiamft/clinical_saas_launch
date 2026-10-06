@@ -44,6 +44,9 @@ function setupGlobals(dom) {
   global.localStorage = dom.window.localStorage;
   global.location = dom.window.location;
   global.HTMLElement = dom.window.HTMLElement;
+  if (typeof globalThis.WebSocket !== 'undefined') {
+    dom.window.WebSocket = globalThis.WebSocket;
+  }
   try {
     Object.defineProperty(globalThis, 'navigator', {
       value: dom.window.navigator,
