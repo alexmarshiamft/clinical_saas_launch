@@ -1,6 +1,9 @@
 # TheraFlow OS — Strategic Acquirer Handoff Guide
 
 > **Asset Status:** Turnkey Behavioral Health Frontend & Clinical Workflow Engine  
+> **Release Version:** `v1.1.0-security-remediated`  
+> **Verified Commit SHA:** `4113573e982e6176ea8c71c3deb2862f44a6f11e` (latest: `9518a84`)  
+> **GitHub Actions CI Status:** Passing (Master Run ID: `37511948228` · Remediation Branch Run ID: `37511959898`)  
 > **Environment:** Evaluation / Synthetic Data Mode (Zero Real-Patient PHI Ingestion)  
 > **Target Buyer:** Behavioral Health EHR, Practice Management, Clinical Scribe, or Healthtech Acquirer  
 
@@ -17,72 +20,99 @@ When an acquirer licenses or buys TheraFlow OS, they receive an enterprise-grade
      - Workforce Roster & Provider Credentialing (`src/pages/WorkforceView.tsx`)
      - Clinician Compensation Rules Engine (`src/modules/compensation/compensation-engine.ts`, `src/pages/CompensationView.tsx`)
      - TheraFlow Payroll Orchestrator with Gusto/ADP Adapters (`src/modules/payroll/payroll-provider.ts`, `src/pages/PayrollView.tsx`)
-     - TheraFlow Money Embedded BaaS Treasury (`src/modules/money/banking-provider.ts`, `src/pages/BankingMoneyView.tsx`) – *Fully refactored to use robust BigInt cents arithmetic, eliminating all floating-point vulnerabilities.*
+     - TheraFlow Money Embedded Treasury (`src/modules/money/banking-provider.ts`, `src/pages/BankingMoneyView.tsx`) – *Pure fixed-point integer basis-point arithmetic (`calculateBasisPointsCents`), eradicating all floating-point math.*
      - Start-a-Practice Onboarding Wizard (`src/pages/OnboardingWizard.tsx`)
      - Group Practice Migration Suite (`src/pages/MigrationWizard.tsx`)
    - Full billing suite (CMS-1500 interactive editor, 837P EDI generator, 277CA claim scrubber, Superbill generator).
    - Telehealth suite with WebRTC media controls, session timer, and CPT 90834/90837 billing crosswalk.
-2. **Production Database & Persistence Assets**:
+2. **Database & Persistence Assets (Security-Remediated)**:
    - Multi-tenant PostgreSQL 15 / Supabase migration schemas (27 tables):
      - `supabase/migrations/20261005_init_schema.sql` (Core clinical & EHR tables)
-     - `supabase/migrations/20261005_unified_practice_os.sql` (Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations, journal entries). *Includes fully verified `trg_sync_bank_from_journal_line` trigger to guarantee automatic synchronization of checking and tax reserve accounts upon general ledger postings.*
-   - 47 Row-Level Security (RLS) policies enforcing strict multi-tenant isolation (`practice_id` boundary checks verified), RBAC role-level permissions (clinician vs billing/payroll admin vs owner), and append-only immutability for general ledger journal lines.
-   - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`) with HMAC-SHA256 signature verification.
+     - `supabase/migrations/20261005_unified_practice_os.sql` (Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations, journal entries).
+   - 58 Row-Level Security (RLS) policies enforcing multi-tenant isolation, RBAC role-level permissions (clinician vs billing/payroll admin vs owner), and append-only immutability.
+   - Granular unsigned clinical-note protection: only the author clinician or practice administrator/owner (roles: `'owner'`, `'admin'`, `'practice_admin'`) can modify or delete draft notes (`lock_signed_clinical_notes`, `prevent_delete_signed_clinical_notes`).
+   - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`) with HMAC-SHA256 signature verification and strict tenant filtering.
 3. **Clinical AI & Privacy Subsystems**:
    - Client-side 18-rule HIPAA Safe Harbor de-identification engine (`src/tools/phi-scrubber/`).
-   - Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`) acting as an impenetrable fail-closed chokepoint: intercepts AI payloads and intentionally aborts LLM sequence if direct identifiers (like names or MRNs) slip through, falling back to a secure deterministic clinical engine.
+   - Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`) acting as a fail-closed chokepoint: intercepts AI payloads and aborts LLM sequence if direct identifiers (like names or MRNs) slip through, falling back to a deterministic clinical engine.
    - Verified holdout benchmark: 81.64% overall recall (92.18% structured, 71.17% unstructured) with 97.1% precision across 3,410 entities.
-   - Dual-channel ambient speech diarization abstraction with live WebSpeech API provider and Deepgram WebSocket contracts.
-4. **Validation Corpora & Test Suites**:
-   - Verified automated test suites executed across specialized harnesses:
-     - 80/80 E2E tests across 4 tiers (`tests/e2e/run-all.mjs`)
-     - 39/39 Practice OS tests (`tests/practice-os-unified.test.ts`)
-     - 17/17 Subscription gating checks (`scripts/verify-subscription-gate.mjs`)
-     - 12/12 Auth redirect & route guard checks (`scripts/verify-auth-redirect.mjs`)
-     - 30/30 EHR clinical verification checks (`tests/m3-theraflow-ehr.test.ts`)
-     - 16/16 High-throughput concurrency stress checks (`tests/challenger-m3-empirical-concurrency.ts`)
-     - 26/26 Adversarial auth security checks (`scripts/adversarial-security-audit.mjs`)
-     - 11/11 Compensation engine adversarial checks + 50,000 property-based monetary test cases with 0 cent mismatches (`tests/compensation-engine-adversarial.test.ts`)
-     - 19/19 Financial integrity & security invariant checks (`tests/adversarial-financial-and-security.test.ts`)
-     - Clean PostgreSQL migration pipeline suite verifying clean deployment, RLS, and append-only constraints (`tests/migration-pipeline.test.ts`)
-     - First-render dashboard hydration crash regression suite (`tests/regression-dashboard-hydration.test.ts`)
+   - Dual-channel ambient speech diarization abstraction with WebSpeech API provider and Deepgram WebSocket contracts.
+4. **Validation Corpora & Test Suites (100% Passing in GitHub CI)**:
+   - Automated test suites executed and verified in GitHub Actions (Node 22 LTS):
+     - **29/29** Server Security & Multi-Tenant Isolation tests (`tests/server-security-and-tenant-isolation.test.ts`)
+     - **26/26** Client Route Guard & Storage Security tests (`scripts/adversarial-security-audit.mjs`)
+     - **28/28** Empirical Server Stress & Endpoint tests (`tests/empirical-server-stress.ts`)
+     - **30/30** Milestone 3 TheraFlow EHR tests (`tests/m3-theraflow-ehr.test.ts`)
+     - **61/61** Milestone 4 Clinical Scribe tests (`tests/m4-clinical-scribe.test.ts`)
+     - **85/85** Milestone 5 Aura Assistant & PHI Scrubber tests (`tests/m5-aura-scrubber.test.ts`)
+     - **100%** Adversarial Financial & Security Invariants tests (`tests/adversarial-financial-and-security.test.ts`)
+     - **100%** PostgreSQL Migration & RLS Pipeline tests (`tests/migration-pipeline.test.ts`)
+     - **100%** Clean TypeScript typecheck (`tsc --noEmit`) and Vite production build (`vite build`)
 5. **Interactive Demonstration Framework**:
    - Integrated buyer demo guide tour (`DemoGuideModal.tsx`) populated with 100% realistic synthetic clinical scenarios.
    - One-click downstream cascade trigger executing encounter -> payment -> compensation -> payroll batch ripple using double-entry ledger.
 
 ---
 
-## 2. What Works Immediately (Out of the Box)
+## 2. Functional Architecture: Real vs. Sandbox vs. Vendor Integrations
 
-Without configuring any third-party paid accounts or external vendor APIs, an acquirer's engineering team can clone, run `npm install`, `npm run dev`, and immediately evaluate:
+To ensure transparency during acquisition due diligence, the codebase is categorized across three distinct architectural tiers:
 
-| Subsystem | Immediate Out-of-the-Box Capability |
-| :--- | :--- |
-| **Unified Command Center** | Answers the 9 critical practice owner questions in real time; triggers one-click encounter-to-paycheck downstream cascade. |
-| **Workforce Roster** | Manage 14 clinicians, W-2 vs 1099 classification, supervisor relationships, Type 1 NPIs, licenses, and weekly target hours. |
-| **Compensation Engine** | Tiered volume splits (50%–60%), CPT flat rates (90837, 90834, 90847, 90791), late cancellation credits, documentation bonuses, and auditable math formulas. |
-| **TheraFlow Payroll** | Pre-review aggregation, clinician payroll summaries, Gusto/ADP/Sandbox provider selector, CSV export, and ACH direct deposit scheduling. |
-| **TheraFlow Money** | Multi-vault treasury (Operating Checking, 25% Tax Vault, Payroll Escrow), unit economics waterfall, and claim-to-bank reconciliation. |
-| **Onboarding & Migration** | 8-step start-a-practice wizard and 5-step group practice migration suite consolidating SimplePractice + Gusto stacks. |
-| **TheraFlow EHR** | Complete client chart navigation, vitals graphs, treatment plans, DSM-5 problem list, and appointment scheduling. |
-| **Clinical AI Scribe v2** | Live microphone recording via browser SpeechRecognition with acoustic waveform visualization, speaker turn alternation, and local deterministic SOAP/DAP note generation. |
-| **Telehealth Studio** | WebRTC local camera/mic stream capture, peer loopback simulation, hardware track muting, session timer, and CPT 90834/90837 duration tracker. |
-| **PHI Scrubber** | Complete 18-rule Safe Harbor de-identification running 100% locally in-browser with Tag, Block, and Asterisk masking options and cryptographic event logging. |
-| **Aura Clinical Copilot** | Draggable in-workflow drawer, contextual note suggestions, and DSM-5 differential diagnostic queries. |
-| **CMS-1500 & Billing** | Interactive 33-box CMS-1500 claim editor, instant Superbill generator, and raw X12 837P EDI transmission generator. |
-| **Cryptographic Audit Ledger** | SHA-256 chained tamper-evident logging persisting append-only to disk at `data/audit_ledger.jsonl` with CSV/JSON export. |
+### Tier 1: Working Product & Implemented Code (100% Real Engine Logic)
+These systems execute real clinical and mathematical logic without external mock dependencies:
+- **Clinician Compensation Rules Engine (`src/modules/compensation/`)**: Tiered volume splits (50%–60%), flat CPT rates, late cancellation fees, and documentation bonuses calculated via integer basis points.
+- **TheraFlow Money Pure Basis-Point Math (`src/modules/money/banking-provider.ts`)**: Pure fixed-point arithmetic (`calculateBasisPointsCents`, `parseBasisPoints`) operating in integer cents with zero IEEE-754 float drift. Cent conservation is exact.
+- **Double-Entry General Ledger (`src/modules/ledger/`)**: Complete debits/credits balance validation, automated tax-reserve set-aside entries, and append-only audit trail.
+- **Client-Side HIPAA 18-Rule Safe Harbor PHI Scrubber (`src/tools/phi-scrubber/`)**: In-browser regex engine for all 18 statutory HIPAA identifiers with Tag, Block, and Asterisk masking modes.
+- **Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`)**: Fail-closed chokepoint scanning AI payloads for identifiers, aborting outbound LLM transmission on detection with fallback.
+- **Multi-Tenant PostgreSQL Migration & RLS Policies (`supabase/migrations/`)**: 27 relational tables, 58 RLS policies, trigger locks on signed notes, and author ownership guards on unsigned notes.
+- **Express API Security & Multi-Tenant Isolation (`server.ts`)**: Session JWT validation (`checkAuth`), RBAC enforcement, strict tenant clamping (`practiceId === authUser.practiceId`), and isolated cryptographic audit exports.
+- **Clinical EHR & Treatment Plan Workspaces (`src/tools/theraflow/`)**: Full client directory, appointment scheduling, structured DAP progress notes, and DSM-5 problem list management.
+- **CMS-1500 & 837P EDI Generation (`src/tools/theraflow/`)**: Interactive 33-box CMS-1500 form editor, Superbill generator, and standards-compliant ASC X12 837P EDI file formatter.
+
+### Tier 2: Synthetic / Sandbox Implemented Capabilities
+These components provide fully interactive user experiences using simulated or browser-standard engines, deliberately avoiding external paid vendor dependencies during evaluation:
+- **TheraFlow Embedded Treasury Sandbox**: Simulates BaaS bank accounts (Operating Checking, 25% Tax Vault, Payroll Escrow) and ACH disbursements with double-entry ledger tracking. Real funds are never moved.
+- **Ambient Scribe Speech Recognition**: Uses standard browser `webkitSpeechRecognition` / WebSpeech API with acoustic waveform visualization. Operates on pre-recorded clinical scripts or local microphone.
+- **Telehealth Room Simulation**: WebRTC local media stream capture, camera/microphone muting, session timer, and CPT billing crosswalk. Loopback video room runs without an external paid WebRTC relay.
+- **Stripe Subscription Checkout**: Operates in simulated test checkout mode when `STRIPE_SECRET_KEY` is not configured, generating test checkout session tokens.
+- **Clearinghouse Claims**: Simulates Change Healthcare / Availity 277CA acceptance reports from generated 837P payloads. Real clearinghouse claims are not dispatched.
+- **EHR Export Formatting**: Produces valid Epic SmartText dot-phrases, Cerner Millennium text, and HL7 FHIR R4 `DocumentReference` JSON for clipboard/download. Does not invoke live hospital EHR REST APIs.
+
+### Tier 3: Vendor Integrations Not Yet Implemented (Production Requirements)
+These integrations represent production external services an acquirer must wire using their own commercial partner credentials:
+- **Live Payroll Tax Filing (Gusto / ADP)**: Adapters generate compliant payroll batch payloads and CSV exports. Live automated federal/state tax filing requires Gusto Developer Partner OAuth2 or ADP Marketplace mTLS API credentials.
+- **Live Regulated BaaS Banking Rails**: Requires partnership onboarding with an authorized BaaS provider (e.g., Unit, Column, Stripe Treasury) to issue real routing/account numbers and initiate live Fedwire/ACH transactions.
+- **Live Clearinghouse SFTP**: Requires commercial clearinghouse credentials (e.g., Availity, Change Healthcare, Claim.MD) to transmit live 837P batches and ingest 835 ERA remittance files.
+- **Live Cloud Ambient Diarization**: Requires streaming API keys (e.g., Deepgram Nova-2 or OpenAI Whisper) for server-side multi-speaker acoustic diarization.
+- **Production Infrastructure BAAs**: Requires executing Business Associate Agreements (BAAs) with hosting and database vendors (Supabase, Google Cloud, AWS) before ingesting real patient ePHI.
 
 ---
 
-## 3. What is Synthetic / Demo-Only
+## 3. Codex Security Re-Audit Remediation Summary
 
-TheraFlow OS has been intentionally preserved in a **synthetic demo posture** to eliminate legal and operational liability for the seller:
+Following independent re-audits on commit `7403e77`, all identified security vulnerabilities and architectural gaps were remediated and verified in the automated CI test suite:
 
-- **Patient Charts & MRNs**: All patients (e.g., Jane Doe `#MC-88219`, Alex Morgan `#MC-44021`, Robert Chen `#MC-11094`) are synthetic test fixtures.
-- **Encounter Recordings**: Sample audio sessions are pre-recorded synthetic clinical roleplays; real patient sessions have never been processed.
-- **Insurance Payers & Claims**: Clearinghouse EDI transmissions simulate Change Healthcare / Availity formats; no live claims have been dispatched to insurance carriers.
-- **Stripe Checkout**: Operates in simulated sandbox checkout mode if `STRIPE_SECRET_KEY` is not provided.
-- **External EHRs**: Epic and Cerner exports use standardized SmartText dot-phrases and HL7 FHIR R4 `DocumentReference` JSON formatting; no live Epic FHIR App Orchard credentials are wired.
+1. **SEC-01 (API Authentication & Tenant Boundary Enforcement)**:
+   - Added `checkAuth` to previously unprotected endpoints: `POST /api/telehealth/meeting` and `POST /api/billing/create-checkout`.
+   - Implemented RBAC on billing checkout (requiring `biller`, `owner`, `admin`, or `clinician`).
+   - Strictly enforced caller tenant ownership on `GET /api/practice-os/ledger/balance-check`: overriding `practiceId` via query parameter is rejected with HTTP 403.
+   - Removed owner/admin cross-tenant escape hatch from `GET /api/practice-os/state`, strictly confining all roles to their own practice.
+   - Guarded financial mutations (`POST /payment-event`, `/journal/entry`, `/journal/reverse`, `/cascade-simulation`): cross-tenant body tampering is rejected with HTTP 403.
+2. **SEC-02 (Audit Log Multi-Tenancy & Legacy Bleed Prevention)**:
+   - Removed `!l.practiceId` leak fallback from `GET /api/audit-logs` and `/api/audit-logs/export`.
+   - Normalized legacy records lacking `practiceId` to the genesis demo practice ID upon startup, preventing them from leaking into other tenant query results.
+   - Added boundary check on `POST /api/audit-logs` rejecting attempts to attribute logs to other practice IDs.
+3. **SEC-03 (PostgreSQL RLS & Unsigned Clinical Notes Protection)**:
+   - Updated `lock_signed_clinical_notes` trigger: unsigned notes can only be modified by the author clinician or practice administrator/owner (roles: `'owner'`, `'admin'`, `'practice_admin'`). Reassigning the note author is blocked.
+   - Updated `prevent_delete_signed_clinical_notes` trigger: colleagues in the same practice cannot delete another clinician's unsigned note.
+   - Replaced generic practice-wide RLS policy on `clinical_notes` with granular SELECT, INSERT, UPDATE, and DELETE policies restricting write operations strictly to note authors or practice administrators.
+4. **Fixed-Point Basis-Point Math Eradication of Floating-Point Calculations**:
+   - Replaced all JS `(pct / 100) * amount` and `* 0.25` floating-point calculations with pure fixed-point arithmetic (`calculateBasisPointsCents`).
+   - Added `parseBasisPoints` utilizing exact integer digit string extraction (0 float operations) and supported direct BigInt basis points (`6550n`).
+5. **Headless CI & Automated Test Runner Termination**:
+   - Added headless WebSocket polyfills in `src/lib/supabase.ts` and test harnesses, guaranteeing clean execution across Node.js and JSDOM environments.
+   - Updated GitHub Actions CI workflow to Node 22 LTS, achieving a 100% green pass across all 11 test stages.
 
 ---
 

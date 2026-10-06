@@ -5,3 +5,5 @@ dist
 .env.*
 .vercel
 *.log
+investor_deck.html
+screenshots_walkthrough.html
