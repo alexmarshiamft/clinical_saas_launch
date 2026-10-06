@@ -54,8 +54,13 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
 
+  // Encounter Active Lifecycle State (prevents inadvertent camera/mic acquisition post-session)
+  const [isEncounterActive, setIsEncounterActive] = useState<boolean>(true);
+
   // Initialize WebRTC session
   useEffect(() => {
+    if (!isEncounterActive) return;
+
     const engine = new WebRtcEngine((state) => {
       setWebrtcConnected(state.isConnected);
       setRttLatency(state.rttMs);
@@ -76,7 +81,7 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
     return () => {
       engine.endSession();
     };
-  }, [activePatient]);
+  }, [activePatient, isEncounterActive]);
 
   // Session Duration Timer (seconds)
   const [secondsElapsed, setSecondsElapsed] = useState(55 * 60 + 12); // Start at ~55 mins to display target CPT 90837
@@ -144,10 +149,16 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
   };
 
   const handleLeaveSession = async () => {
+    setIsEncounterActive(false);
     setIsTimerRunning(false);
     if (webrtcRef.current) {
       webrtcRef.current.endSession();
+      webrtcRef.current = null;
     }
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    setWebrtcConnected(false);
     await logAuditEvent(
       'TELEHEALTH_SESSION',
       'telehealth_room',
@@ -162,6 +173,19 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
     );
     toast.info(`Telehealth encounter wrapped up (${formatTimer(secondsElapsed)}). Session logged.`);
     onLeave?.();
+  };
+
+  const handleOpenScribe = () => {
+    setIsEncounterActive(false);
+    if (webrtcRef.current) {
+      webrtcRef.current.endSession();
+      webrtcRef.current = null;
+    }
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    setWebrtcConnected(false);
+    onOpenScribe?.();
   };
 
   const minutesElapsed = Math.floor(secondsElapsed / 60);
@@ -433,7 +457,7 @@ export const TelehealthView: React.FC<TelehealthViewProps> = ({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={onOpenScribe}
+            onClick={handleOpenScribe}
             className="flex items-center gap-1.5"
           >
             <Activity className="h-4 w-4 text-purple-600" />

@@ -74,8 +74,12 @@ export function scrubText(
   // 1. Contextual Active Patient Injection
   if (options.customPatientContext) {
     const { name, dob, mrn, phone } = options.customPatientContext;
-    if (name && name.trim().length > 2) {
-      const nameRegex = new RegExp(`\\b${escapeRegExp(name.trim())}\\b`, 'gi');
+    if (name && name.trim().length > 1) {
+      const trimmedName = name.trim();
+      const isAsciiWord = /^[a-zA-Z0-9_\s'-]+$/.test(trimmedName);
+      const nameRegex = isAsciiWord
+        ? new RegExp(`\\b${escapeRegExp(trimmedName)}\\b`, 'gi')
+        : new RegExp(escapeRegExp(trimmedName), 'gui');
       let m: RegExpExecArray | null;
       while ((m = nameRegex.exec(input)) !== null) {
         candidates.push({

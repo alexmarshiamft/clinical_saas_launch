@@ -771,10 +771,43 @@ BEFORE INSERT ON users
 FOR EACH ROW
 EXECUTE FUNCTION prevent_unauthorized_user_insert();
 
+-- Prevent unauthorized deletion of user accounts
+CREATE OR REPLACE FUNCTION prevent_unauthorized_user_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF auth.uid() IS NOT NULL AND NOT is_practice_admin_or_owner() THEN
+        RAISE EXCEPTION 'Unauthorized: Only practice owners and administrators can delete user accounts';
+    END IF;
+    IF OLD.role = 'owner' THEN
+        RAISE EXCEPTION 'Unauthorized: Practice owners cannot be deleted';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_user_delete ON users;
+CREATE TRIGGER trg_prevent_user_delete
+BEFORE DELETE ON users
+FOR EACH ROW
+EXECUTE FUNCTION prevent_unauthorized_user_delete();
+
 -- Prevent alteration or un-signing of signed clinical notes (complete metadata protection)
 CREATE OR REPLACE FUNCTION lock_signed_clinical_notes()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- Initial clinical signing integrity check
+    IF OLD.is_signed = false AND NEW.is_signed = true THEN
+        IF auth.uid() IS NOT NULL AND NEW.signed_by IS DISTINCT FROM auth.uid() THEN
+            RAISE EXCEPTION 'Unauthorized: Clinicians can only sign notes under their own authenticated identity';
+        END IF;
+        IF auth.uid() IS NOT NULL AND OLD.clinician_id IS DISTINCT FROM auth.uid() AND NOT is_practice_admin_or_owner() THEN
+            RAISE EXCEPTION 'Unauthorized: Only the author clinician or practice supervisor can sign this clinical note';
+        END IF;
+        IF NEW.signature_hash IS NULL OR LENGTH(NEW.signature_hash) < 32 THEN
+            RAISE EXCEPTION 'Invalid signature: Digital cryptographic signature hash is required to sign note';
+        END IF;
+    END IF;
+
     IF OLD.is_signed = true THEN
         IF (
             NEW.rendered_markdown IS DISTINCT FROM OLD.rendered_markdown OR
@@ -818,6 +851,25 @@ CREATE TRIGGER trg_prevent_delete_signed_notes
 BEFORE DELETE ON clinical_notes
 FOR EACH ROW
 EXECUTE FUNCTION prevent_delete_signed_clinical_notes();
+
+-- Audit Log Attribution Integrity Guard
+CREATE OR REPLACE FUNCTION verify_audit_log_attribution()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF auth.uid() IS NOT NULL THEN
+        IF NEW.user_id IS NOT NULL AND NEW.user_id IS DISTINCT FROM auth.uid() AND NOT is_practice_admin_or_owner() THEN
+            RAISE EXCEPTION 'Audit attribution mismatch: Cannot insert audit log attributing action to another user';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_verify_audit_attribution ON audit_logs;
+CREATE TRIGGER trg_verify_audit_attribution
+BEFORE INSERT ON audit_logs
+FOR EACH ROW
+EXECUTE FUNCTION verify_audit_log_attribution();
 
 -- ------------------------------------------------------------------------------
 -- 10. CLINICAL NOTE AMENDMENTS (Append-only corrections for signed notes)
@@ -902,5 +954,41 @@ BEGIN
         EXECUTE 'REVOKE TRUNCATE ON clinical_notes, journal_entry_lines, journal_entries, audit_logs, payment_reconciliations, payroll_runs, payroll_run_line_items, earning_line_items, users, clients, appointments, compensation_plan_versions FROM authenticated;';
     END IF;
 END $$;
+
+-- ------------------------------------------------------------------------------
+-- 12. BANK ACCOUNT SYNCHRONIZATION TRIGGER (FIN-1.2)
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION sync_bank_account_from_journal_line()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_practice_id UUID;
+    v_account_code VARCHAR(20);
+BEGIN
+    SELECT practice_id, account_code INTO v_practice_id, v_account_code
+    FROM general_ledger_accounts WHERE id = NEW.account_id;
+
+    IF v_account_code = '1010' THEN
+        UPDATE bank_accounts
+        SET current_balance_cents = current_balance_cents + (NEW.debit_cents - NEW.credit_cents),
+            available_balance_cents = available_balance_cents + (NEW.debit_cents - NEW.credit_cents),
+            updated_at = NOW()
+        WHERE practice_id = v_practice_id AND account_type = 'operating_checking';
+    ELSIF v_account_code = '1020' THEN
+        UPDATE bank_accounts
+        SET current_balance_cents = current_balance_cents + (NEW.debit_cents - NEW.credit_cents),
+            available_balance_cents = available_balance_cents + (NEW.debit_cents - NEW.credit_cents),
+            updated_at = NOW()
+        WHERE practice_id = v_practice_id AND account_type = 'tax_reserve';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_bank_from_journal_line ON journal_entry_lines;
+CREATE TRIGGER trg_sync_bank_from_journal_line
+AFTER INSERT ON journal_entry_lines
+FOR EACH ROW
+EXECUTE FUNCTION sync_bank_account_from_journal_line();
 
 

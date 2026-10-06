@@ -244,24 +244,33 @@ export async function generateClinicalNote(options: GenerateNoteOptions): Promis
   // Branch A: Live Google Gemini 2.5 Flash
   if (geminiKey && geminiKey.length > 10 && !geminiKey.includes('placeholder')) {
     try {
-      // Mandatory PHI Privacy Gateway Check (Fail-Closed)
+      const patientContext = {
+        name: context.patient_name,
+        mrn: context.mrn,
+        dob: context.dob,
+      };
+
+      // Mandatory PHI Privacy Gateway Check on Transcript (Fail-Closed)
       const sanitized = sanitizeForOutboundLlm(
         transcript,
-        {
-          name: context.patient_name,
-          mrn: context.mrn,
-          dob: context.dob,
-        },
+        patientContext,
         { maskStyle: 'tag' }
       );
 
-      const ai = new GoogleGenAI({ apiKey: geminiKey });
+      // Sanitize user-editable template metadata & instructions before prompt interpolation
+      const sanitizedTemplateName = sanitizeForOutboundLlm(template.name || '', patientContext, { maskStyle: 'tag' }).cleanText;
       const sectionInstructions = template.sections
-        .map((s) => `"${s.id}": "${s.title} - ${s.promptInstruction}"`)
+        .map((s) => {
+          const safeTitle = sanitizeForOutboundLlm(s.title || '', patientContext, { maskStyle: 'tag' }).cleanText;
+          const safeInstruction = sanitizeForOutboundLlm(s.promptInstruction || '', patientContext, { maskStyle: 'tag' }).cleanText;
+          return `"${s.id}": "${safeTitle} - ${safeInstruction}"`;
+        })
         .join(',\n');
 
+      const ai = new GoogleGenAI({ apiKey: geminiKey });
+
       const prompt = `You are a board-certified clinical psychiatrist and psychologist synthesizing a medical note.
-Template: ${template.name}
+Template: ${sanitizedTemplateName}
 Patient: [PATIENT_REDACTED] (MRN: [MRN_REDACTED], CPT: ${context.cpt_code || '90837'})
 Clinician: [PROVIDER_REDACTED]
 

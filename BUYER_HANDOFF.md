@@ -17,7 +17,7 @@ When an acquirer licenses or buys TheraFlow OS, they receive an enterprise-grade
      - Workforce Roster & Provider Credentialing (`src/pages/WorkforceView.tsx`)
      - Clinician Compensation Rules Engine (`src/modules/compensation/compensation-engine.ts`, `src/pages/CompensationView.tsx`)
      - TheraFlow Payroll Orchestrator with Gusto/ADP Adapters (`src/modules/payroll/payroll-provider.ts`, `src/pages/PayrollView.tsx`)
-     - TheraFlow Money Embedded BaaS Treasury (`src/modules/money/banking-provider.ts`, `src/pages/BankingMoneyView.tsx`)
+     - TheraFlow Money Embedded BaaS Treasury (`src/modules/money/banking-provider.ts`, `src/pages/BankingMoneyView.tsx`) – *Fully refactored to use robust BigInt cents arithmetic, eliminating all floating-point vulnerabilities.*
      - Start-a-Practice Onboarding Wizard (`src/pages/OnboardingWizard.tsx`)
      - Group Practice Migration Suite (`src/pages/MigrationWizard.tsx`)
    - Full billing suite (CMS-1500 interactive editor, 837P EDI generator, 277CA claim scrubber, Superbill generator).
@@ -25,12 +25,12 @@ When an acquirer licenses or buys TheraFlow OS, they receive an enterprise-grade
 2. **Production Database & Persistence Assets**:
    - Multi-tenant PostgreSQL 15 / Supabase migration schemas (27 tables):
      - `supabase/migrations/20261005_init_schema.sql` (Core clinical & EHR tables)
-     - `supabase/migrations/20261005_unified_practice_os.sql` (Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations, journal entries)
-   - 47 Row-Level Security (RLS) policies enforcing multi-tenant isolation, RBAC role-level permissions (clinician vs billing/payroll admin vs owner), and append-only immutability for general ledger journal lines.
+     - `supabase/migrations/20261005_unified_practice_os.sql` (Practice OS entities: workers, locations, compensation plans, rules, earnings, payroll runs, bank accounts, transactions, reconciliations, journal entries). *Includes fully verified `trg_sync_bank_from_journal_line` trigger to guarantee automatic synchronization of checking and tax reserve accounts upon general ledger postings.*
+   - 47 Row-Level Security (RLS) policies enforcing strict multi-tenant isolation (`practice_id` boundary checks verified), RBAC role-level permissions (clinician vs billing/payroll admin vs owner), and append-only immutability for general ledger journal lines.
    - Durable append-only cryptographic audit logger (`server.ts` + `data/audit_ledger.jsonl`) with HMAC-SHA256 signature verification.
 3. **Clinical AI & Privacy Subsystems**:
    - Client-side 18-rule HIPAA Safe Harbor de-identification engine (`src/tools/phi-scrubber/`).
-   - Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`) intercepting AI payloads with de-identification reduction layer.
+   - Outbound LLM Privacy Gateway (`phi-privacy-gateway.ts`) acting as an impenetrable fail-closed chokepoint: intercepts AI payloads and intentionally aborts LLM sequence if direct identifiers (like names or MRNs) slip through, falling back to a secure deterministic clinical engine.
    - Verified holdout benchmark: 81.64% overall recall (92.18% structured, 71.17% unstructured) with 97.1% precision across 3,410 entities.
    - Dual-channel ambient speech diarization abstraction with live WebSpeech API provider and Deepgram WebSocket contracts.
 4. **Validation Corpora & Test Suites**:

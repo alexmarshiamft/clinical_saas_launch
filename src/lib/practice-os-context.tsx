@@ -478,10 +478,31 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     },
   ]);
 
+  // Helper to attach authenticated clinician Bearer token
+  const getPracticeOsAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('clinical_saas_session');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.session?.access_token) {
+            headers['Authorization'] = `Bearer ${parsed.session.access_token}`;
+          }
+        }
+      } catch {}
+    }
+    return headers;
+  };
+
   // Hydrate authoritative Practice OS state from PostgreSQL API
   const refreshFromPostgres = async (): Promise<boolean> => {
     try {
-      const res = await fetch('/api/practice-os/state');
+      const res = await fetch('/api/practice-os/state', {
+        headers: getPracticeOsAuthHeaders(),
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.workers && data.workers.length > 0) setWorkers(data.workers);
@@ -788,7 +809,7 @@ export const PracticeOsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // 1. Authoritative Server-Side PostgreSQL Execution
       const response = await fetch('/api/practice-os/payroll/approve-and-submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getPracticeOsAuthHeaders(),
         body: JSON.stringify({
           payPeriodId,
           provider: selectedPayrollProvider,

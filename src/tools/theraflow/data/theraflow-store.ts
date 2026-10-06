@@ -630,9 +630,23 @@ export async function logAuditEvent(
 
   // Also post to backend Express /api/audit-logs if running
   if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+    let token = '';
+    try {
+      const raw = localStorage.getItem('clinical_saas_session');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        token = parsed?.session?.access_token || '';
+      }
+    } catch {}
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     fetch('/api/audit-logs', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(entry),
     }).catch(() => {
       // Ignored in offline / test harness mode

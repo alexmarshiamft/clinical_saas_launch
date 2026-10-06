@@ -398,6 +398,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem(STORAGE_KEY_DEMO_SESSION);
         localStorage.removeItem(STORAGE_KEY_PREFERRED_ROLE);
         localStorage.removeItem('clinical_saas_subscription');
+
+        // HIPAA §164.312(a)(2)(iii) Storage Hygiene: Purge all local clinical data and PHI
+        localStorage.removeItem('theraflow_store_data');
+        localStorage.removeItem('theraflow_active_patient_id');
+        localStorage.removeItem('theraflow_processed_idempotency_keys');
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('theraflow_') || key.startsWith('clinical_saas_'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.clear();
+        }
       }
       if (isSupabaseConfigured) {
         await supabase.auth.signOut();
@@ -444,5 +461,19 @@ export async function logout(): Promise<void> {
     localStorage.removeItem(STORAGE_KEY_DEMO_SESSION);
     localStorage.removeItem(STORAGE_KEY_PREFERRED_ROLE);
     localStorage.removeItem('clinical_saas_subscription');
+    localStorage.removeItem('theraflow_store_data');
+    localStorage.removeItem('theraflow_active_patient_id');
+    localStorage.removeItem('theraflow_processed_idempotency_keys');
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('theraflow_') || key.startsWith('clinical_saas_'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.clear();
+    }
   }
 }

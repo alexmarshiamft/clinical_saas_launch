@@ -71,9 +71,13 @@ export function sanitizeForOutboundLlm(
 
     // Fail-Closed Validation: Verify no direct identifiers bypassed sanitization
     // If the patient's explicit name was passed in context, verify it does not appear in cleanText
-    if (context?.name && context.name.trim().length > 2) {
-      const escapedName = context.name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const nameCheck = new RegExp(`\\b${escapedName}\\b`, 'i');
+    if (context?.name && context.name.trim().length > 1) {
+      const trimmedName = context.name.trim();
+      const isAsciiWord = /^[a-zA-Z0-9_\s'-]+$/.test(trimmedName);
+      const escapedName = trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const nameCheck = isAsciiWord
+        ? new RegExp(`\\b${escapedName}\\b`, 'i')
+        : new RegExp(escapedName, 'ui');
       if (nameCheck.test(result.cleanText)) {
         throw new PhiSanitizationError(
           'Fail-closed security check triggered: Patient name was detected in outbound text post-scrubbing.',

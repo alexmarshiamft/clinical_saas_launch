@@ -190,6 +190,26 @@ async function startServer() {
     next();
   };
 
+  // Role-Based Access Control (RBAC) Guard
+  const requireRole = (...allowedRoles: string[]) => {
+    return (req: Request, res: Response, next: any) => {
+      const user = (req as any).user;
+      if (!user) {
+        return res.status(401).json({ error: "Unauthorized: Missing authenticated context" });
+      }
+      const role = user.role;
+      const normalizedRole = (role === 'practice_owner' || role === 'owner') ? 'owner' : role;
+      const normalizedAllowed = allowedRoles.map(r => (r === 'practice_owner' || r === 'owner') ? 'owner' : r);
+      if (!normalizedAllowed.includes(normalizedRole)) {
+        return res.status(403).json({
+          error: `Forbidden: Action requires one of [${allowedRoles.join(", ")}] roles`,
+          userRole: role,
+        });
+      }
+      next();
+    };
+  };
+
   // Preserve raw body buffer for Stripe webhook HMAC verification
   app.use(
     express.json({
@@ -517,10 +537,15 @@ async function startServer() {
   // Practice OS System of Record Endpoints (PostgreSQL Backed)
   // ============================================================================
 
-  // Hydrate full authoritative state from PostgreSQL
-  app.get("/api/practice-os/state", async (req: Request, res: Response) => {
+  // Hydrate full authoritative state from PostgreSQL (requires authenticated caller)
+  app.get("/api/practice-os/state", checkAuth, async (req: Request, res: Response) => {
     try {
-      const practiceId = (req.query.practiceId as string) || "00000000-0000-0000-0000-000000000001";
+      const authUser = (req as any).user;
+      const requestedPracticeId = req.query.practiceId as string;
+      const practiceId = requestedPracticeId || authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
+      if (requestedPracticeId && authUser?.practiceId && requestedPracticeId !== authUser.practiceId && authUser.role !== 'owner' && authUser.role !== 'admin') {
+        return res.status(403).json({ error: "Forbidden: Cross-tenant practice access denied" });
+      }
       const state = await getPracticeOsState(practiceId);
       return res.json(state);
     } catch (err: any) {
@@ -533,15 +558,17 @@ async function startServer() {
   });
 
   // Server-side PostgreSQL-locked payroll approval & submission
-  app.post("/api/practice-os/payroll/approve-and-submit", async (req: Request, res: Response) => {
+  app.post("/api/practice-os/payroll/approve-and-submit", checkAuth, requireRole("owner", "admin", "practice_owner"), async (req: Request, res: Response) => {
     try {
+      const authUser = (req as any).user;
       const { payPeriodId, provider, simulatedProviderLatencyMs, practiceId } = req.body || {};
       if (!payPeriodId) {
         return res.status(400).json({ error: "payPeriodId is required" });
       }
 
+      const effectivePracticeId = authUser?.practiceId || practiceId || "00000000-0000-0000-0000-000000000001";
       const result = await serverApproveAndSubmitPayroll({
-        practiceId: practiceId || "00000000-0000-0000-0000-000000000001",
+        practiceId: effectivePracticeId,
         payPeriodId,
         provider: provider || "sandbox",
         simulatedProviderLatencyMs: simulatedProviderLatencyMs || 0,
@@ -561,7 +588,7 @@ async function startServer() {
   });
 
   // Atomic idempotent payment event ingestion
-  app.post("/api/practice-os/payment-event", async (req: Request, res: Response) => {
+  app.post("/api/practice-os/payment-event", checkAuth, requireRole("owner", "admin", "practice_owner", "biller"), async (req: Request, res: Response) => {
     try {
       const result = await processPaymentEventAtomic(req.body);
       return res.json(result);
@@ -571,9 +598,10 @@ async function startServer() {
   });
 
   // Double-entry general ledger balance verification
-  app.get("/api/practice-os/ledger/balance-check", async (req: Request, res: Response) => {
+  app.get("/api/practice-os/ledger/balance-check", checkAuth, async (req: Request, res: Response) => {
     try {
-      const practiceId = (req.query.practiceId as string) || "00000000-0000-0000-0000-000000000001";
+      const authUser = (req as any).user;
+      const practiceId = (req.query.practiceId as string) || authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
       const result = await reconcileBankAndLedger(practiceId);
       return res.json(result);
     } catch (err: any) {
@@ -582,7 +610,7 @@ async function startServer() {
   });
 
   // Post atomic double-entry journal transaction
-  app.post("/api/practice-os/journal/entry", async (req: Request, res: Response) => {
+  app.post("/api/practice-os/journal/entry", checkAuth, requireRole("owner", "admin", "practice_owner"), async (req: Request, res: Response) => {
     try {
       const result = await postJournalEntryAtomic(req.body);
       return res.json(result);
@@ -592,7 +620,7 @@ async function startServer() {
   });
 
   // Reverse journal transaction
-  app.post("/api/practice-os/journal/reverse", async (req: Request, res: Response) => {
+  app.post("/api/practice-os/journal/reverse", checkAuth, requireRole("owner", "admin", "practice_owner"), async (req: Request, res: Response) => {
     try {
       const result = await reverseJournalEntryAtomic(req.body);
       return res.json(result);
@@ -602,7 +630,7 @@ async function startServer() {
   });
 
   // Clinical-to-financial pipeline simulation trace
-  app.post("/api/practice-os/cascade-simulation", async (req: Request, res: Response) => {
+  app.post("/api/practice-os/cascade-simulation", checkAuth, async (req: Request, res: Response) => {
     try {
       const result = await executeClinicalFinancialCascade(req.body);
       return res.json(result);
@@ -665,6 +693,7 @@ async function startServer() {
   // ============================================================================
   interface ServerAuditLog {
     id: string;
+    practiceId?: string;
     timestamp: string;
     actor: string;
     actorName: string;
@@ -727,6 +756,7 @@ async function startServer() {
         // Initialize seed logs for immediate audit integrity verification
         const seedLog1: ServerAuditLog = {
           id: "audit-srv-seed-001",
+          practiceId: "00000000-0000-0000-0000-000000000001",
           timestamp: new Date(Date.now() - 3600000).toISOString(),
           actor: "sarah.chen.md@behavioralhealth.org",
           actorName: "Dr. Sarah Chen, MD",
@@ -745,6 +775,7 @@ async function startServer() {
 
         const seedLog2: ServerAuditLog = {
           id: "audit-srv-seed-002",
+          practiceId: "00000000-0000-0000-0000-000000000001",
           timestamp: new Date(Date.now() - 1800000).toISOString(),
           actor: "sarah.chen.md@behavioralhealth.org",
           actorName: "Dr. Sarah Chen, MD",
@@ -781,8 +812,15 @@ async function startServer() {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    const authUser = (req as any).user;
+    const userPracticeId = authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
     const { action, mrn, limit } = req.query;
-    let logs = [...auditLogStore];
+
+    // Multi-tenant practice isolation: filter logs belonging to caller's practice
+    let logs = auditLogStore.filter(
+      (l) => !l.practiceId || l.practiceId === userPracticeId || l.actor === authUser?.email
+    );
+
     if (action && action !== "ALL") {
       logs = logs.filter((l) => l.action === action);
     }
@@ -806,11 +844,19 @@ async function startServer() {
   });
 
   app.get("/api/audit-logs/export", checkAuth, (req: Request, res: Response) => {
+    const authUser = (req as any).user;
+    const userPracticeId = authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
+
+    // Strict tenant isolation: only export records for caller's practice
+    const tenantLogs = auditLogStore.filter(
+      (l) => !l.practiceId || l.practiceId === userPracticeId || l.actor === authUser?.email
+    );
+
     const format = (req.query.format as string) || "json";
     if (format === "csv") {
-      const headers = "id,timestamp,actor,action,patientMrn,resourceType,ipAddress,prevHash,hash,tamperStatus\n";
-      const rows = auditLogStore.map((l) =>
-        `"${l.id}","${l.timestamp}","${l.actor}","${l.action}","${l.patientMrn}","${l.resourceType}","${l.ipAddress}","${l.prevHash}","${l.hash}","${l.tamperStatus}"`
+      const headers = "id,practiceId,timestamp,actor,action,patientMrn,resourceType,ipAddress,prevHash,hash,tamperStatus\n";
+      const rows = tenantLogs.map((l) =>
+        `"${l.id}","${l.practiceId || userPracticeId}","${l.timestamp}","${l.actor}","${l.action}","${l.patientMrn}","${l.resourceType}","${l.ipAddress}","${l.prevHash}","${l.hash}","${l.tamperStatus}"`
       ).join("\n");
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", 'attachment; filename="theraflow_audit_ledger.csv"');
@@ -819,9 +865,9 @@ async function startServer() {
 
     return res.json({
       exportTimestamp: new Date().toISOString(),
-      totalRecords: auditLogStore.length,
+      totalRecords: tenantLogs.length,
       chainVerification: "HMAC-SHA256 tamper-evident Merkel-style chain valid",
-      records: auditLogStore,
+      records: tenantLogs,
     });
   });
 
@@ -838,8 +884,10 @@ async function startServer() {
 
       // Server-authoritative generation: NEVER trust client-provided actor, timestamp, or hash
       const authUser = (req as any).user;
+      const userPracticeId = authUser?.practiceId || body.practiceId || "00000000-0000-0000-0000-000000000001";
       const newLog: ServerAuditLog = {
         id: uuidv4(),
+        practiceId: userPracticeId,
         timestamp: new Date().toISOString(),
         actor: authUser?.email || "unverified_client_session",
         actorName: authUser?.name || "Unverified Client Session",
