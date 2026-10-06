@@ -542,10 +542,10 @@ async function startServer() {
     try {
       const authUser = (req as any).user;
       const requestedPracticeId = req.query.practiceId as string;
-      const practiceId = requestedPracticeId || authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
-      if (requestedPracticeId && authUser?.practiceId && requestedPracticeId !== authUser.practiceId && authUser.role !== 'owner' && authUser.role !== 'admin') {
+      if (requestedPracticeId && authUser?.practiceId && requestedPracticeId !== authUser.practiceId) {
         return res.status(403).json({ error: "Forbidden: Cross-tenant practice access denied" });
       }
+      const practiceId = authUser?.practiceId || requestedPracticeId || "00000000-0000-0000-0000-000000000001";
       const state = await getPracticeOsState(practiceId);
       return res.json(state);
     } catch (err: any) {
@@ -561,12 +561,16 @@ async function startServer() {
   app.post("/api/practice-os/payroll/approve-and-submit", checkAuth, requireRole("owner", "admin", "practice_owner"), async (req: Request, res: Response) => {
     try {
       const authUser = (req as any).user;
-      const { payPeriodId, provider, simulatedProviderLatencyMs, practiceId } = req.body || {};
+      const { payPeriodId, provider, simulatedProviderLatencyMs, practiceId: bodyPracticeId } = req.body || {};
       if (!payPeriodId) {
         return res.status(400).json({ error: "payPeriodId is required" });
       }
 
-      const effectivePracticeId = authUser?.practiceId || practiceId || "00000000-0000-0000-0000-000000000001";
+      if (bodyPracticeId && authUser?.practiceId && bodyPracticeId !== authUser.practiceId) {
+        return res.status(403).json({ error: "Forbidden: Cross-tenant payroll submission denied" });
+      }
+
+      const effectivePracticeId = authUser?.practiceId || bodyPracticeId || "00000000-0000-0000-0000-000000000001";
       const result = await serverApproveAndSubmitPayroll({
         practiceId: effectivePracticeId,
         payPeriodId,
@@ -587,21 +591,33 @@ async function startServer() {
     }
   });
 
-  // Atomic idempotent payment event ingestion
+  // Atomic idempotent payment event ingestion (requires authentication & practice isolation)
   app.post("/api/practice-os/payment-event", checkAuth, requireRole("owner", "admin", "practice_owner", "biller"), async (req: Request, res: Response) => {
     try {
-      const result = await processPaymentEventAtomic(req.body);
+      const authUser = (req as any).user;
+      if (req.body?.practiceId && authUser?.practiceId && req.body.practiceId !== authUser.practiceId) {
+        return res.status(403).json({ error: "Forbidden: Cross-tenant payment event denied" });
+      }
+      const payload = {
+        ...req.body,
+        practiceId: authUser?.practiceId || req.body?.practiceId || "00000000-0000-0000-0000-000000000001",
+      };
+      const result = await processPaymentEventAtomic(payload);
       return res.json(result);
     } catch (err: any) {
       return res.status(500).json({ error: err.message });
     }
   });
 
-  // Double-entry general ledger balance verification
+  // Double-entry general ledger balance verification (enforces tenant isolation)
   app.get("/api/practice-os/ledger/balance-check", checkAuth, async (req: Request, res: Response) => {
     try {
       const authUser = (req as any).user;
-      const practiceId = (req.query.practiceId as string) || authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
+      const requestedPracticeId = req.query.practiceId as string;
+      if (requestedPracticeId && authUser?.practiceId && requestedPracticeId !== authUser.practiceId) {
+        return res.status(403).json({ error: "Forbidden: Cross-tenant ledger query denied" });
+      }
+      const practiceId = authUser?.practiceId || requestedPracticeId || "00000000-0000-0000-0000-000000000001";
       const result = await reconcileBankAndLedger(practiceId);
       return res.json(result);
     } catch (err: any) {
@@ -609,39 +625,64 @@ async function startServer() {
     }
   });
 
-  // Post atomic double-entry journal transaction
+  // Post atomic double-entry journal transaction (enforces tenant boundary)
   app.post("/api/practice-os/journal/entry", checkAuth, requireRole("owner", "admin", "practice_owner"), async (req: Request, res: Response) => {
     try {
-      const result = await postJournalEntryAtomic(req.body);
+      const authUser = (req as any).user;
+      if (req.body?.practiceId && authUser?.practiceId && req.body.practiceId !== authUser.practiceId) {
+        return res.status(403).json({ error: "Forbidden: Cross-tenant journal entry denied" });
+      }
+      const payload = {
+        ...req.body,
+        practiceId: authUser?.practiceId || req.body?.practiceId || "00000000-0000-0000-0000-000000000001",
+      };
+      const result = await postJournalEntryAtomic(payload);
       return res.json(result);
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
     }
   });
 
-  // Reverse journal transaction
+  // Reverse journal transaction (enforces tenant boundary)
   app.post("/api/practice-os/journal/reverse", checkAuth, requireRole("owner", "admin", "practice_owner"), async (req: Request, res: Response) => {
     try {
-      const result = await reverseJournalEntryAtomic(req.body);
+      const authUser = (req as any).user;
+      if (req.body?.practiceId && authUser?.practiceId && req.body.practiceId !== authUser.practiceId) {
+        return res.status(403).json({ error: "Forbidden: Cross-tenant journal reversal denied" });
+      }
+      const payload = {
+        ...req.body,
+        practiceId: authUser?.practiceId || req.body?.practiceId || "00000000-0000-0000-0000-000000000001",
+      };
+      const result = await reverseJournalEntryAtomic(payload);
       return res.json(result);
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
     }
   });
 
-  // Clinical-to-financial pipeline simulation trace
+  // Clinical-to-financial pipeline simulation trace (enforces tenant boundary)
   app.post("/api/practice-os/cascade-simulation", checkAuth, async (req: Request, res: Response) => {
     try {
-      const result = await executeClinicalFinancialCascade(req.body);
+      const authUser = (req as any).user;
+      if (req.body?.practiceId && authUser?.practiceId && req.body.practiceId !== authUser.practiceId) {
+        return res.status(403).json({ error: "Forbidden: Cross-tenant cascade simulation denied" });
+      }
+      const payload = {
+        ...req.body,
+        practiceId: authUser?.practiceId || req.body?.practiceId || "00000000-0000-0000-0000-000000000001",
+      };
+      const result = await executeClinicalFinancialCascade(payload);
       return res.json(result);
     } catch (err: any) {
       return res.status(500).json({ error: err.message });
     }
   });
 
-  // Client Invoice Checkout Endpoint (TheraFlow compatibility)
-  app.post("/api/billing/create-checkout", async (req: Request, res: Response) => {
-    const { invoiceId, amountInCents, clientName } = req.body;
+  // Client Invoice Checkout Endpoint (requires authentication & biller/clinician/owner role)
+  app.post("/api/billing/create-checkout", checkAuth, requireRole("owner", "admin", "practice_owner", "biller", "clinician"), async (req: Request, res: Response) => {
+    const authUser = (req as any).user;
+    const { invoiceId, amountInCents, clientName } = req.body || {};
     const mockSessionId = `cs_simulated_inv_${uuidv4().replace(/-/g, "").substring(0, 16)}`;
     return res.json({
       sessionId: mockSessionId,
@@ -650,18 +691,21 @@ async function startServer() {
       amountTotal: amountInCents || 15000,
       currency: "usd",
       clientName: clientName || "Patient",
+      practiceId: authUser?.practiceId || "00000000-0000-0000-0000-000000000001",
     });
   });
 
   // ============================================================================
-  // Telehealth WebRTC Meeting Session Creation
+  // Telehealth WebRTC Meeting Session Creation (requires authenticated context)
   // ============================================================================
-  app.post("/api/telehealth/meeting", async (req: Request, res: Response) => {
+  app.post("/api/telehealth/meeting", checkAuth, async (req: Request, res: Response) => {
     try {
-      const { appointmentId, externalUserId, clientName } = req.body || {};
+      const authUser = (req as any).user;
+      const { appointmentId, clientName } = req.body || {};
       const awsRegion = process.env.AWS_REGION || "us-east-1";
       const mockMeetingId = uuidv4();
       const mockAttendeeId = uuidv4();
+      const externalUserId = authUser?.id || authUser?.email || "authenticated-clinician";
       return res.json({
         Meeting: {
           MeetingId: mockMeetingId,
@@ -676,12 +720,13 @@ async function startServer() {
         },
         Attendee: {
           AttendeeId: mockAttendeeId,
-          ExternalUserId: (externalUserId || "demo-clinician").substring(0, 64),
+          ExternalUserId: externalUserId.substring(0, 64),
           JoinToken: `mock-token-${uuidv4()}`,
         },
         clientName: clientName || "Jane Doe",
         isSimulated: true,
         notice: "Simulated WebRTC session provided for evaluation.",
+        practiceId: authUser?.practiceId || "00000000-0000-0000-0000-000000000001",
       });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
@@ -742,6 +787,10 @@ async function startServer() {
         for (const line of lines) {
           try {
             const entry: ServerAuditLog = JSON.parse(line);
+            // Strict tenant isolation: normalize legacy records lacking practiceId to default demo practice
+            if (!entry.practiceId) {
+              entry.practiceId = "00000000-0000-0000-0000-000000000001";
+            }
             const calculatedHash = generateServerRecordHash(entry);
             const isIntegrityValid = calculatedHash === entry.hash && entry.prevHash === expectedPrevHash;
             entry.tamperStatus = isIntegrityValid ? "verified" : "unverified";
@@ -816,9 +865,9 @@ async function startServer() {
     const userPracticeId = authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
     const { action, mrn, limit } = req.query;
 
-    // Multi-tenant practice isolation: filter logs belonging to caller's practice
+    // Strict multi-tenant practice isolation: filter logs strictly belonging to caller's practice
     let logs = auditLogStore.filter(
-      (l) => !l.practiceId || l.practiceId === userPracticeId || l.actor === authUser?.email
+      (l) => l.practiceId === userPracticeId
     );
 
     if (action && action !== "ALL") {
@@ -847,9 +896,9 @@ async function startServer() {
     const authUser = (req as any).user;
     const userPracticeId = authUser?.practiceId || "00000000-0000-0000-0000-000000000001";
 
-    // Strict tenant isolation: only export records for caller's practice
+    // Strict multi-tenant practice isolation: only export records strictly for caller's practice
     const tenantLogs = auditLogStore.filter(
-      (l) => !l.practiceId || l.practiceId === userPracticeId || l.actor === authUser?.email
+      (l) => l.practiceId === userPracticeId
     );
 
     const format = (req.query.format as string) || "json";
@@ -884,6 +933,9 @@ async function startServer() {
 
       // Server-authoritative generation: NEVER trust client-provided actor, timestamp, or hash
       const authUser = (req as any).user;
+      if (body.practiceId && authUser?.practiceId && body.practiceId !== authUser.practiceId) {
+        return res.status(403).json({ error: "Forbidden: Cannot attribute audit logs to another practice" });
+      }
       const userPracticeId = authUser?.practiceId || body.practiceId || "00000000-0000-0000-0000-000000000001";
       const newLog: ServerAuditLog = {
         id: uuidv4(),

@@ -455,9 +455,12 @@ async function runM3TestSuite() {
   // 5.1 Backend Telehealth Meeting API
   let telehealthApiPass = false;
   try {
+    const validJwt = signJwtToken({ role: 'clinician', email: 'sarah.chen.md@behavioralhealth.org' });
+    const authHeaders = { Authorization: `Bearer ${validJwt}` };
+
     const res = await fetch(`${BASE_URL}/api/telehealth/meeting`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ appointmentId: 'appt-test-1', clientName: 'Jane Doe' }),
     });
     if (res.ok) {

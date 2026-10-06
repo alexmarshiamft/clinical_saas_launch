@@ -11,6 +11,7 @@
 
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
+import { signJwtToken } from '../src/lib/jwt-auth';
 
 const TEST_PORT = 3899;
 const BASE_URL = `http://127.0.0.1:${TEST_PORT}`;
@@ -523,11 +524,33 @@ async function runTests() {
       });
     }
 
-    // Test 4.2: POST /api/billing/create-checkout
+    // Test 4.2: POST /api/billing/create-checkout (Unauthenticated probe rejected with 401)
     {
-      const res = await fetch(`${BASE_URL}/api/billing/create-checkout`, {
+      const unauthRes = await fetch(`${BASE_URL}/api/billing/create-checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: 'inv-unauth', amountInCents: 17500, clientName: 'Jane Doe' }),
+      });
+      const unauthPassed = unauthRes.status === 401;
+      recordResult({
+        name: 'POST /api/billing/create-checkout (Unauthenticated Rejection)',
+        category: 'Ancillary Endpoints',
+        passed: unauthPassed,
+        status: unauthRes.status,
+        expectedStatus: 401,
+        details: `Safely rejected unauthenticated checkout request with status ${unauthRes.status}`,
+      });
+    }
+
+    // Test 4.2b: POST /api/billing/create-checkout (Authenticated with valid biller role)
+    {
+      const billerJwt = signJwtToken({ role: 'biller', email: 'billing@practice.org', practiceId: '00000000-0000-0000-0000-000000000001' });
+      const res = await fetch(`${BASE_URL}/api/billing/create-checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${billerJwt}`,
+        },
         body: JSON.stringify({ invoiceId: 'inv-4482', amountInCents: 17500, clientName: 'Jane Doe' }),
       });
       const data = await res.json().catch(() => null);
@@ -536,7 +559,7 @@ async function runTests() {
         data?.amountTotal === 17500 &&
         data?.clientName === 'Jane Doe';
       recordResult({
-        name: 'POST /api/billing/create-checkout',
+        name: 'POST /api/billing/create-checkout (Authenticated Biller Session)',
         category: 'Ancillary Endpoints',
         passed,
         status: res.status,

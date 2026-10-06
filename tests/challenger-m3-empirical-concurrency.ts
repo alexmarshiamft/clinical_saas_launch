@@ -523,13 +523,28 @@ async function runConcurrencyStressHarness() {
   if (!serverProcess) {
     console.error('Server process unavailable, skipping endpoint stress');
   } else {
+    const testJwt = signJwtToken({ role: 'practice_owner', email: 'dr.chen@behavioralhealth.org' });
+    const authHeaders = { Authorization: `Bearer ${testJwt}` };
+
+    // 3.0 Adversarial Probe: Unauthenticated POST /api/telehealth/meeting must return 401
+    const unauthMeetingRes = await fetch(`${BASE_URL}/api/telehealth/meeting`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appointmentId: 'appt-unauth-probe' }),
+    });
+    assertTest(
+      '3.0 Unauthenticated POST /api/telehealth/meeting strictly rejected with 401 Unauthorized',
+      unauthMeetingRes.status === 401,
+      `Received HTTP ${unauthMeetingRes.status} (expected 401)`
+    );
+
     // 3.1 Concurrent Burst of 50 POST /api/telehealth/meeting
     const TELEHEALTH_BURST = 50;
     console.log(`Firing burst of ${TELEHEALTH_BURST} concurrent POST /api/telehealth/meeting requests...`);
     const meetingRequests = Array.from({ length: TELEHEALTH_BURST }).map((_, i) =>
       fetch(`${BASE_URL}/api/telehealth/meeting`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           appointmentId: `appt-stress-${i}`,
           externalUserId: `clinician-${i}`,
@@ -560,8 +575,6 @@ async function runConcurrencyStressHarness() {
 
     // 3.2 Concurrent Burst of 50 POST /api/audit-logs
     const AUDIT_POST_BURST = 50;
-    const testJwt = signJwtToken({ role: 'practice_owner' });
-    const authHeaders = { Authorization: `Bearer ${testJwt}` };
 
     console.log(`Firing burst of ${AUDIT_POST_BURST} concurrent POST /api/audit-logs requests...`);
     const auditPostRequests = Array.from({ length: AUDIT_POST_BURST }).map((_, i) =>
@@ -644,7 +657,7 @@ async function runConcurrencyStressHarness() {
       ...Array.from({ length: 30 }).map((_, i) =>
         fetch(`${BASE_URL}/api/telehealth/meeting`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify({ appointmentId: `mixed-wave-${i}` }),
         }).then((r) => r.status)
       ),
@@ -675,10 +688,10 @@ async function runConcurrencyStressHarness() {
 
     // 3.5 Boundary & Resilient Fallback Probes
     console.log('Probing boundary conditions on server endpoints...');
-    // Probe 1: POST /api/telehealth/meeting with empty body
+    // Probe 1: POST /api/telehealth/meeting with empty body (requires auth)
     const emptyMeetingRes = await fetch(`${BASE_URL}/api/telehealth/meeting`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({}),
     });
     const emptyMeetingJson = await emptyMeetingRes.json();

@@ -1,0 +1,55 @@
+name: CI Security & Test Suite
+
+on:
+  push:
+    branches: [ master, remediation-pass-2 ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Typecheck, Build & Security Test Suite
+    runs-on: ubuntu-latest
+    env:
+      AUDIT_HMAC_SECRET: 'e7b4f8a12903c5d6e87f1a2b3c4d5e6f708192a3b4c5d6e7f8a9b0c1d2e3f4a5'
+      JWT_SECRET: 'e7b4f8a12903c5d6e87f1a2b3c4d5e6f708192a3b4c5d6e7f8a9b0c1d2e3f4a5'
+      NODE_ENV: 'test'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production Build
+        run: npm run build
+
+      - name: Client Route Guard & Security Audit
+        run: npm run test:security
+
+      - name: Server Security & Multi-Tenant Isolation
+        run: npx tsx tests/server-security-and-tenant-isolation.test.ts
+
+      - name: Empirical Server Stress
+        run: npx tsx tests/empirical-server-stress.ts
+
+      - name: Milestone 3 EHR Suite
+        run: npm run test:ehr
+
+      - name: Milestone 4 Scribe Suite
+        run: npm run test:scribe
+
+      - name: Milestone 5 Aura & Scrubber Suite
+        run: npm run test:aura
+
+      - name: Financial & Security Invariants
+        run: npx tsx tests/adversarial-financial-and-security.test.ts

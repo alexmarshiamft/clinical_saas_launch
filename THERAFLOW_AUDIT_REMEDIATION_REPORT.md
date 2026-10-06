@@ -257,3 +257,33 @@ An independent audit pass was performed on `2026-10-05` to verify the state of t
    The LLM `phi-privacy-gateway.ts` fail-closed chokepoint and the database `practice_id` RLS isolation boundaries were manually verified and confirmed to be architecturally sound.
 
 **Final Status**: The codebase is now 100% contradiction-free and structurally matches all technical claims made in this report.
+
+---
+
+## 9. Codex Security Re-Audit Remediation (2026-10-06)
+
+Following an independent second-round security review on commit `7403e77`, several high-impact authorization and tenant-isolation defects were identified, surgically remediated, and verified with dedicated server integration tests:
+
+1. **SEC-01 (API Authentication & Tenant Boundary Enforcement)**:
+   - Added `checkAuth` to previously unauthenticated routes: `POST /api/telehealth/meeting` and `POST /api/billing/create-checkout`.
+   - Enforced strict tenant identity clamping on `GET /api/practice-os/ledger/balance-check`: callers can no longer supply another practice's ID via query parameters.
+   - Removed owner/admin cross-tenant escape hatch from `GET /api/practice-os/state`, ensuring no role can query another practice's state.
+   - Forced caller practice ID verification on financial mutation routes (`/api/practice-os/payment-event`, `/api/practice-os/journal/entry`, `/api/practice-os/journal/reverse`, and `/api/practice-os/cascade-simulation`), rejecting cross-tenant body tampering with HTTP 403.
+
+2. **SEC-02 (Audit Log Multi-Tenancy & Legacy Bleed Prevention)**:
+   - Removed the `!l.practiceId` condition from `/api/audit-logs` and `/api/audit-logs/export`.
+   - Normalized legacy records lacking a practice ID upon durable ledger loading, preventing them from leaking into other tenant query results.
+   - Enforced strict practice matching: tenants strictly receive only their own practice's audit logs.
+
+3. **SEC-03 (PostgreSQL RLS & Unsigned Clinical Notes Protection)**:
+   - Updated `lock_signed_clinical_notes` trigger to block colleague tampering on draft/unsigned notes: only the author clinician or practice owner/supervisor can update an unsigned note.
+   - Updated `prevent_delete_signed_clinical_notes` trigger to prevent same-practice colleagues from deleting another clinician's draft notes.
+   - Replaced generic practice-wide RLS policy on `clinical_notes` with granular SELECT, INSERT, UPDATE, and DELETE policies restricting write operations to note authors or practice administrators.
+
+4. **Integer Basis-Point Math Eradication of Floating-Point Calculations**:
+   - Replaced floating-point conversion and multiplication (`centsToDollars(...) * pct` and `* 0.25`) in `banking-provider.ts` with pure integer basis-point math (`(baseCents * bps) / 10000n`).
+   - Guaranteed exact cent conservation: `clinicianShareCents + practiceShareCents === totalCollectedCents` with zero floating-point drift.
+
+5. **Automated CI & Server Security Verification**:
+   - Added `.github/workflows/ci.yml` to automatically execute typecheck, build, and all test suites on GitHub for all pushes and pull requests.
+   - Created `tests/server-security-and-tenant-isolation.test.ts` (28/28 tests passed) testing unauthenticated rejections (HTTP 401), RBAC blocks (HTTP 403), cross-tenant rejections (HTTP 403), and audit log tenant isolation.

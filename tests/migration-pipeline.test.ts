@@ -242,6 +242,56 @@ async function runMigrationPipelineTest() {
     if (!deleteSignedBlocked) throw new Error('Signed Note Immutability Violation: Able to DELETE a signed clinical note!');
     console.log('✓ [PASS] Signed note deletion guard: Deleting signed note rejected by trigger.');
 
+    // Probe 4.4: Colleague B attempting to UPDATE Colleague A's unsigned note must fail
+    const unsignedNoteUuid = 'aaaaaaaa-bbbb-cccc-dddd-111111111111';
+    const colleagueUuid = '33333333-3333-3333-3333-333333333333';
+    runPsql(`
+      INSERT INTO auth.users (id, email) VALUES
+        ('${colleagueUuid}', 'colleague@a.com');
+      INSERT INTO users (id, practice_id, email, full_name, role) VALUES
+        ('${colleagueUuid}', 'a0000000-0000-0000-0000-000000000001', 'colleague@a.com', 'Colleague Clinician', 'clinician');
+
+      INSERT INTO clinical_notes (id, practice_id, client_id, clinician_id, template_type, rendered_markdown, structured_data, is_signed) VALUES
+        ('${unsignedNoteUuid}', 'a0000000-0000-0000-0000-000000000001', '${clientUuid}', '${clinicianUuid}', 'soap', 'Unsigned draft note by Alice', '{"summary": "Draft"}'::jsonb, false);
+    `);
+
+    let colleagueEditBlocked = false;
+    try {
+      // Simulate Colleague B's authenticated session
+      runPsql(`
+        SET request.jwt.claim.sub = '${colleagueUuid}';
+        UPDATE clinical_notes SET rendered_markdown = 'Tampered by Bob' WHERE id = '${unsignedNoteUuid}';
+      `);
+    } catch {
+      colleagueEditBlocked = true;
+    }
+    if (!colleagueEditBlocked) throw new Error('Unsigned Note Violation: Colleague B was able to modify Colleague A unsigned note!');
+    console.log('✓ [PASS] Unsigned note protection: Colleague B modifying Colleague A draft note blocked.');
+
+    // Probe 4.5: Colleague B attempting to DELETE Colleague A's unsigned note must fail
+    let colleagueDeleteBlocked = false;
+    try {
+      runPsql(`
+        SET request.jwt.claim.sub = '${colleagueUuid}';
+        DELETE FROM clinical_notes WHERE id = '${unsignedNoteUuid}';
+      `);
+    } catch {
+      colleagueDeleteBlocked = true;
+    }
+    if (!colleagueDeleteBlocked) throw new Error('Unsigned Note Violation: Colleague B was able to delete Colleague A unsigned note!');
+    console.log('✓ [PASS] Unsigned note deletion guard: Colleague B deleting Colleague A draft note blocked.');
+
+    // Probe 4.6: Author Alice CAN modify her own unsigned note
+    runPsql(`
+      SET request.jwt.claim.sub = '${clinicianUuid}';
+      UPDATE clinical_notes SET rendered_markdown = 'Legitimate update by Alice' WHERE id = '${unsignedNoteUuid}';
+    `);
+    const afterAliceUpdate = runPsql(`SELECT rendered_markdown FROM clinical_notes WHERE id = '${unsignedNoteUuid}';`);
+    if (!afterAliceUpdate.includes('Legitimate update by Alice')) {
+      throw new Error('Author was improperly blocked from updating their own unsigned note!');
+    }
+    console.log('✓ [PASS] Author legitimate edit: Alice updating her own draft note succeeds.');
+
     // Probe 5: Colleague Identity Modification & Privileged User Insert Guards
     console.log('\n[Phase 7] Auditing User Modification and Privilege Escalation Guards...');
     const otherClinicianUuid = '22222222-3333-4444-5555-666666666666';

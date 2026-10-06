@@ -23,6 +23,16 @@ import {
 import { DoubleEntryLedger } from '@/modules/ledger/double-entry-ledger';
 import { dollarsToCents, centsToDollars } from '@/modules/compensation/compensation-engine';
 
+/**
+ * Pure Integer Basis-Point Arithmetic:
+ * Calculates percentage of an integer cent amount using basis points (1% = 100 bps, 100% = 10,000 bps).
+ * Avoids IEEE-754 floating-point operations and precision drift.
+ */
+export function calculateBasisPointsCents(baseCents: bigint, percentage: number): bigint {
+  const bps = BigInt(Math.round(percentage * 100));
+  return (baseCents * bps) / 10000n;
+}
+
 export interface BusinessBankingProvider {
   name: string;
   isSandbox: boolean;
@@ -290,8 +300,8 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     // Actual bank deposit from insurance EFT is strictly the payer payment
     const actualBankDepositCents = payerPaymentCents > 0n ? payerPaymentCents : totalCollectedCents;
 
-    const pct = params.compensationPercentage / 100;
-    const clinicianShareCents = dollarsToCents(centsToDollars(totalCollectedCents) * pct);
+    // Pure integer basis-point calculation (zero floating-point drift)
+    const clinicianShareCents = calculateBasisPointsCents(totalCollectedCents, params.compensationPercentage);
     const practiceShareCents = totalCollectedCents - clinicianShareCents;
 
     // 1. Record Double-Entry Journal for deposit
@@ -329,9 +339,9 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     };
     this.transactions.unshift(newTx);
 
-    // 3. Automated 25% Tax Reserve Set-Aside
+    // 3. Automated 25% Tax Reserve Set-Aside (2,500 basis points)
     // Transferred FROM operating checking TO tax reserve vault (Balanced transfer, no phantom money!)
-    const taxSetAsideCents = dollarsToCents(centsToDollars(practiceShareCents) * 0.25);
+    const taxSetAsideCents = (practiceShareCents * 2500n) / 10000n;
     if (taxSetAsideCents > 0n && this.accountsState.operatingCents >= taxSetAsideCents) {
       this.ledger.recordTaxReserveTransfer({
         practiceId: 'practice-demo-1',
@@ -382,8 +392,8 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     const chargeId = `chg-stripe-${Date.now()}`;
     const amountCents = dollarsToCents(params.amount);
 
-    const pct = params.clinicianPercentage / 100;
-    const clinicianShareCents = dollarsToCents(centsToDollars(amountCents) * pct);
+    // Pure integer basis-point calculation (zero floating-point drift)
+    const clinicianShareCents = calculateBasisPointsCents(amountCents, params.clinicianPercentage);
     const practiceShareCents = amountCents - clinicianShareCents;
 
     // Record double entry settlement
@@ -419,8 +429,8 @@ export class SandboxEmbeddedBankingProvider implements BusinessBankingProvider {
     };
     this.transactions.unshift(tx);
 
-    // 25% Tax Set-aside transfer
-    const taxSetAsideCents = dollarsToCents(centsToDollars(practiceShareCents) * 0.25);
+    // 25% Tax Set-aside transfer (2,500 basis points)
+    const taxSetAsideCents = (practiceShareCents * 2500n) / 10000n;
     if (taxSetAsideCents > 0n && this.accountsState.operatingCents >= taxSetAsideCents) {
       this.ledger.recordTaxReserveTransfer({
         practiceId: 'practice-demo-1',

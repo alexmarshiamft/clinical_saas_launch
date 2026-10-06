@@ -14,6 +14,7 @@ export interface JwtPayload {
   name: string;
   role: string;
   practice_id?: string;
+  practiceId?: string;
   app_metadata?: {
     role?: string;
     practice_id?: string;
@@ -158,7 +159,7 @@ export function verifyJwtToken(
         email: payload.email || 'sarah.chen.md@behavioralhealth.org',
         name: payload.name || payload.user_metadata?.full_name || 'Dr. Sarah Chen, MD',
         role,
-        practiceId: payload.practice_id || payload.app_metadata?.practice_id || '00000000-0000-0000-0000-000000000001',
+        practiceId: payload.practiceId || payload.practice_id || payload.app_metadata?.practice_id || '00000000-0000-0000-0000-000000000001',
       },
     };
   } catch (err: any) {

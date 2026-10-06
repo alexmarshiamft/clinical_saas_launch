@@ -791,11 +791,22 @@ BEFORE DELETE ON users
 FOR EACH ROW
 EXECUTE FUNCTION prevent_unauthorized_user_delete();
 
--- Prevent alteration or un-signing of signed clinical notes (complete metadata protection)
+-- Prevent alteration or un-signing of signed clinical notes & protect unsigned notes from colleague tampering
 CREATE OR REPLACE FUNCTION lock_signed_clinical_notes()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Initial clinical signing integrity check
+    -- 1. Unsigned note modification protection:
+    -- Clinicians can only modify their own unsigned notes; practice owners/supervisors can supervise
+    IF OLD.is_signed = false AND NEW.is_signed = false THEN
+        IF auth.uid() IS NOT NULL AND OLD.clinician_id IS DISTINCT FROM auth.uid() AND NOT is_practice_admin_or_owner() THEN
+            RAISE EXCEPTION 'Unauthorized: Clinicians can only modify their own unsigned notes unless practice supervisor or owner';
+        END IF;
+        IF auth.uid() IS NOT NULL AND NEW.clinician_id IS DISTINCT FROM OLD.clinician_id AND NOT is_practice_admin_or_owner() THEN
+            RAISE EXCEPTION 'Unauthorized: Cannot reassign clinical note author';
+        END IF;
+    END IF;
+
+    -- 2. Initial clinical signing integrity check
     IF OLD.is_signed = false AND NEW.is_signed = true THEN
         IF auth.uid() IS NOT NULL AND NEW.signed_by IS DISTINCT FROM auth.uid() THEN
             RAISE EXCEPTION 'Unauthorized: Clinicians can only sign notes under their own authenticated identity';
@@ -808,6 +819,7 @@ BEGIN
         END IF;
     END IF;
 
+    -- 3. Immutability: If note was ALREADY signed, reject any modification of clinical content or metadata
     IF OLD.is_signed = true THEN
         IF (
             NEW.rendered_markdown IS DISTINCT FROM OLD.rendered_markdown OR
@@ -835,12 +847,16 @@ BEFORE UPDATE ON clinical_notes
 FOR EACH ROW
 EXECUTE FUNCTION lock_signed_clinical_notes();
 
--- Prevent deletion of signed clinical notes
+-- Prevent unauthorized deletion of clinical notes (both signed and unsigned)
 CREATE OR REPLACE FUNCTION prevent_delete_signed_clinical_notes()
 RETURNS TRIGGER AS $$
 BEGIN
     IF OLD.is_signed = true THEN
         RAISE EXCEPTION 'Signed clinical notes cannot be deleted (HIPAA §164.312 retention and auditability)';
+    END IF;
+    -- Unsigned notes can only be deleted by the author clinician or practice supervisor/owner
+    IF auth.uid() IS NOT NULL AND OLD.clinician_id IS DISTINCT FROM auth.uid() AND NOT is_practice_admin_or_owner() THEN
+        RAISE EXCEPTION 'Unauthorized: Clinicians can only delete their own unsigned notes unless practice supervisor or owner';
     END IF;
     RETURN OLD;
 END;
@@ -851,6 +867,38 @@ CREATE TRIGGER trg_prevent_delete_signed_notes
 BEFORE DELETE ON clinical_notes
 FOR EACH ROW
 EXECUTE FUNCTION prevent_delete_signed_clinical_notes();
+
+-- Granular Row Level Security for Clinical Notes (SEC-03 remediation)
+DROP POLICY IF EXISTS clinical_notes_practice_isolation_policy ON clinical_notes;
+DROP POLICY IF EXISTS clinical_notes_select_policy ON clinical_notes;
+DROP POLICY IF EXISTS clinical_notes_insert_policy ON clinical_notes;
+DROP POLICY IF EXISTS clinical_notes_update_policy ON clinical_notes;
+DROP POLICY IF EXISTS clinical_notes_delete_policy ON clinical_notes;
+
+CREATE POLICY clinical_notes_select_policy ON clinical_notes
+    FOR SELECT
+    USING (practice_id = current_practice_id());
+
+CREATE POLICY clinical_notes_insert_policy ON clinical_notes
+    FOR INSERT
+    WITH CHECK (
+        practice_id = current_practice_id() AND
+        (clinician_id = auth.uid() OR is_practice_admin_or_owner())
+    );
+
+CREATE POLICY clinical_notes_update_policy ON clinical_notes
+    FOR UPDATE
+    USING (
+        practice_id = current_practice_id() AND
+        (clinician_id = auth.uid() OR is_practice_admin_or_owner())
+    );
+
+CREATE POLICY clinical_notes_delete_policy ON clinical_notes
+    FOR DELETE
+    USING (
+        practice_id = current_practice_id() AND
+        (clinician_id = auth.uid() OR is_practice_admin_or_owner())
+    );
 
 -- Audit Log Attribution Integrity Guard
 CREATE OR REPLACE FUNCTION verify_audit_log_attribution()
