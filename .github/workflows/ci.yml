@@ -2,18 +2,38 @@ name: CI Security & Test Suite
 
 on:
   push:
-    branches: [ master, remediation-pass-2 ]
+    branches: [ master, remediation-pass-2, codex/acquisition-package-accuracy ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   test:
     name: Typecheck, Build & Security Test Suite
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15.14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: theraflow_ci_test_password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       AUDIT_HMAC_SECRET: 'e7b4f8a12903c5d6e87f1a2b3c4d5e6f708192a3b4c5d6e7f8a9b0c1d2e3f4a5'
       JWT_SECRET: 'e7b4f8a12903c5d6e87f1a2b3c4d5e6f708192a3b4c5d6e7f8a9b0c1d2e3f4a5'
       NODE_ENV: 'test'
+      PGHOST: '127.0.0.1'
+      PGPORT: '5432'
+      PGUSER: 'postgres'
+      PGPASSWORD: 'theraflow_ci_test_password'
+      PGDATABASE: 'postgres'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -54,11 +74,10 @@ jobs:
       - name: Financial & Security Invariants
         run: npx tsx tests/adversarial-financial-and-security.test.ts
 
-      - name: Start PostgreSQL Service
+      - name: Verify PostgreSQL Connection
         run: |
-          sudo systemctl start postgresql.service
           pg_isready
-          sudo -u postgres createuser -s -d -r -w runner || true
+          psql -X -v ON_ERROR_STOP=1 -c 'SELECT version();'
 
       - name: Database Migration & RLS Security Pipeline
         run: npx tsx tests/migration-pipeline.test.ts

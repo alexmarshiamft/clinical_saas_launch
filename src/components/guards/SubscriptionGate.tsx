@@ -137,7 +137,7 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
           <p className="text-sm text-slate-600 leading-relaxed mb-6 max-w-md mx-auto">
             {isStarterUpgrade
               ? `You are currently on the Starter tier. Access to ${featureName} requires upgrading to ${targetPlan.name} or higher.`
-              : `Access to ${featureName} is restricted to active subscribers. Choose a clinical plan to unlock uninterrupted access to charts, live AI acoustic diarization, and HIPAA safe harbor redaction.`}
+              : `Access to ${featureName} is restricted to active subscribers. Choose a clinical plan to unlock uninterrupted access to charts, browser speech and note templates, and PHI pattern redaction.`}
           </p>
 
           {/* Checkout Error notification */}

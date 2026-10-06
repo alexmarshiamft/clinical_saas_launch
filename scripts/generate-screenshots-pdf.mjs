@@ -1,646 +1,125 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const SCREENSHOT_DIR = path.resolve('screenshots');
-const OUTPUT_PDF = path.resolve('clinical_saas_platform_walkthrough.pdf');
-const ARTIFACT_DIR = '/Users/alexandermarshi/.gemini/antigravity-ide/brain/a81f747e-6c5b-4196-8698-c13ba9726836';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const SCREENSHOT_DIR = path.join(ROOT, 'screenshots');
+const OUTPUT_PDF = path.join(ROOT, 'clinical_saas_platform_walkthrough.pdf');
+const REPO_URL = 'https://github.com/alexmarshiamft/clinical_saas_launch';
+const RELEASE_TAG = 'v1.1.2-acquisition-accuracy';
+const escape = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+const link = (url, label) => `<a href="${escape(url)}">${escape(label)}</a>`;
+const list = (items) => `<ul>${items.map((item) => `<li>${escape(item)}</li>`).join('')}</ul>`;
+const card = (title, text) => `<article class="card"><h3>${escape(title)}</h3><p>${escape(text)}</p></article>`;
+const note = (text) => `<div class="note">${escape(text)}</div>`;
 
 const pagesData = [
-  {
-    num: '01',
-    file: '01_landing_page.png',
-    title: 'Landing Page & Public Showcase',
-    route: '/',
-    suite: 'Public Portal',
-    caption:
-      'The public gateway showcasing core platform capabilities, live interactive tool previews, instant demo clinician session launching, and prominent legal notices certifying that all data across the platform is 100% synthetic with zero real Protected Health Information (PHI).',
-    highlights: [
-      'Instant Demo Clinician one-click evaluation session',
-      'Interactive tabbed previews for all 4 clinical tools',
-      'Prominent legal synthetic data CYA disclaimers in navbar and footer',
-    ],
-  },
-  {
-    num: '02',
-    file: '02_demo_guide_modal.png',
-    title: 'Interactive Demo & Feature Guide Modal',
-    route: '/ (Triggered via ✨ Demo Guide)',
-    suite: 'Evaluator Guidance',
-    caption:
-      'A multi-tab walkthrough modal designed specifically for evaluators, prospective buyers, and clinical reviewers. Includes an interactive 6-step clinical journey, full feature directory, sandbox tier preview, and complete breakdown of the 18 statutory HIPAA Safe Harbor de-identification rules.',
-    highlights: [
-      'Interactive Clinical Journey with step-by-step progress tracking',
-      'Feature Catalog with detailed technical specifications and pricing',
-      'Full HIPAA 18 Safe Harbor compliance reference grid',
-    ],
-  },
-  {
-    num: '03',
-    file: '03_dashboard_command_center.png',
-    title: 'Clinician Command Center Dashboard',
-    route: '/dashboard',
-    suite: 'Practice Operations',
-    caption:
-      'The central practitioner operational hub displaying today’s clinical appointments, quick-launch tiles for all 4 clinical suites, active patient encounter context bar (with synthetic data badge), and practice profile switcher for multi-site clinics.',
-    highlights: [
-      'Encounter schedule with instant telehealth join triggers',
-      'Header Active Patient context bar with CPT code and MRN tracking',
-      'Direct navigation tiles into EHR, Scribe, Aura, and Scrubber',
-    ],
-  },
-  {
-    num: '04',
-    file: '04_theraflow_ehr_clients.png',
-    title: 'TheraFlow Clinical EHR — Client Roster',
-    route: '/dashboard/ehr',
-    suite: 'TheraFlow EHR Suite',
-    caption:
-      'The practitioner client directory featuring real-time client search, primary ICD-10 psychiatric diagnostic codes (e.g. F41.1 Generalized Anxiety), standard CPT procedure codes (90837 Psychotherapy), session counters, and intake status indicators.',
-    highlights: [
-      'Real-time client name and diagnosis code filtering',
-      'Quick-action client profiles with direct session launching',
-      'Clear indication of intake completion and insurance payer ID',
-    ],
-  },
-  {
-    num: '05',
-    file: '05_theraflow_client_chart.png',
-    title: 'TheraFlow Clinical EHR — Client Chart & DAP Notes',
-    route: '/dashboard/ehr (Client Detail)',
-    suite: 'TheraFlow EHR Suite',
-    caption:
-      'Complete electronic health record view for active client Jane Doe. Displays demographic details, active treatment diagnoses, historical DAP (Data, Assessment, Plan) encounter documentation, and longitudinal therapy progress tracking.',
-    highlights: [
-      'Standardized DAP clinical progress notes with clinician attribution',
-      'One-click routing to AI Scribe or PHI Scrubber with active client context',
-      'Full encounter history with dates, CPT codes, and clinical assessments',
-    ],
-  },
-  {
-    num: '06',
-    file: '06_clinical_calendar.png',
-    title: 'Clinical Scheduling & Calendar Management',
-    route: '/dashboard/calendar',
-    suite: 'TheraFlow EHR Suite',
-    caption:
-      'Practitioner scheduling interface supporting Day, Week, and Month clinical grid views. Color-coded appointment chips display appointment status (Confirmed, Completed, Telehealth) and allow one-click telehealth consultation room launch.',
-    highlights: [
-      'Interactive Day / Week / Month view toggling',
-      'Integrated telehealth appointment badges with direct launch shortcuts',
-      'Practice-wide scheduling visibility with clinician assignment',
-    ],
-  },
-  {
-    num: '07',
-    file: '07_telehealth_room.png',
-    title: 'HIPAA Telehealth Video Room',
-    route: '/dashboard/telehealth',
-    suite: 'TheraFlow EHR Suite',
-    caption:
-      'Encrypted peer-to-peer virtual consultation suite with high-definition clinician and patient video panes, microphone/camera controls, active session duration timer, and integrated encounter notepad for synchronized clinical documentation.',
-    highlights: [
-      'Encrypted WebRTC audiovisual consultation streaming',
-      'Integrated hardware controls (microphone mute, camera toggle)',
-      'Side-by-side clinical notepad for in-session documentation',
-    ],
-  },
-  {
-    num: '08',
-    file: '08_billing_and_claims.png',
-    title: 'Clinical Billing & Insurance Claims Ledger',
-    route: '/dashboard/billing',
-    suite: 'TheraFlow EHR Suite',
-    caption:
-      'Practice revenue cycle management console showing itemized billing encounters, real-time insurance claim states (Paid, Submitted, Pending), payer IDs, patient copay tracking, and automated CMS-1500 superbill creation shortcuts.',
-    highlights: [
-      'Real-time claim status tracking across insurance payers',
-      'Revenue summary cards with total billed and paid amounts',
-      'One-click CMS-1500 Superbill generation modal trigger',
-    ],
-  },
-  {
-    num: '09',
-    file: '09_cms1500_superbill_modal.png',
-    title: 'Interactive CMS-1500 Superbill Generator',
-    route: '/dashboard/billing (Claim Modal)',
-    suite: 'TheraFlow EHR Suite',
-    caption:
-      'Standardized CMS-1500 health insurance claim form generator that automatically maps patient ICD-10 diagnostic codes to CPT procedural codes, calculates total allowable charges, includes provider NPI attribution, and provides printable preview.',
-    highlights: [
-      'Official CMS-1500 box-by-box electronic claim formatting',
-      'Automated ICD-10 to CPT code cross-referencing',
-      'Provider NPI, taxonomy, and insurance billing validation',
-    ],
-  },
-  {
-    num: '10',
-    file: '10_hipaa_audit_logs.png',
-    title: 'Immutable HIPAA Compliance Audit Trail',
-    route: '/dashboard/audit-logs',
-    suite: 'Security & Compliance',
-    caption:
-      'Cryptographically verified, tamper-evident event log recording every clinician authentication, chart inspection, export, and PHI de-identification operation to fulfill HIPAA Security Rule § 164.312(b) audit control mandates.',
-    highlights: [
-      'Immutable cryptographic hash verification for each logged event',
-      'Detailed event categorization (AUTH, PHI_ACCESS, EXPORT, SYSTEM)',
-      'Practitioner IP address, timestamp, and severity classification',
-    ],
-  },
-  {
-    num: '11',
-    file: '11_clinical_ai_scribe_live.png',
-    title: 'Clinical AI Scribe v2 — Live Audio & Diarization',
-    route: '/dashboard/scribe',
-    suite: 'Clinical AI Scribe v2',
-    caption:
-      'Real-time ambient clinical transcription interface featuring dynamic multi-band audio waveform visualization, multi-speaker diarization feed distinguishing clinician from patient in real-time, and instant SOAP note synthesis.',
-    highlights: [
-      'Multi-speaker acoustic diarization (Clinician vs. Patient)',
-      'Real-time dynamic multi-band audio frequency waveform display',
-      'Instant structured SOAP note generation with ICD-10/CPT coding',
-    ],
-  },
-  {
-    num: '12',
-    file: '12_clinical_ai_scribe_studio.png',
-    title: 'Clinical AI Scribe — Template Studio',
-    route: '/dashboard/scribe (Template Studio)',
-    suite: 'Clinical AI Scribe v2',
-    caption:
-      'Clinical documentation customization studio enabling practitioners to tailor documentation structures (SOAP, Intake H&P, DAP, Specialist Referral) and export finalized clinical notes directly to enterprise hospital EHR systems including Epic and Cerner.',
-    highlights: [
-      'Specialty template library with custom clinical section prompts',
-      'One-click FHIR-compatible direct export to Epic Systems and Cerner EHR',
-      'Adjustable AI note density and clinical terminology sensitivity',
-    ],
-  },
-  {
-    num: '13',
-    file: '13_aura_assistant_copilot.png',
-    title: 'Aura Diagnostic Assistant & Copilot',
-    route: '/dashboard/aura',
-    suite: 'Aura Assistant Copilot',
-    caption:
-      'Intelligent psychiatric diagnostic assistant featuring indexed DSM-5 diagnostic criteria search, clinical differential assistance, automated typewriter-style note formulation, and a persistent floating copilot action orb.',
-    highlights: [
-      'Comprehensive searchable DSM-5 criteria database',
-      'Typewriter clinical note formulation engine with live progress animation',
-      'Persistent floating Aura action orb accessible across all dashboard pages',
-    ],
-  },
-  {
-    num: '14',
-    file: '14_hipaa_phi_scrubber.png',
-    title: 'HIPAA Safe Harbor PHI De-Identification Engine',
-    route: '/dashboard/phi-scrubber',
-    suite: 'HIPAA PHI Scrubber',
-    caption:
-      'Statutory 18-rule HIPAA Safe Harbor de-identification engine executing 100% locally in the browser with zero cloud PHI leakage. Features side-by-side diff comparison, selectable masking styles (Tag, Block, Asterisk), and forensic audit ledger.',
-    highlights: [
-      'Interactive side-by-side diff highlighting detected identifiers in real-time',
-      'Multiple masking formats: Tag ([NAME]), Block (████), and Asterisk (***)',
-      'Forensic Safe Harbor classification breakdown table with JSON export',
-    ],
-  },
-  {
-    num: '15',
-    file: '15_subscription_pricing.png',
-    title: 'Subscription Management & Tier Monetization',
-    route: '/dashboard/subscription',
-    suite: 'Commercial Billing',
-    caption:
-      'Commercial SaaS licensing portal showcasing Clinician Starter ($49/mo), Clinician Pro Flagship ($99/mo), and Group Practice Enterprise ($199/mo) plans with monthly/annual billing switch (20% discount calculation) and simulated Stripe checkout.',
-    highlights: [
-      'Monthly / Annual billing toggle with real-time discount recalculation',
-      'Interactive sandbox tier switching with live feature unlock indicators',
-      'Resilient Stripe checkout sandbox with automated webhook simulation',
-    ],
-  },
+  { file: '01_landing_page.png', title: 'Landing page and public showcase', route: '/', suite: 'Public portal', status: 'Historical synthetic UI',
+    caption: 'Public entry point, clinical-tool previews, and evaluator demo launch. This image preserves historical presentation, including older privacy and compliance wording. It does not verify current deployment, vendor contracts, or absence of PHI from user-supplied data.',
+    highlights: ['Demo launch and navigation UI', 'Four clinical tool previews', 'Use synthetic input for evaluation'],
+    source: 'src/pages/Landing.tsx; src/components/demo/DemoGuideModal.tsx' },
+  { file: '02_demo_guide_modal.png', title: 'Demo guide and feature catalog', route: '/ (Demo Guide)', suite: 'Evaluator guidance', status: 'Historical synthetic UI',
+    caption: 'Guide modal with clinical journey, feature directory, subscription sandbox, and redaction-category reference. Its feature descriptions are not independent verification. Speaker diarization, connected EHR export, and compliance badges require the limits described in this document.',
+    highlights: ['Guided clinical journey', 'Feature and subscription previews', 'Reference grid for identifier categories'],
+    source: 'src/components/demo/DemoGuideModal.tsx' },
+  { file: '03_dashboard_command_center.png', title: 'Clinician dashboard', route: '/dashboard', suite: 'Practice operations', status: 'Implemented UI / synthetic records',
+    caption: 'Navigation hub with appointments, tool launch tiles, encounter context, and practice profile controls. Displayed counts and patient details are fixture data. The screenshot is not evidence of a connected clinical practice or production multi-site deployment.',
+    highlights: ['Synthetic encounter context', 'EHR, Scribe, Aura, and Scrubber navigation', 'Appointment and practice controls'],
+    source: 'src/pages/DashboardHome.tsx; src/components/layout/Header.tsx' },
+  { file: '04_theraflow_ehr_clients.png', title: 'EHR client roster', route: '/dashboard/ehr', suite: 'Clinical EHR', status: 'Implemented UI / synthetic records',
+    caption: 'Client directory with filtering, diagnostic and procedure labels, session counts, and intake status. These controls are implemented for evaluation. Persistence, permissions, and clinical workflows must be verified in a buyer-configured deployment.',
+    highlights: ['Client search and filtering', 'Chart and encounter navigation', 'Fixture diagnosis and procedure labels'],
+    source: 'src/tools/theraflow/ClientsView.tsx; src/tools/theraflow/EhrWorkspace.tsx' },
+  { file: '05_theraflow_client_chart.png', title: 'Client chart and progress notes', route: '/dashboard/ehr (client detail)', suite: 'Clinical EHR', status: 'Implemented UI / synthetic records',
+    caption: 'Synthetic client chart showing demographics, diagnostic labels, and DAP notes. Source code includes note-author and signed-note controls; the image alone cannot establish persistence, audit coverage, or clinical record compliance.',
+    highlights: ['DAP documentation UI', 'Clinical-tool handoff controls', 'Historical encounter fixture data'],
+    source: 'src/tools/theraflow/ClientProfileView.tsx; supabase/migrations/' },
+  { file: '06_clinical_calendar.png', title: 'Clinical scheduling calendar', route: '/dashboard/calendar', suite: 'Clinical EHR', status: 'Implemented UI / synthetic records',
+    caption: 'Day, week, and month scheduling views with appointment chips and room-launch shortcuts. Telehealth badges route to the evaluation room; they do not establish a working remote consultation with a second participant.',
+    highlights: ['Calendar view controls', 'Appointment and clinician labels', 'Evaluation-room launch shortcuts'],
+    source: 'src/tools/theraflow/CalendarView.tsx' },
+  { file: '07_telehealth_room.png', title: 'Telehealth evaluation room', route: '/dashboard/telehealth', suite: 'Telehealth sandbox', status: 'Loopback simulation',
+    caption: 'Local camera/microphone controls, session timer, and notepad around a WebRTC loopback demonstration. The meeting API returns simulated metadata. This is not a verified remote video-consultation service, executed BAA, or independently certified HIPAA deployment.',
+    highlights: ['Local media or synthetic fallback', 'Camera/microphone toggles and timer', 'Remote signaling and relay integration unfinished'],
+    source: 'src/tools/theraflow/webrtc-provider.ts; src/tools/theraflow/TelehealthView.tsx; server.ts' },
+  { file: '08_billing_and_claims.png', title: 'Billing and claims workspace', route: '/dashboard/billing', suite: 'Clinical billing', status: 'Implemented UI / simulated statuses',
+    caption: 'Encounter ledger, amounts, payer labels, and claim states shown with synthetic records. There is no implemented 837P generator or clearinghouse transport in the reviewed source. The displayed statuses are not live payer acknowledgments or settlement evidence.',
+    highlights: ['Synthetic billed and paid summaries', 'Encounter and copay tracking UI', 'Claim transmission remains integration work'],
+    source: 'src/tools/theraflow/BillingView.tsx; src/tools/theraflow/data/demo-seed.ts' },
+  { file: '09_cms1500_superbill_modal.png', title: 'Superbill reimbursement modal', route: '/dashboard/billing (claim modal)', suite: 'Clinical billing', status: 'Implemented form / synthetic input',
+    caption: 'Reimbursement-statement modal and text export using fixture demographics, ICD-10/CPT labels, and provider information. The source implements a superbill statement, not a verified official 33-box CMS-1500 form editor. No payer acceptance or clinical coding correctness is established.',
+    highlights: ['Superbill preview and reimbursement text', 'Charge and provider information fields', 'Validate format with target counterparties'],
+    source: 'src/tools/theraflow/SuperbillModal.tsx' },
+  { file: '10_hipaa_audit_logs.png', title: 'Audit event viewer', route: '/dashboard/audit-logs', suite: 'Security controls', status: 'Implemented logging / deployment limits',
+    caption: 'Event viewer and export controls. The server implements HMAC-signed, hash-chained audit records and tenant filtering. These are tamper-evidence mechanisms; the screenshot does not prove universal event coverage, immutable infrastructure, retention controls, or HIPAA compliance.',
+    highlights: ['Event category and timestamp display', 'Audit export and verification controls', 'Storage durability requires deployment review'],
+    source: 'src/tools/theraflow/AuditLogsView.tsx; src/lib/audit.ts; server.ts' },
+  { file: '11_clinical_ai_scribe_live.png', title: 'Scribe transcript and note workspace', route: '/dashboard/scribe', suite: 'Clinical Scribe', status: 'Synthetic / browser speech path',
+    caption: 'Transcript feed, audio visualization, speaker labels, and note-generation controls. Browser recognition labels speakers by conversational heuristics; synthetic fixtures also demonstrate the UI. Acoustic speaker identification and cloud-provider accuracy have not been established.',
+    highlights: ['Synthetic utterance feed', 'Browser SpeechRecognition when supported', 'Recognition privacy depends on the browser vendor'],
+    source: 'src/tools/scribe/ScribeWorkspace.tsx; src/tools/scribe/audio-transcription-provider.ts' },
+  { file: '12_clinical_ai_scribe_studio.png', title: 'Scribe templates and export formatters', route: '/dashboard/scribe (template studio)', suite: 'Clinical Scribe', status: 'Implemented templates / file export',
+    caption: 'Documentation templates, prompt customization, and export-format controls. Epic SmartText, Cerner text, and FHIR-shaped JSON are generated for download or clipboard. They are not authenticated writebacks to hospital EHR systems and are not verified interoperability.',
+    highlights: ['SOAP, intake, DAP, and referral templates', 'Note-density and prompt controls', 'EHR output formatting for review'],
+    source: 'src/tools/scribe/NoteTemplates.tsx; src/tools/scribe/MultiEhrExportPanel.tsx; src/tools/scribe/utils/ehrExportAdapters.ts' },
+  { file: '13_aura_assistant_copilot.png', title: 'Aura note-assistance interface', route: '/dashboard/aura', suite: 'Aura assistant', status: 'Implemented assistance / clinician review',
+    caption: 'Searchable diagnostic examples, criteria controls, typewriter note display, and floating assistant UI. The bundled reference is limited and is not a comprehensive DSM database. Suggested documentation is assistance and requires qualified clinician review.',
+    highlights: ['Bundled diagnostic reference examples', 'Criteria and note-assistance UI', 'Clinical validity is not established by UI tests'],
+    source: 'src/tools/aura/AuraStudio.tsx; src/tools/aura/data/dsm5-database.ts' },
+  { file: '14_hipaa_phi_scrubber.png', title: 'Heuristic PHI redaction aid', route: '/dashboard/phi-scrubber', suite: 'Privacy tooling', status: 'Implemented heuristics / known misses',
+    caption: 'Browser redaction UI with 18 identifier-category rule definitions, diff view, masking styles, and category reports. Category coverage does not establish removal of every identifier. Historical holdout results include missed entities; human review remains necessary.',
+    highlights: ['Local pattern matching and diff view', 'Tag, block, and asterisk masking', 'No guarantee of complete de-identification'],
+    source: 'src/tools/phi-scrubber/engine.ts; src/tools/phi-scrubber/safeHarborRules.ts; phi_scrubber_holdout_results.json' },
+  { file: '15_subscription_pricing.png', title: 'Subscription plans and sandbox switching', route: '/dashboard/subscription', suite: 'Commercial UI', status: 'Configuration / sandbox checkout',
+    caption: 'Subscription tier selection, monthly/annual display, and evaluation checkout. Current plan configuration is Starter $49/$39, Pro $99/$79, and Practice Group $249/$199 (monthly/annual monthly-equivalent). Historical image labels may differ. These are configured prices, not validated revenue.',
+    highlights: ['Tier selection and route gating', 'Simulation when Stripe is unconfigured', 'Configured Stripe path needs live vendor validation'],
+    source: 'src/lib/subscription.tsx; server.ts' },
 ];
 
+function page(title, label, content, className = '') {
+  return `<section class="page ${className}"><header><span class="label">${escape(label)}</span><span>TheraFlow | Buyer review</span></header><h1>${escape(title)}</h1><main>${content}</main><footer><span>Synthetic evaluation | Historical images, corrected annotations</span><span class="page-number"></span></footer></section>`;
+}
+
 function buildHtml() {
-  const pagesHtml = pagesData
-    .map((item, idx) => {
-      const imgBase64 = fs.readFileSync(path.join(SCREENSHOT_DIR, item.file)).toString('base64');
-      const isLast = idx === pagesData.length - 1;
-
-      return `
-      <div class="page-container ${isLast ? '' : 'page-break'}">
-        <div class="header-bar">
-          <div class="header-left">
-            <span class="page-num">${item.num} / 15</span>
-            <span class="suite-tag">${item.suite}</span>
-            <h2 class="page-title">${item.title}</h2>
-          </div>
-          <div class="header-right">
-            <span class="route-badge font-mono">${item.route}</span>
-          </div>
-        </div>
-
-        <div class="screenshot-frame">
-          <img src="data:image/png;base64,${imgBase64}" alt="${item.title}" class="screenshot-img" />
-        </div>
-
-        <div class="caption-card">
-          <div class="caption-header">
-            <span class="caption-label">Page Overview &amp; Functionality</span>
-          </div>
-          <p class="caption-text">${item.caption}</p>
-          <div class="highlights-grid">
-            ${item.highlights
-              .map(
-                (h) => `
-              <div class="highlight-item">
-                <span class="bullet">✓</span>
-                <span class="highlight-text">${h}</span>
-              </div>
-            `
-              )
-              .join('')}
-          </div>
-        </div>
-
-        <div class="footer-bar">
-          <span>Clinical Telehealth &amp; AI Scribe SaaS Platform • Live Deployment: clinicalsaaslaunch.vercel.app</span>
-          <span>100% Synthetic Data • HIPAA Safe Harbor Compliant</span>
-        </div>
-      </div>
-    `;
-    })
-    .join('');
-
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Clinical Telehealth & AI Scribe SaaS — Platform Walkthrough</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: #0f172a;
-      background: #f8fafc;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    .font-mono {
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .page-break {
-      page-break-after: always;
-      break-after: page;
-    }
-
-    /* Cover Page */
-    .cover-container {
-      width: 8.5in;
-      height: 11in;
-      padding: 0.8in 0.8in;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background: linear-gradient(145deg, #0b1120 0%, #1e1b4b 50%, #0f172a 100%);
-      color: #ffffff;
-      box-sizing: border-box;
-    }
-
-    .cover-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid rgba(129, 140, 248, 0.4);
-      color: #c7d2fe;
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .cover-title-group {
-      margin-top: 2rem;
-    }
-
-    .cover-title {
-      font-size: 2.85rem;
-      font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -0.03em;
-      background: linear-gradient(to right, #ffffff, #e0e7ff, #99f6e4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 1rem;
-    }
-
-    .cover-subtitle {
-      font-size: 1.15rem;
-      color: #cbd5e1;
-      line-height: 1.6;
-      max-width: 6.5in;
-    }
-
-    .cover-meta-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.25rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 1rem;
-      padding: 1.5rem;
-      backdrop-filter: blur(10px);
-    }
-
-    .meta-item-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #94a3b8;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .meta-item-value {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .cover-disclaimer {
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-radius: 0.75rem;
-      padding: 1rem 1.25rem;
-      color: #fef3c7;
-      font-size: 0.78rem;
-      line-height: 1.5;
-    }
-
-    .cover-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
-      padding-top: 1rem;
-      color: #94a3b8;
-      font-size: 0.8rem;
-    }
-
-    /* Standard Page */
-    .page-container {
-      width: 8.5in;
-      height: 11in;
-      padding: 0.55in 0.6in;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-sizing: border-box;
-      background: #ffffff;
-    }
-
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 0.45rem;
-      margin-bottom: 0.45rem;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-    }
-
-    .page-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #ffffff;
-      background: #4f46e5;
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.375rem;
-    }
-
-    .suite-tag {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #0d9488;
-      background: #ccfbf1;
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.375rem;
-    }
-
-    .page-title {
-      font-size: 1.12rem;
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.02em;
-    }
-
-    .route-badge {
-      font-size: 0.72rem;
-      color: #64748b;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      padding: 0.2rem 0.55rem;
-      border-radius: 0.375rem;
-      font-weight: 600;
-    }
-
-    .screenshot-frame {
-      width: 100%;
-      height: 5.65in;
-      border-radius: 0.65rem;
-      overflow: hidden;
-      border: 1px solid #cbd5e1;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-      background: #0f172a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 0.45rem;
-    }
-
-    .screenshot-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: top center;
-    }
-
-    .caption-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.65rem;
-      padding: 0.65rem 0.85rem;
-      margin-bottom: 0.35rem;
-    }
-
-    .caption-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 0.3rem;
-    }
-
-    .caption-label {
-      font-size: 0.72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #4338ca;
-    }
-
-    .caption-text {
-      font-size: 0.82rem;
-      color: #334155;
-      line-height: 1.45;
-      margin-bottom: 0.45rem;
-    }
-
-    .highlights-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.45rem;
-      border-top: 1px dashed #cbd5e1;
-      padding-top: 0.4rem;
-    }
-
-    .highlight-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.35rem;
-    }
-
-    .bullet {
-      color: #059669;
-      font-size: 0.72rem;
-      font-weight: 800;
-      line-height: 1.3;
-    }
-
-    .highlight-text {
-      font-size: 0.72rem;
-      color: #475569;
-      line-height: 1.35;
-      font-weight: 500;
-    }
-
-    .footer-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 0.35rem;
-      color: #94a3b8;
-      font-size: 0.68rem;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Cover Page -->
-  <div class="cover-container page-break">
-    <div>
-      <span class="cover-badge">Interactive Technical Evaluation &amp; Tour</span>
-      <div class="cover-title-group">
-        <h1 class="cover-title">Clinical Telehealth &amp;<br>AI Scribe SaaS Platform</h1>
-        <p class="cover-subtitle">
-          Comprehensive visual walkthrough and architectural inspection across every suite, modal, and clinical workflow on the live production deployment.
-        </p>
-      </div>
-    </div>
-
-    <div class="cover-meta-grid">
-      <div>
-        <div class="meta-item-label">Live Deployment URL</div>
-        <div class="meta-item-value font-mono">https://clinicalsaaslaunch.vercel.app</div>
-      </div>
-      <div>
-        <div class="meta-item-label">Source Code Repository</div>
-        <div class="meta-item-value font-mono">github.com/alexmarshiamft/clinical_saas_launch</div>
-      </div>
-      <div>
-        <div class="meta-item-label">Evaluation Scope</div>
-        <div class="meta-item-value">15 High-Resolution Screenshots with Technical Annotations</div>
-      </div>
-      <div>
-        <div class="meta-item-label">Architectural Compliance</div>
-        <div class="meta-item-value">HIPAA Safe Harbor 18 De-Identification Standard</div>
-      </div>
-    </div>
-
-    <div class="cover-disclaimer">
-      <strong>LEGAL CYA NOTICE &amp; SYNTHETIC DATA CERTIFICATION:</strong><br>
-      All client names, medical record numbers (MRNs), diagnostic codes, dates of birth, consultation audio feeds, and clinical SOAP notes depicted within this document are <strong>100% synthetic and simulated</strong>. No actual human Protected Health Information (PHI) is present, captured, or stored in this demonstration platform.
-    </div>
-
-    <div class="cover-footer">
-      <span>Prepared for Clinical Leadership &amp; Engineering Review</span>
-      <span>Published October 2026</span>
-    </div>
-  </div>
-
-  <!-- 15 Content Pages -->
-  ${pagesHtml}
-
-</body>
-</html>
-  `;
+  const contents = [
+    page('Clinical platform walkthrough', 'Acquisition accuracy candidate', `<p class="lead">Fifteen historical synthetic screenshots with factual annotations, release provenance, and evidence limits.</p><div class="grid">${card('Purpose', 'Help a buyer inspect the existing UI and distinguish working code from simulations and unimplemented vendor connections.')}${card('Candidate release', RELEASE_TAG)}${card('Source', 'github.com/alexmarshiamft/clinical_saas_launch')}${card('Prepared', 'October 6, 2026')}</div>${note('Screenshots were already in the repository and were not recaptured for this accuracy release. Capture-time deployment and source SHA are not established. Some embedded UI labels contain older marketing claims; corrected captions and scope notes govern the evaluation.')}`, 'cover'),
+    page('Read the evidence within its scope', 'Evaluation boundaries', `<div class="grid">${card('Working code', 'Clinical workspaces, note templates, redaction heuristics, security checks, compensation math, ledger validation, and text/JSON export formatting.')}${card('Sandbox behavior', 'Synthetic patient and financial records, WebRTC loopback, heuristic browser speaker labels, treasury simulation and synthetic claim statuses, and unconfigured subscription checkout.')}${card('Vendor work', 'Remote telehealth, verified speech diarization, clearinghouse transport/remittances, hospital EHR connectivity, live payroll tax filing, and bank settlement remain unverified or unfinished.')}${card('Production prerequisites', 'Verify identity, persistence, durable audit storage, backups, monitoring, and agreements. Move Gemini secrets/calls behind a server boundary; a configured key is embedded by Vite into client assets.')}</div>${note('No independent security or HIPAA certification, production readiness for patient PHI, or absolute privacy guarantee is established by these materials. Browser speech recognition may use browser-vendor services.')}${list(['Historical images illustrate UI, not current deployment state or vendor connectivity.', 'Synthetic fixtures do not prevent a user from entering real data; evaluate only with synthetic inputs.', 'Practice OS finance modules are documented in the handoff and deck; the 15 screenshots focus on earlier clinical workspaces.'])}`),
+    ...pagesData.map((item,index) => {
+      const screenshotFile = path.join(SCREENSHOT_DIR, item.file);
+      if (!fs.existsSync(screenshotFile)) throw new Error(`Missing historical screenshot: ${screenshotFile}`);
+      const base64 = fs.readFileSync(screenshotFile).toString('base64');
+      return page(item.title, `${String(index+1).padStart(2,'0')} / 15 | ${item.suite}`, `<div class="meta"><code>${escape(item.route)}</code><span>${escape(item.status)}</span></div><figure><img src="data:image/png;base64,${base64}" alt="${escape(item.title)}"><figcaption>Historical synthetic screenshot; not recaptured. Embedded UI claims may be outdated.</figcaption></figure><article class="caption"><h2>Implemented behavior and limits</h2><p>${escape(item.caption)}</p><div class="highlights">${item.highlights.map((item)=>`<div>${escape(item)}</div>`).join('')}</div></article><p class="source">Source: ${escape(item.source)}</p>`, 'screenshot-page');
+    }),
+    page('Test and database evidence', 'Verification scope', `<h2>Immutable baseline CI</h2><p>Runs 37514914857 (master) and 37514932475 (remediation-pass-2) passed on snapshot 515cefe320b46b9e50695849dd23ce0c2b93cd63.</p><table><tbody>${[['Client security','26 / 26'],['Server security / tenant isolation','29 / 29'],['Empirical server stress','28 / 28'],['EHR','30 / 30'],['Scribe','61 / 61'],['Aura / PHI scrubber','85 / 85'],['Financial / security invariants','Passing; inspect logs']].map(([a,b])=>`<tr><td>${escape(a)}</td><td>${escape(b)}</td></tr>`).join('')}</tbody></table>${note('Those historical CI runs did not execute the migration pipeline. Published v1.1.1 runs 37519919273 and 37519932172 include the original migration harness at fd9e2b3e442016f4dc9e85b893bb092b68393a97. The v1.1.2 candidate strengthens database assertions and requires its own matching branch/PR CI evidence.')}<h2>Database counting methodology</h2><p>Two migration files define 31 unique public tables plus the auth.users standalone-PostgreSQL compatibility shim: 32 total CREATE TABLE targets. They contain 59 CREATE POLICY statements; one policy is dropped, leaving 58 active policies after both migrations are applied. Verify installed assets through pg_tables and pg_policies in a disposable database.</p><p class="links">${link(`${REPO_URL}/actions/runs/37514914857`, 'Master snapshot CI')} | ${link(`${REPO_URL}/actions/runs/37514932475`, 'Remediation snapshot CI')} | ${link(`${REPO_URL}/releases/tag/v1.1.1-acquisition-package`, 'Published v1.1.1 evidence')}</p>`),
+    page('Release provenance and privacy limits', 'Buyer verification', `<h2>Release references</h2><div class="hash"><span>Core remediation commit</span><code>4113573e982e6176ea8c71c3deb2862f44a6f11e</code><span>Preserved baseline: v1.1.0-security-remediated</span><code>515cefe320b46b9e50695849dd23ce0c2b93cd63</code><span>Preserved package: v1.1.1-acquisition-package</span><code>fd9e2b3e442016f4dc9e85b893bb092b68393a97</code><span>Resolve candidate commit after publication</span><code>git rev-parse ${RELEASE_TAG}^{commit}</code></div><p>The baseline annotated tag is unsigned. v1.1.2-acquisition-accuracy is a candidate. Tag resolution succeeds only after publication. Matching branch/PR CI evidence must identify the tested candidate SHA; the PDF avoids embedding its own enclosing commit SHA.</p><h2>Redaction is assistive</h2><p>The earlier recorded holdout evaluated 610 synthetic snippets / 3,410 entities: 81.64% recall with 626 missed entities. The fresh report evaluated 250 snippets / 1,540 entities: 92.79% recall with 111 missed entities. These distinct historical synthetic overlap-based evaluations are not real-world recall estimates; precision counts are not reconciled here.</p><p>The Scribe and DAP outbound LLM paths call a sanitization gateway that aborts on engine errors or known context name/MRN leftovers. It cannot reject identifiers it fails to detect. Clinician review and deployment privacy safeguards remain required.</p><p class="source">Sources: phi_scrubber_holdout_results.json (2026-10-05); THERAFLOW_REMEDIATION_PASS2_REPORT.md Section M; src/tools/phi-scrubber/phi-privacy-gateway.ts</p><p class="links">${link(REPO_URL, 'Source repository')} | ${link(`${REPO_URL}/releases/tag/v1.1.1-acquisition-package`, 'Preserved published package')}</p>`),
+  ];
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>TheraFlow platform walkthrough</title><style>
+    *{box-sizing:border-box;margin:0;padding:0}@page{size:Letter;margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#1a2940;-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#e8edf5}
+    .page{width:8.5in;height:11in;padding:42px 51px 30px;background:#fff;break-after:page;display:flex;flex-direction:column;gap:16px}.page:last-child{break-after:auto}header{display:flex;justify-content:space-between;font-size:10px;color:#697a94;text-transform:uppercase;letter-spacing:.8px;gap:12px}.label{color:#087f78;font-weight:bold}h1{font-size:27px;line-height:1.12;letter-spacing:-.5px}main{flex:1;min-height:0;display:flex;flex-direction:column;gap:17px}h2{font-size:16px;line-height:1.3;color:#263954}p,li{font-size:13px;line-height:1.6;color:#42516a}ul{padding-left:18px;display:flex;flex-direction:column;gap:10px}.lead{font-size:22px;line-height:1.5;color:#cad7ef}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:#f0f5fa;border:1px solid #d1dbe8;border-radius:10px;padding:20px}.card h3{font-size:16px;margin-bottom:8px;color:#223950}.card p{font-size:13px;line-height:1.55}.note{background:#fff6df;border:1px solid #e2cb96;border-radius:8px;padding:15px 18px;font-size:12px;line-height:1.6;color:#755827}
+    footer{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #d3deec;padding-top:11px;font-size:9px;color:#72839d}.cover{background:linear-gradient(130deg,#142239,#203958);color:#fff}.cover h1{font-size:43px;line-height:1.1;margin-top:70px}.cover main{justify-content:center;gap:24px}.cover .label{color:#7de5d5}.cover header,.cover footer{color:#c3d2e9}.cover .card{background:#2b425e;border-color:#4c617e}.cover .card h3{color:#f6fbff}.cover .card p{color:#cfddf1}.cover .note{background:#494333;color:#ffe5ad;border-color:#8b805f}
+    .meta{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:#53716f}.meta code{font-size:11px;overflow-wrap:anywhere;font-family:Menlo,Consolas,monospace;color:#5c6b83;background:#edf2f7;padding:7px 9px;border-radius:5px}.screenshot-page main{gap:17px;justify-content:flex-start}figure{margin-top:5px}figure img{display:block;width:100%;height:auto;max-height:4.65in;object-fit:contain;border:1px solid #c5d0df;border-radius:7px}figcaption{margin-top:9px;color:#745d36;background:#fff8e8;padding:7px 9px;font-size:10px;line-height:1.4;border-radius:4px}
+    .caption{background:#f3f7fb;border:1px solid #d6e0ec;border-radius:9px;padding:19px 20px;display:flex;flex-direction:column;gap:14px}.caption h2{font-size:12px;text-transform:uppercase;color:#087b73;letter-spacing:.5px}.caption p{font-size:13px;line-height:1.65}.highlights{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding-top:13px;border-top:1px solid #d4deeb}.highlights div{font-size:11px;line-height:1.5;color:#516a86;padding-left:10px;border-left:2px solid #28a499}.source{font-size:10px;line-height:1.55;overflow-wrap:anywhere;color:#7586a0}.links{font-size:11px;line-height:1.7;overflow-wrap:anywhere}a{color:#126ea6;text-decoration:underline}
+    table{border-collapse:collapse;width:100%;font-size:13px}td{border-bottom:1px solid #d4dfeb;padding:8px 12px;background:#f3f7fb}td:last-child{width:35%;font-weight:bold}.hash{display:flex;flex-direction:column;gap:9px}.hash span{font-size:11px;text-transform:uppercase;color:#537388;font-weight:bold}.hash code{font-family:Menlo,Consolas,monospace;font-size:11px;background:#eff4fa;border:1px solid #d4dfed;padding:10px;border-radius:5px;overflow-wrap:anywhere}
+  </style></head><body>${contents.map((content,index)=>content.replace('<span class="page-number"></span>',`<span class="page-number">${index+1} / ${contents.length}</span>`)).join('')}</body></html>`;
 }
 
 async function renderPdf() {
-  console.log('Generating comprehensive PDF walkthrough document...');
-  const htmlContent = buildHtml();
-  const htmlPath = path.resolve('screenshots_walkthrough.html');
-  fs.writeFileSync(htmlPath, htmlContent);
-  console.log(`✓ Generated intermediate HTML template: ${htmlPath}`);
-
-  const browser = await chromium.launch({
-    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    headless: true,
-  });
-
-  const page = await browser.newPage();
-  await page.setContent(htmlContent, { waitUntil: 'load' });
-
-  // Generate PDF
-  await page.pdf({
-    path: OUTPUT_PDF,
-    format: 'Letter',
-    printBackground: true,
-    margin: {
-      top: '0',
-      bottom: '0',
-      left: '0',
-      right: '0',
-    },
-  });
-
-  console.log(`✓ Master PDF walkthrough generated at: ${OUTPUT_PDF}`);
-
-  if (fs.existsSync(ARTIFACT_DIR)) {
-    const artifactPdf = path.join(ARTIFACT_DIR, 'clinical_saas_platform_walkthrough.pdf');
-    fs.copyFileSync(OUTPUT_PDF, artifactPdf);
-    console.log(`✓ Copied to artifacts directory: ${artifactPdf}`);
-  }
-
-  await browser.close();
+  const html = buildHtml();
+  fs.writeFileSync(path.join(ROOT, 'screenshots_walkthrough.html'), html);
+  const chrome = process.env.CHROME_PATH || (fs.existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome') ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : undefined);
+  const browser = await chromium.launch({ ...(chrome ? { executablePath: chrome } : {}), headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 816, height: 1056 } });
+    await page.setContent(html, { waitUntil: 'load' });
+    await page.evaluate(() => document.fonts.ready);
+    const overflows = await page.locator('.page').evaluateAll((elements) => elements.flatMap((element,index) => element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1 ? [index + 1] : []));
+    if (overflows.length) throw new Error(`Walkthrough page overflow: ${overflows.join(', ')}`);
+    await page.pdf({ path: OUTPUT_PDF, format: 'Letter', printBackground: true, margin: { top: '0', bottom: '0', left: '0', right: '0' } });
+    fs.mkdirSync(path.join(ROOT, 'public'), { recursive: true });
+    fs.copyFileSync(OUTPUT_PDF, path.join(ROOT, 'public', path.basename(OUTPUT_PDF)));
+    console.log(`Generated 19-page annotated walkthrough: ${OUTPUT_PDF}`);
+  } finally { await browser.close(); }
 }
 
-renderPdf();
+renderPdf().catch((error) => { console.error(error); process.exitCode = 1; });

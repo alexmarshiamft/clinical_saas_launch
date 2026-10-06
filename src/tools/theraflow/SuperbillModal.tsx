@@ -87,7 +87,7 @@ export const SuperbillModal: React.FC<SuperbillModalProps> = ({
 
   const handleCopyClaimText = () => {
     const text = `
-STATEMENT FOR HEALTH INSURANCE REIMBURSEMENT (CMS-1500 / SUPERBILL)
+SUPERBILL REIMBURSEMENT STATEMENT (NOT AN OFFICIAL CMS-1500 FORM)
 -----------------------------------------------------------------
 PROVIDER INFORMATION:
 Provider: ${CLINICIAN_NAME}
@@ -137,10 +137,10 @@ Signature: ${CLINICIAN_NAME} (MD-CA-C182940)
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900 leading-tight">
-                CMS-1500 Superbill Reimbursement Statement
+                Superbill Reimbursement Statement
               </h2>
               <p className="text-xs text-slate-500">
-                Official statement for patient insurance reimbursement (HCFA-1500 / CMS-1500 Standard)
+                Draft reimbursement statement; payer acceptance and official CMS-1500 conformance are not verified
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ Signature: ${CLINICIAN_NAME} (MD-CA-C182940)
                   Statement for Health Insurance Reimbursement
                 </h1>
                 <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mt-0.5">
-                  CMS-1500 / HCFA-1500 Form Alignment Standard
+                  Reimbursement statement format
                 </div>
               </div>
               <div className="text-right">

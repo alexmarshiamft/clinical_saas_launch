@@ -4,27 +4,90 @@
  * Tests:
  * 1. Fresh PostgreSQL / Supabase database creation
  * 2. In-order migration deployment with ON_ERROR_STOP=1
- * 3. Schema verification (all 27 tables + 47 policies created)
+ * 3. Exact schema verification against the ordered SQL source inventory:
+ *    31 public tables, auth.users, and 58 active public policies
  * 4. Multi-tenant RLS isolation adversarial verification
- * 5. Role-Based Access Control (RBAC) verification:
- *    - Clinicians cannot edit compensation plans
- *    - Clinicians cannot approve payroll runs
- *    - Clinicians cannot modify bank accounts
- *    - Clinicians can only view own earning line items
+ * 5. Thirteen behavioral probes covering compensation-plan insert RBAC,
+ *    journal-line update immutability, signed/draft note guards, user identity
+ *    and privilege guards, manual-accrual inserts, and TRUNCATE denial.
+ *    Note trigger probes set JWT identity while retaining the database admin
+ *    role; tenant, plan, user, and TRUNCATE probes use authenticated role.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const DB_NAME = `theraflow_test_migration_${Date.now()}`;
+const MIGRATION_FILES = [
+  '20261005_init_schema.sql',
+  '20261005_unified_practice_os.sql',
+].map(name => fileURLToPath(new URL(`../supabase/migrations/${name}`, import.meta.url)));
+let passedProbes = 0;
+
+function passProbe(message: string) {
+  passedProbes += 1;
+  console.log(`✓ [PASS] ${message}`);
+}
+
+// These migrations use unquoted identifiers and literal CREATE/DROP statements.
+// Count distinct schema-qualified targets; replay policy replacement in order.
+function migrationInventory() {
+  const tables = new Set<string>();
+  const activePolicies = new Set<string>();
+  let createTableStatements = 0;
+  let createPolicyStatements = 0;
+  for (const file of MIGRATION_FILES) {
+    const sql = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\/|--[^\n]*/g, '');
+    for (const match of sql.matchAll(/\bCREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([\w.]+)/gi)) {
+      createTableStatements += 1;
+      const table = match[1].toLowerCase();
+      tables.add(table.includes('.') ? table : `public.${table}`);
+    }
+    for (const match of sql.matchAll(/\b(CREATE|DROP)\s+POLICY\s+(?:IF\s+EXISTS\s+)?(\w+)\s+ON\s+([\w.]+)/gi)) {
+      const table = match[3].toLowerCase();
+      const key = `${table.includes('.') ? table : `public.${table}`}:${match[2].toLowerCase()}`;
+      if (match[1].toUpperCase() === 'CREATE') {
+        createPolicyStatements += 1;
+        activePolicies.add(key);
+      } else {
+        activePolicies.delete(key);
+      }
+    }
+  }
+  return { tables, activePolicies, createTableStatements, createPolicyStatements };
+}
+
+function assertSameInventory(actual: string[], expected: Set<string>, label: string) {
+  const actualSet = new Set(actual);
+  const missing = [...expected].filter(value => !actualSet.has(value));
+  const unexpected = actual.filter(value => !expected.has(value));
+  if (missing.length || unexpected.length || actual.length !== expected.size) {
+    throw new Error(`${label} mismatch: missing [${missing.join(', ')}]; unexpected [${unexpected.join(', ')}]`);
+  }
+}
 
 function runPsql(sqlOrFile: string, isFile = false) {
   if (isFile) {
-    const cmd = `psql -v ON_ERROR_STOP=1 -d ${DB_NAME} -f "${sqlOrFile}"`;
-    return execSync(cmd, { encoding: 'utf8' }).trim();
+    return execFileSync('psql', ['-X', '-v', 'ON_ERROR_STOP=1', '-d', DB_NAME, '-f', sqlOrFile],
+      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
   } else {
-    const cmd = `psql -v ON_ERROR_STOP=1 -d ${DB_NAME} -t -A`;
-    return execSync(cmd, { input: sqlOrFile, encoding: 'utf8' }).trim();
+    return execFileSync('psql', ['-X', '-v', 'ON_ERROR_STOP=1', '-d', DB_NAME, '-q', '-t', '-A'],
+      { input: sqlOrFile, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
   }
+}
+
+function expectSqlRejected(sql: string, expectedReason: RegExp, failureMessage: string) {
+  try {
+    runPsql(sql);
+  } catch (error) {
+    const stderr = String((error as { stderr?: string | Buffer }).stderr ?? error);
+    if (!expectedReason.test(stderr)) {
+      throw new Error(`Unexpected SQL failure while checking ${failureMessage}: ${stderr}`);
+    }
+    return;
+  }
+  throw new Error(failureMessage);
 }
 
 async function runMigrationPipelineTest() {
@@ -35,7 +98,7 @@ async function runMigrationPipelineTest() {
   try {
     // 1. Create fresh throwaway database
     console.log(`[Phase 1] Provisioning clean throwaway database: ${DB_NAME}...`);
-    execSync(`createdb ${DB_NAME}`);
+    execFileSync('createdb', [DB_NAME]);
     console.log('✓ Clean test database created.');
 
     // 2. Auth shim
@@ -61,64 +124,52 @@ async function runMigrationPipelineTest() {
           (auth.jwt() ->> 'sub')::UUID
         );
       $$ LANGUAGE SQL STABLE;
-    `);
-    console.log('✓ Auth shim applied cleanly.');
 
-    // 3. Apply migrations in order
-    console.log('[Phase 3] Applying migration 1: 20261005_init_schema.sql...');
-    runPsql('supabase/migrations/20261005_init_schema.sql', true);
-    console.log('✓ Init schema applied cleanly.');
-
-    console.log('[Phase 3] Applying migration 2: 20261005_unified_practice_os.sql...');
-    runPsql('supabase/migrations/20261005_unified_practice_os.sql', true);
-    console.log('✓ Unified Practice OS schema applied cleanly.');
-
-    // 4. Verify table counts and critical table presence
-    console.log('\n[Phase 4] Auditing Database Entities...');
-    const tableCountStr = runPsql("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'");
-    const tableCount = parseInt(tableCountStr, 10);
-    console.log(`Total public tables created: ${tableCount}`);
-
-    const criticalTables = [
-      'practices', 'users', 'clients', 'appointments', 'encounters', 'clinical_notes', 'billing_claims', 'audit_logs',
-      'practice_locations', 'workers', 'clinician_profiles', 'supervisor_relationships',
-      'compensation_plans', 'compensation_plan_versions', 'compensation_rules', 'compensation_plan_assignments',
-      'payment_events', 'pay_periods', 'payroll_runs', 'earning_line_items', 'payroll_run_line_items', 'compensation_events',
-      'general_ledger_accounts', 'journal_entries', 'journal_entry_lines',
-      'bank_accounts', 'bank_transactions', 'payment_reconciliations', 'payroll_funding_events'
-    ];
-
-    for (const table of criticalTables) {
-      const exists = runPsql(`SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${table}'`);
-      if (exists !== '1') {
-        throw new Error(`CRITICAL TABLE MISSING: ${table}`);
-      }
-    }
-    console.log(`✓ All ${criticalTables.length} critical domain tables exist in public schema.`);
-
-    // 5. Verify RLS policies count
-    const policyCountStr = runPsql("SELECT count(*) FROM pg_policies WHERE schemaname = 'public'");
-    const policyCount = parseInt(policyCountStr, 10);
-    console.log(`Total Row Level Security (RLS) policies created: ${policyCount}`);
-    if (policyCount < 40) {
-      throw new Error(`Insufficient RLS policies: expected >= 40, found ${policyCount}`);
-    }
-    console.log('✓ Comprehensive RLS policies registered.');
-
-    // 6. Adversarial RLS & Multi-Tenant Tests
-    console.log('\n[Phase 5] Executing Adversarial RLS Multi-Tenant & RBAC Tests...');
-
-    // Setup Supabase authenticated role for RLS testing
-    runPsql(`
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'authenticated') THEN
           CREATE ROLE authenticated;
         END IF;
       END $$;
+      -- Exercise the migrations' explicit revocations against broad preexisting
+      -- Supabase-style table grants, rather than an unprivileged fresh role.
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO authenticated;
+    `);
+    console.log('✓ Auth shim applied cleanly.');
+
+    // 3. Apply migrations in order
+    console.log('[Phase 3] Applying migration 1: 20261005_init_schema.sql...');
+    runPsql(MIGRATION_FILES[0], true);
+    console.log('✓ Init schema applied cleanly.');
+
+    console.log('[Phase 3] Applying migration 2: 20261005_unified_practice_os.sql...');
+    runPsql(MIGRATION_FILES[1], true);
+    console.log('✓ Unified Practice OS schema applied cleanly.');
+
+    // 4. Verify exact table identities, separating auth shim from public tables.
+    console.log('\n[Phase 4] Auditing Database Entities...');
+    const inventory = migrationInventory();
+    const publicTables = runPsql("SELECT table_schema || '.' || table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name").split('\n').filter(Boolean);
+    const authTables = runPsql("SELECT table_schema || '.' || table_name FROM information_schema.tables WHERE table_schema = 'auth' AND table_type = 'BASE TABLE' ORDER BY table_name").split('\n').filter(Boolean);
+    assertSameInventory(publicTables, new Set([...inventory.tables].filter(table => table.startsWith('public.'))), 'Public tables');
+    assertSameInventory(authTables, new Set([...inventory.tables].filter(table => table.startsWith('auth.'))), 'Auth tables');
+    console.log(`Source inventory: ${inventory.createTableStatements} CREATE TABLE statements; ${inventory.tables.size} distinct targets (${publicTables.length} public + ${authTables.length} auth).`);
+    console.log(`✓ Exact public base-table inventory verified: ${publicTables.length}.`);
+
+    // 5. Verify active policy identities; replacement statements are not extra policies.
+    const publicPolicies = runPsql("SELECT schemaname || '.' || tablename || ':' || policyname FROM pg_policies WHERE schemaname = 'public' ORDER BY tablename, policyname").split('\n').filter(Boolean);
+    assertSameInventory(publicPolicies, new Set([...inventory.activePolicies].filter(policy => policy.startsWith('public.'))), 'Active public policies');
+    console.log(`Source inventory: ${inventory.createPolicyStatements} CREATE POLICY statements; runtime pg_policies: ${publicPolicies.length} active public policies.`);
+    console.log('✓ Exact active policy inventory verified against ordered CREATE/DROP statements.');
+
+    // 6. Adversarial RLS & Multi-Tenant Tests
+    console.log('\n[Phase 5] Executing Adversarial RLS Multi-Tenant & RBAC Tests...');
+
+    // Setup Supabase authenticated role for RLS testing
+    runPsql(`
       GRANT USAGE ON SCHEMA public TO authenticated;
       GRANT USAGE ON SCHEMA auth TO authenticated;
-      GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
       GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
       GRANT ALL ON ALL FUNCTIONS IN SCHEMA auth TO authenticated;
@@ -150,23 +201,17 @@ async function runMigrationPipelineTest() {
     if (countA !== '1') {
       throw new Error(`Tenant Isolation Failed: Practice A saw ${countA} workers (expected 1)`);
     }
-    console.log('✓ [PASS] Cross-tenant isolation holds (Practice A sees only its own workers).');
+    passProbe('Cross-tenant isolation holds (Practice A sees only its own workers).');
 
     // Probe 2: Clinician without admin role cannot insert compensation plan
-    let clinicianInsertBlocked = false;
-    try {
-      runPsql(
+    expectSqlRejected(
         `SET ROLE authenticated;
          SET "request.jwt.claims" = '{"app_metadata": {"practice_id": "a0000000-0000-0000-0000-000000000001", "role": "clinician"}}';
-         INSERT INTO compensation_plans (id, practice_id, name) VALUES ('c0000000-0000-0000-0000-000000000099', 'a0000000-0000-0000-0000-000000000001', 'Hacked Plan');`
-      );
-    } catch {
-      clinicianInsertBlocked = true;
-    }
-    if (!clinicianInsertBlocked) {
-      throw new Error('RBAC Violation: Clinician was able to insert a compensation plan!');
-    }
-    console.log('✓ [PASS] RBAC enforced: Regular clinician cannot create or modify compensation plans.');
+         INSERT INTO compensation_plans (id, practice_id, name) VALUES ('c0000000-0000-0000-0000-000000000099', 'a0000000-0000-0000-0000-000000000001', 'Hacked Plan');`,
+        /new row violates row-level security policy for table "compensation_plans"/,
+        'RBAC Violation: Clinician was able to insert a compensation plan!'
+    );
+    passProbe('RBAC enforced: Regular clinician cannot create a compensation plan.');
 
     // Probe 3: Double-entry journal append-only immutability
     const glAccountId = 'd0000000-0000-0000-0000-000000000001';
@@ -192,6 +237,7 @@ async function runMigrationPipelineTest() {
     if (afterUpdateDebit !== '10000') {
       throw new Error(`Append-Only Violation: Journal line was mutated to ${afterUpdateDebit}!`);
     }
+    passProbe('Journal-line update immutability: Debit remains unchanged.');
     // Probe 4: Signed Clinical Note Metadata & Deletion Immutability
     console.log('\n[Phase 6] Auditing Signed Clinical Note Immutability & Deletion Guards...');
     const clientUuid = '11111111-2222-3333-4444-555555555555';
@@ -213,34 +259,28 @@ async function runMigrationPipelineTest() {
     `);
 
     // Probe 4.1: Attempting to clear signed_at or signature_hash must fail
-    let clearSigBlocked = false;
-    try {
-      runPsql(`UPDATE clinical_notes SET signed_at = NULL, signature_hash = NULL WHERE id = '${noteUuid}';`);
-    } catch {
-      clearSigBlocked = true;
-    }
-    if (!clearSigBlocked) throw new Error('Signed Note Immutability Violation: Able to clear signature metadata!');
-    console.log('✓ [PASS] Signed note metadata lock: Clearing signature metadata blocked.');
+    expectSqlRejected(
+      `UPDATE clinical_notes SET signed_at = NULL, signature_hash = NULL WHERE id = '${noteUuid}';`,
+      /Signed clinical notes cannot be altered or unlocked/,
+      'Signed Note Immutability Violation: Able to clear signature metadata!'
+    );
+    passProbe('Signed note metadata lock: Clearing signature metadata blocked.');
 
     // Probe 4.2: Attempting to change template_type or clinician_id must fail
-    let alterClinicianBlocked = false;
-    try {
-      runPsql(`UPDATE clinical_notes SET template_type = 'dap' WHERE id = '${noteUuid}';`);
-    } catch {
-      alterClinicianBlocked = true;
-    }
-    if (!alterClinicianBlocked) throw new Error('Signed Note Immutability Violation: Able to alter template_type!');
-    console.log('✓ [PASS] Signed note metadata lock: Changing template_type blocked.');
+    expectSqlRejected(
+      `UPDATE clinical_notes SET template_type = 'dap' WHERE id = '${noteUuid}';`,
+      /Signed clinical notes cannot be altered or unlocked/,
+      'Signed Note Immutability Violation: Able to alter template_type!'
+    );
+    passProbe('Signed note metadata lock: Changing template_type blocked.');
 
     // Probe 4.3: Attempting to DELETE signed note must fail
-    let deleteSignedBlocked = false;
-    try {
-      runPsql(`DELETE FROM clinical_notes WHERE id = '${noteUuid}';`);
-    } catch {
-      deleteSignedBlocked = true;
-    }
-    if (!deleteSignedBlocked) throw new Error('Signed Note Immutability Violation: Able to DELETE a signed clinical note!');
-    console.log('✓ [PASS] Signed note deletion guard: Deleting signed note rejected by trigger.');
+    expectSqlRejected(
+      `DELETE FROM clinical_notes WHERE id = '${noteUuid}';`,
+      /Signed clinical notes cannot be deleted/,
+      'Signed Note Immutability Violation: Able to DELETE a signed clinical note!'
+    );
+    passProbe('Signed note deletion guard: Deleting signed note rejected by trigger.');
 
     // Probe 4.4: Colleague B attempting to UPDATE Colleague A's unsigned note must fail
     const unsignedNoteUuid = 'aaaaaaaa-bbbb-cccc-dddd-111111111111';
@@ -255,31 +295,25 @@ async function runMigrationPipelineTest() {
         ('${unsignedNoteUuid}', 'a0000000-0000-0000-0000-000000000001', '${clientUuid}', '${clinicianUuid}', 'soap', 'Unsigned draft note by Alice', '{"summary": "Draft"}'::jsonb, false);
     `);
 
-    let colleagueEditBlocked = false;
-    try {
-      // Simulate Colleague B's authenticated session
-      runPsql(`
+    // Test the trigger as database admin with Colleague B's JWT identity.
+    expectSqlRejected(`
         SET request.jwt.claim.sub = '${colleagueUuid}';
         UPDATE clinical_notes SET rendered_markdown = 'Tampered by Bob' WHERE id = '${unsignedNoteUuid}';
-      `);
-    } catch {
-      colleagueEditBlocked = true;
-    }
-    if (!colleagueEditBlocked) throw new Error('Unsigned Note Violation: Colleague B was able to modify Colleague A unsigned note!');
-    console.log('✓ [PASS] Unsigned note protection: Colleague B modifying Colleague A draft note blocked.');
+      `,
+      /Unauthorized: Clinicians can only modify their own unsigned notes/,
+      'Unsigned Note Violation: Colleague B was able to modify Colleague A unsigned note!'
+    );
+    passProbe('Unsigned note trigger protection: Colleague B modifying Colleague A draft note blocked.');
 
     // Probe 4.5: Colleague B attempting to DELETE Colleague A's unsigned note must fail
-    let colleagueDeleteBlocked = false;
-    try {
-      runPsql(`
+    expectSqlRejected(`
         SET request.jwt.claim.sub = '${colleagueUuid}';
         DELETE FROM clinical_notes WHERE id = '${unsignedNoteUuid}';
-      `);
-    } catch {
-      colleagueDeleteBlocked = true;
-    }
-    if (!colleagueDeleteBlocked) throw new Error('Unsigned Note Violation: Colleague B was able to delete Colleague A unsigned note!');
-    console.log('✓ [PASS] Unsigned note deletion guard: Colleague B deleting Colleague A draft note blocked.');
+      `,
+      /Unauthorized: Clinicians can only delete their own unsigned notes/,
+      'Unsigned Note Violation: Colleague B was able to delete Colleague A unsigned note!'
+    );
+    passProbe('Unsigned note deletion trigger: Colleague B deleting Colleague A draft note blocked.');
 
     // Probe 4.6: Author Alice CAN modify her own unsigned note
     runPsql(`
@@ -290,7 +324,7 @@ async function runMigrationPipelineTest() {
     if (!afterAliceUpdate.includes('Legitimate update by Alice')) {
       throw new Error('Author was improperly blocked from updating their own unsigned note!');
     }
-    console.log('✓ [PASS] Author legitimate edit: Alice updating her own draft note succeeds.');
+    passProbe('Author legitimate edit: Alice updating her own draft note succeeds.');
 
     // Probe 5: Colleague Identity Modification & Privileged User Insert Guards
     console.log('\n[Phase 7] Auditing User Modification and Privilege Escalation Guards...');
@@ -304,19 +338,16 @@ async function runMigrationPipelineTest() {
     `);
 
     // Clinician Alice trying to edit Bob's email/name must fail
-    let editColleagueBlocked = false;
-    try {
-      runPsql(`
+    expectSqlRejected(`
         SET ROLE authenticated;
         SET "request.jwt.claim.sub" = '${clinicianUuid}';
         SET "request.jwt.claims" = '{"sub": "${clinicianUuid}", "role": "authenticated", "app_metadata": {"practice_id": "a0000000-0000-0000-0000-000000000001"}}';
         UPDATE users SET email = 'hacked_bob@a.com' WHERE id = '${otherClinicianUuid}';
-      `);
-    } catch {
-      editColleagueBlocked = true;
-    }
-    if (!editColleagueBlocked) throw new Error('RBAC Violation: Clinician was able to edit colleague identity field!');
-    console.log('✓ [PASS] User identity protection: Non-admin editing colleague profile blocked.');
+      `,
+      /Unauthorized: Users can only modify their own profile/,
+      'RBAC Violation: Clinician was able to edit colleague identity field!'
+    );
+    passProbe('User identity protection: Non-admin editing colleague profile blocked.');
 
     // Non-admin trying to INSERT a user with role 'owner' must fail
     const attackerUuid = '99999999-9999-9999-9999-999999999999';
@@ -325,20 +356,17 @@ async function runMigrationPipelineTest() {
         ('${attackerUuid}', 'attacker@a.com');
     `);
 
-    let insertOwnerBlocked = false;
-    try {
-      runPsql(`
+    expectSqlRejected(`
         SET ROLE authenticated;
         SET "request.jwt.claim.sub" = '${clinicianUuid}';
         SET "request.jwt.claims" = '{"sub": "${clinicianUuid}", "role": "authenticated", "app_metadata": {"practice_id": "a0000000-0000-0000-0000-000000000001"}}';
         INSERT INTO users (id, practice_id, email, full_name, role) VALUES
           ('${attackerUuid}', 'a0000000-0000-0000-0000-000000000001', 'attacker@a.com', 'Attacker', 'owner');
-      `);
-    } catch {
-      insertOwnerBlocked = true;
-    }
-    if (!insertOwnerBlocked) throw new Error('RBAC Violation: Non-admin was able to insert a privileged owner user!');
-    console.log('✓ [PASS] User privilege guard: Unauthorized insertion of owner/admin role blocked.');
+      `,
+      /Unauthorized: Only practice administrators can provision privileged user accounts/,
+      'RBAC Violation: Non-admin was able to insert a privileged owner user!'
+    );
+    passProbe('User privilege guard: Unauthorized insertion of owner role blocked.');
 
     // Probe 6: Accrual Idempotency Partial Index (Repeat manual adjustments succeed without zero-UUID collapse)
     console.log('\n[Phase 8] Auditing Accrual Idempotency Partial Indexes...');
@@ -348,29 +376,36 @@ async function runMigrationPipelineTest() {
         ('a0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '2026-10-01', 'Practice Adjustment', 'ADJ', 'Admin Allowance 1', 0, 0, 5000, -5000, 'accrued', 'admin_allowance', 'First allowance', 'admin_allowance'),
         ('a0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '2026-10-01', 'Practice Adjustment', 'ADJ', 'Admin Allowance 2', 0, 0, 3000, -3000, 'accrued', 'admin_allowance', 'Second allowance', 'admin_allowance');
     `);
-    console.log('✓ [PASS] Accrual partial indexes: Multiple manual adjustments for same worker succeed without zero-UUID collision.');
+    passProbe('Accrual partial indexes: Multiple manual adjustments for same worker succeed without zero-UUID collision.');
 
     // Probe 7: TRUNCATE Revocation
     console.log('\n[Phase 9] Auditing TRUNCATE Privilege Revocation...');
-    let truncateBlocked = false;
-    try {
-      runPsql(`
+    const revokedTruncateTables = [
+      'clinical_notes', 'journal_entry_lines', 'journal_entries', 'audit_logs',
+      'payment_reconciliations', 'payroll_runs', 'payroll_run_line_items',
+      'earning_line_items', 'users', 'clients', 'appointments', 'compensation_plan_versions',
+    ];
+    for (const table of revokedTruncateTables) {
+      if (runPsql(`SELECT has_table_privilege('authenticated', 'public.${table}', 'TRUNCATE');`) !== 'f') {
+        throw new Error(`TRUNCATE privilege was not revoked on public.${table}`);
+      }
+    }
+    expectSqlRejected(`
         SET ROLE authenticated;
         TRUNCATE journal_entry_lines;
-      `);
-    } catch {
-      truncateBlocked = true;
-    }
-    if (!truncateBlocked) throw new Error('Security Violation: authenticated role was able to TRUNCATE journal_entry_lines!');
-    console.log('✓ [PASS] TRUNCATE permission revoked: authenticated role cannot TRUNCATE domain tables.');
+      `,
+      /permission denied for table journal_entry_lines/,
+      'Security Violation: authenticated role was able to TRUNCATE journal_entry_lines!'
+    );
+    passProbe(`TRUNCATE denied by privilege: authenticated lacks TRUNCATE on all ${revokedTruncateTables.length} explicitly protected tables.`);
 
     console.log('\n====================================================================');
-    console.log('✓ ALL DATABASE MIGRATION & RLS AUDIT TESTS PASSED (100% SUCCESS)');
+    console.log(`✓ ALL ${passedProbes} DATABASE MIGRATION & RLS BEHAVIORAL PROBES PASSED`);
     console.log('====================================================================');
   } finally {
     // 7. Teardown test database
     try {
-      execSync(`dropdb --if-exists ${DB_NAME}`);
+      execFileSync('dropdb', ['--if-exists', DB_NAME]);
       console.log(`Cleaned up test database: ${DB_NAME}`);
     } catch {}
   }

@@ -131,9 +131,9 @@ export const DashboardHome: React.FC = () => {
       name: 'Clinical AI Scribe v2',
       path: '/dashboard/scribe',
       icon: Mic,
-      badge: 'Acoustic Ready',
+      badge: 'Browser Speech',
       badgeClass: 'bg-purple-100 text-purple-800 border-purple-200',
-      description: 'Ambient dual-speaker transcription, real-time waveform, and automated SOAP notes.',
+      description: 'Browser speech, manual/demo speaker labels, waveforms and structured note templates.',
       stats: '42 Encounters Transcribed • 6 Templates',
       actionLabel: 'Launch Scribe Recording',
     },
@@ -301,7 +301,7 @@ export const DashboardHome: React.FC = () => {
               <span className="text-xs text-slate-400">Claims Submitted</span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              CMS-1500 EDI 837 batches generated with 0 validation rejections.
+              Synthetic billing events shown for workflow evaluation; no clearinghouse acceptance verified.
             </p>
             <NavLink to="/dashboard/billing" className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-blue-400 hover:text-blue-300">
               Open Claims Ledger <ChevronRight className="w-3 h-3" />
@@ -472,7 +472,7 @@ export const DashboardHome: React.FC = () => {
           >
             <Building2 className="w-4 h-4 text-emerald-400 mx-auto mb-1 group-hover:scale-110 transition-transform" />
             <div className="text-xs font-bold text-white">TheraFlow Money</div>
-            <div className="text-[10px] text-slate-400">Embedded BaaS &amp; Recon</div>
+            <div className="text-[10px] text-slate-400">Treasury Sandbox &amp; Recon</div>
           </NavLink>
         </div>
       </div>
@@ -494,7 +494,7 @@ export const DashboardHome: React.FC = () => {
               <Sparkles className="h-5 w-5 text-amber-400 shrink-0" />
             </h2>
             <p className="text-xs sm:text-sm text-indigo-100/80 leading-relaxed">
-              Experience the complete behavioral health operating system: Clinical EHR, Ambient AI Scribe v2, Aura Assistant, PHI Redaction, Workforce Rosters, Clinician Compensation Rules, Payroll Orchestration, and BaaS Embedded Banking.
+              Experience the complete behavioral health operating system: Clinical EHR, Ambient AI Scribe v2, Aura Assistant, PHI Redaction, Workforce Rosters, Clinician Compensation Rules, Payroll Orchestration, and Sandbox Treasury.
             </p>
             <div className="pt-1 flex items-center gap-2 text-[11px] text-amber-200/90 bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-lg">
               <span className="font-bold text-amber-400 uppercase text-[10px] tracking-wider">⚠️ Synthetic Data Only:</span>
@@ -790,7 +790,7 @@ export const DashboardHome: React.FC = () => {
             <div className="space-y-3 relative text-xs">
               {[
                 { step: '1', title: 'Clinical Note & CPT', desc: 'Therapist signs SOAP note with CPT 90837 ($150).' },
-                { step: '2', title: 'Claim / Patient Charge', desc: 'Electronic 837 claim submitted or client card billed.' },
+                { step: '2', title: 'Claim / Patient Charge', desc: 'Synthetic claim or payment event recorded.' },
                 { step: '3', title: 'Bank Deposit & ERA Match', desc: 'Insurance remit or card settlement reconciled to checking.' },
                 { step: '4', title: 'Compensation Engine', desc: 'Rules apply (60% split = $90 payable to clinician).' },
                 { step: '5', title: 'Payroll Run & Direct Deposit', desc: '$90 aggregated into Oct 1–15 payroll batch for Gusto/ADP.' }

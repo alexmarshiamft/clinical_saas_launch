@@ -262,13 +262,13 @@ export const OnboardingWizard: React.FC = () => {
           <div className="space-y-4 animate-in fade-in">
             <div>
               <h2 className="text-xl font-black text-white">Step 5 — Billing Model</h2>
-              <p className="text-xs text-slate-400 mt-1">TheraFlow handles both insurance claims (CMS-1500 / 837P) and private-pay card charges.</p>
+              <p className="text-xs text-slate-400 mt-1">TheraFlow demonstrates superbill reimbursement statements and simulated private-pay workflows.</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-400/30 text-xs space-y-2">
               <span className="font-extrabold text-indigo-300 block text-sm">Hybrid Insurance &amp; Cash Practice Enabled</span>
               <p className="text-slate-300 leading-relaxed">
-                TheraFlow auto-populates CMS-1500 claims from signed clinical notes and processes patient card payments on file.
+                TheraFlow formats superbill statements from clinical inputs. Claim transmission and live card payment processing require integration.
               </p>
             </div>
           </div>
